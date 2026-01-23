@@ -1,0 +1,2037 @@
+type: collection.insomnia.rest/5.0
+schema_version: "5.1"
+name: CSC-FOCUS-API
+meta:
+  id: wrk_e6a4c1dbd7ee4a068cae82d759ddb4ac
+  created: 1767665229509
+  modified: 1767665229509
+  description: ""
+collection:
+  - name: AllApp
+    meta:
+      id: fld_db9d491bd6b44d5687953e9aa1c54994
+      created: 1762743865068
+      modified: 1762743865068
+      sortKey: -1762743865068
+      description: ""
+    children:
+      - url: http://localhost:8070/api/allApp/getAllApp
+        name: getAllApp
+        meta:
+          id: req_53447e5e2fc048a8a0f37ed518c377cf
+          created: 1762743871745
+          modified: 1762920481240
+          isPrivate: false
+          description: ""
+          sortKey: -1762743871745
+        method: GET
+        parameters:
+          - name: page
+            value: "1"
+            description: ""
+            disabled: false
+          - name: limit
+            value: "10"
+            description: ""
+            disabled: false
+          - name: search
+            value: ""
+            description: ""
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        authentication:
+          type: bearer
+          token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjI5MjA0NDUsImV4cCI6MTc2Mjk0OTI0NX0.FYngiSEFCGe_k0e2hv9TZHnItV3qh_Jaw-TQEmNGLXQ
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: http://localhost:8070/api/allApp/newallApp
+        name: newallApp
+        meta:
+          id: req_baac949ceb2444b8bda768c6ded4b6b8
+          created: 1762744715338
+          modified: 1762911156345
+          isPrivate: false
+          description: ""
+          sortKey: -1762580883765.5
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+            	"appname":"ສະເໜີລາຄາຄ້າຊ່ວງ - ໂຄງການ 3",
+            	"applink":"http://183.182.102.85/AMLTE/",
+            	"moreinfo":"ລວມທັງ 3 ສາຂາ"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/12.0.0
+        authentication:
+          type: bearer
+          token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjI5MTAyMDcsImV4cCI6MTc2MjkzOTAwN30.o3INRZZ5i3bhiESgD6NS_e1NYNQJSQ536HyYk3ydYts
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: Users
+    meta:
+      id: fld_2274294594d34e918892e6dfb0f70e09
+      created: 1762756213754
+      modified: 1762921039201
+      sortKey: -1762756213754
+      description: ""
+    children:
+      - url: "{{ _['CSC-FOCUS-API-SERVER'] }}/api/users/getAllUser"
+        name: getAllUser
+        meta:
+          id: req_cd98277e6a494a42bf7b2ef5ffb879d2
+          created: 1762756237323
+          modified: 1768898212319
+          isPrivate: false
+          description: ""
+          sortKey: -1762756232295
+        method: GET
+        body:
+          mimeType: application/json
+          text: ""
+        parameters:
+          - name: page
+            value: "1"
+            disabled: false
+          - name: limit
+            value: "10"
+            description: ""
+            disabled: false
+          - name: search
+            value: ""
+            description: ""
+            disabled: false
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/12.0.0
+        authentication:
+          type: bearer
+          token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2lkIjo5NCwiaWQiOiIxMTExOTgiLCJuYW1lIjoi4LqX4LuJ4Lqy4LqnIOC6hOC6s-C6l-C6tOC6lCDguqLgu4jgurLguofgu4DguqLgurHgu4nguofgup7gurvgu4nguqciLCJpYXQiOjE3Njg4ODk0MDAsImV4cCI6MTc2ODkxODIwMH0.gNE3hFd5-O_axo0udczORFLy-duoJReBsi2s4xvTCjc
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _['CSC-FOCUS-API-SERVER'] }}/api/users/newUsers"
+        name: newUsers
+        meta:
+          id: req_8129bda7cefb42c6bc84b8f3e5328fbd
+          created: 1762756743526
+          modified: 1768534882398
+          isPrivate: false
+          description: ""
+          sortKey: -1762750052020
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+            	"usercode":"111d1982",
+            	"pwds":"operator@1232",
+            	"username":"Khamthit",
+            	"shortname":"Tddhit",
+            	"gendername":"ຊາຍ",
+            	"departmentid":0,
+            	"groupappdetailid":0,
+            	"positionid":0,
+            	"createby": "Khamthit",
+            	"ipaddress": "192.168.3.35",
+            	"branch": 0
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/12.0.0
+        authentication:
+          type: bearer
+          token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2lkIjo5NCwiaWQiOiIxMTExOTgiLCJuYW1lIjoi4LqX4LuJ4Lqy4LqnIOC6hOC6s-C6l-C6tOC6lCDguqLgu4jgurLguofgu4DguqLgurHgu4nguofgup7gurvgu4nguqciLCJpYXQiOjE3Njg1MzQ4NDIsImV4cCI6MTc2ODU2MzY0Mn0.Z6Fo62eYLs0bSwlg67pEAdxfryNJC3Dwx-yrcQtAGV8
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _['CSC-FOCUS-API-SERVER'] }}/api/users/loginUser"
+        name: loginUser
+        meta:
+          id: req_82328fab43cc4004981c790496c880b6
+          created: 1762757873024
+          modified: 1768898244432
+          isPrivate: false
+          description: ""
+          sortKey: -1762746961882.5
+        method: POST
+        body:
+          mimeType: application/json
+          text: |
+            {
+            	"usercode":"111198",
+            	"pwds":"111198"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: http://30.30.30.222:8070/api/users/updatePwds
+        name: updatePwds
+        meta:
+          id: req_449a86ff67f2474e939b847ffa2369fd
+          created: 1762759110531
+          modified: 1768890046583
+          isPrivate: false
+          description: ""
+          sortKey: -1762745416813.75
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+            	"usercode":"111198",
+            		"pwds":"111198"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: http://localhost:8070/api/users/updategroupappusers
+        name: updategroupappusers
+        meta:
+          id: req_7b141533b53d4de6aea102ff85e7ccbb
+          created: 1762933894578
+          modified: 1762934240782
+          isPrivate: false
+          description: ""
+          sortKey: -1762744644279.375
+        method: PUT
+        body:
+          mimeType: application/json
+          text: |-
+            {
+            	"gid":1,
+            	"userId": 1
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: Group
+    meta:
+      id: fld_c5ada3966cc447cf835704475b2bf554
+      created: 1762921014886
+      modified: 1762921014886
+      sortKey: -1762921014886
+      description: ""
+    children:
+      - name: Groupappdetails
+        meta:
+          id: fld_076c280ef9614897b5eeae026d561e9d
+          created: 1762931409532
+          modified: 1762931409532
+          sortKey: -1762931409532
+          description: ""
+        children:
+          - url: http://localhost:8070/api/groupAppDetails/getAllGroupAppDetails
+            name: getAllGroupAppDetails
+            meta:
+              id: req_52e588f5538e4fc79141f8e841ac1f76
+              created: 1762931481246
+              modified: 1763947657931
+              isPrivate: false
+              description: ""
+              sortKey: -1763016636220
+            method: GET
+            parameters:
+              - name: page
+                value: "1"
+                description: ""
+                disabled: false
+              - name: limit
+                value: "100"
+                description: ""
+                disabled: false
+              - name: search
+                value: ""
+                description: ""
+                disabled: false
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2lkIjoyLCJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjM5NDc1OTksImV4cCI6MTc2Mzk3NjM5OX0.V33kTsJ9J8gVJt-hwsXB-idNk_BAhu5loaz267k02-Y
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8070/api/groupAppDetails/newGroupAppDetails
+            name: newGroupAppDetails
+            meta:
+              id: req_2d29434d835d40e8a1faa2e846c4f8bc
+              created: 1762931639021
+              modified: 1763016644290
+              isPrivate: false
+              description: ""
+              sortKey: -1763016636320
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"gid":1,
+                	"appid": 3
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjI5MjA0NDUsImV4cCI6MTc2Mjk0OTI0NX0.FYngiSEFCGe_k0e2hv9TZHnItV3qh_Jaw-TQEmNGLXQ
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8070/api/groupAppDetails/updateGroupAppDetails
+            name: updateGroupAppDetails
+            meta:
+              id: req_3955015f09a346be9577e901db89ec7c
+              created: 1762932808529
+              modified: 1763016648950
+              isPrivate: false
+              description: ""
+              sortKey: -1763016636420
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"gaid": 1,
+                	"gid":1,
+                	"appid": 4
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjI5MjA0NDUsImV4cCI6MTc2Mjk0OTI0NX0.FYngiSEFCGe_k0e2hv9TZHnItV3qh_Jaw-TQEmNGLXQ
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: GroupApp
+        meta:
+          id: fld_8a95ee860373405f884b17deeb87314d
+          created: 1762931420485
+          modified: 1763016633950
+          sortKey: -1762931420485
+          description: ""
+        children:
+          - url: http://localhost:8070/api/groupApp/getAllGroupApp
+            name: getAllGroupApp
+            meta:
+              id: req_4e95b5ff95f1451db8759ccc2963f42f
+              created: 1762921042627
+              modified: 1764057283938
+              isPrivate: false
+              description: ""
+              sortKey: -1762931425394
+            method: GET
+            parameters:
+              - name: page
+                value: "1"
+                description: ""
+                disabled: false
+              - name: limit
+                value: "100"
+                description: ""
+                disabled: false
+              - name: search
+                value: ""
+                description: ""
+                disabled: false
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2lkIjoyLCJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjQwMzM4MDUsImV4cCI6MTc2NDA2MjYwNX0.C1n1t1eQ1X9BRE-afppxFHYdEuwT53_ymkaxE-ASLIE
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8070/api/groupApp/newGroupApp
+            name: newGroupApp
+            meta:
+              id: req_d98c4d73300c412b8d51b5d6f7811a45
+              created: 1762927864317
+              modified: 1762931425123
+              isPrivate: false
+              description: ""
+              sortKey: -1762931425044
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"groupName":"IT",
+                	"groupInfo":"Information Technology"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjI5MjA0NDUsImV4cCI6MTc2Mjk0OTI0NX0.FYngiSEFCGe_k0e2hv9TZHnItV3qh_Jaw-TQEmNGLXQ
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8070/api/groupApp/updateGroupApp
+            name: updateGroupApp
+            meta:
+              id: req_9facb57edf8043958d3d8f8d49509265
+              created: 1762928692698
+              modified: 1762931427878
+              isPrivate: false
+              description: ""
+              sortKey: -1762931425144
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"gid": 1,
+                	"groupName":"IT",
+                	"groupInfo":"Information Technology"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjI5MjA0NDUsImV4cCI6MTc2Mjk0OTI0NX0.FYngiSEFCGe_k0e2hv9TZHnItV3qh_Jaw-TQEmNGLXQ
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8070/api/groupApp/deleteGroupApp
+            name: deleteGroupApp
+            meta:
+              id: req_95911aa36d4c422d97e92a5cc8487241
+              created: 1762930148648
+              modified: 1762931430278
+              isPrivate: false
+              description: ""
+              sortKey: -1762931425244
+            method: DELETE
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"gid": 1
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjI5MjA0NDUsImV4cCI6MTc2Mjk0OTI0NX0.FYngiSEFCGe_k0e2hv9TZHnItV3qh_Jaw-TQEmNGLXQ
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: DocumentGroup
+        meta:
+          id: fld_6e9a03e0c9a542d986b10c171dea9f11
+          created: 1763097497521
+          modified: 1764057563526
+          sortKey: -1763184178074.5
+          description: ""
+        children:
+          - url: http://localhost:8070/api/documentgroup/getAllDocumentGroup
+            name: getAllDocumentGroup
+            meta:
+              id: req_f1d0c4be114a45ddaa0d21f8b15cb8a8
+              created: 1763097497525
+              modified: 1764223491079
+              isPrivate: false
+              description: ""
+              sortKey: -1762931425394
+            method: GET
+            parameters:
+              - name: page
+                value: "1"
+                description: ""
+                disabled: false
+              - name: limit
+                value: "100"
+                description: ""
+                disabled: false
+              - name: search
+                value: ""
+                description: ""
+                disabled: false
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2lkIjoyLCJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjQyMjM0ODIsImV4cCI6MTc2NDI1MjI4Mn0.wJI-PM6qdb9kAGbNjQYBVn_a6Nm9j07B8pOhcaEVgik
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8070/api/documentgroup/newDocumentGroup
+            name: newDocumentGroup
+            meta:
+              id: req_854618471465498dab1ebab5ddb0643c
+              created: 1763097497528
+              modified: 1764061413435
+              isPrivate: false
+              description: ""
+              sortKey: -1762931425044
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"dctid": 2,
+                	"docgroupname":"ຫົວໜ້າຝ່າຍການເງີນ",
+                	"levelapprove": 4,
+                	"comparing": "Y"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2lkIjoyLCJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjQwMzM4MDUsImV4cCI6MTc2NDA2MjYwNX0.C1n1t1eQ1X9BRE-afppxFHYdEuwT53_ymkaxE-ASLIE
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8070/api/documentgroup/updateDocumentGroup
+            name: updateDocumentGroup
+            meta:
+              id: req_e5005c07cb0342bca59570b10add23fc
+              created: 1763097497531
+              modified: 1764061143642
+              isPrivate: false
+              description: ""
+              sortKey: -1762931425144
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"dcdid":41,
+                	"dctid": 8,
+                	"docgroupname":"ຜູ້ອໍານວຍການxxx",
+                	"levelapprove":5,
+                	"comparing": "N"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2lkIjoyLCJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjQwMzM4MDUsImV4cCI6MTc2NDA2MjYwNX0.C1n1t1eQ1X9BRE-afppxFHYdEuwT53_ymkaxE-ASLIE
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8070/api/documentgroup/deleteDocumentGroup
+            name: deleteGroupApp
+            meta:
+              id: req_80eedb68650e4cba8b05e766046a2ff4
+              created: 1763097497534
+              modified: 1763100673998
+              isPrivate: false
+              description: ""
+              sortKey: -1762931425244
+            method: DELETE
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"dcdid": 1
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjMwODk5MjksImV4cCI6MTc2MzExODcyOX0.BPkYRpK6IzAc2pRt9X_jcMmQdgOVLdJYPpyByaIr8Fw
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8070/api/documentgroup/getDocumentGroupByGroupCategoryID
+            name: getDocumentGroupByGroupCategoryID
+            meta:
+              id: req_adb547b365a745048c8499fb2e649060
+              created: 1763099653464
+              modified: 1763099963838
+              isPrivate: false
+              description: ""
+              sortKey: -1762931425319
+            method: GET
+            parameters:
+              - name: dctid
+                value: "1"
+                description: ""
+                disabled: false
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjMwODk5MjksImV4cCI6MTc2MzExODcyOX0.BPkYRpK6IzAc2pRt9X_jcMmQdgOVLdJYPpyByaIr8Fw
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: DocumentgroupDetails
+        meta:
+          id: fld_59ca7bc48e6840fab1760fa91a3db46c
+          created: 1763436935663
+          modified: 1763437954628
+          sortKey: -1763436935664
+          description: ""
+        children:
+          - url: http://localhost:8070/api/documentgroupdetails/getAllDocumentGroupDetails
+            name: getAllDocumentGroupDetails
+            meta:
+              id: req_5789055b626d40279b52807e84b717e0
+              created: 1763436984328
+              modified: 1764223525030
+              isPrivate: false
+              description: ""
+              sortKey: -1763436994270
+            method: GET
+            parameters:
+              - name: page
+                value: "1"
+                description: ""
+                disabled: false
+              - name: limit
+                value: "100"
+                description: ""
+                disabled: false
+              - name: search
+                value: ""
+                description: ""
+                disabled: false
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2lkIjoyLCJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjQyMjM0ODIsImV4cCI6MTc2NDI1MjI4Mn0.wJI-PM6qdb9kAGbNjQYBVn_a6Nm9j07B8pOhcaEVgik
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8070/api/documentgroupdetails/newDocumentGroupDetails
+            name: newDocumentGroupDetails
+            meta:
+              id: req_f2b3d42949014ae2b81672e9d22d9a9f
+              created: 1763437224077
+              modified: 1764223534649
+              isPrivate: false
+              description: ""
+              sortKey: -1763264198676
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"dcdid":"2",
+                	"userid":"1",
+                	"detailsinfo":"Testing API",
+                	"maxsignmoney":3000000
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2lkIjoyLCJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjQyMjM0ODIsImV4cCI6MTc2NDI1MjI4Mn0.wJI-PM6qdb9kAGbNjQYBVn_a6Nm9j07B8pOhcaEVgik
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8070/api/documentgroupdetails/getDocumentGroupDetailsbyUserId
+            name: getDocumentGroupDetailsbyUserId
+            meta:
+              id: req_a484964536e94831a3d12df05791df95
+              created: 1763437950508
+              modified: 1763458585556
+              isPrivate: false
+              description: ""
+              sortKey: -1763350596473
+            method: GET
+            parameters:
+              - name: userid
+                value: "2"
+                description: ""
+                disabled: false
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjM0MzcwNzcsImV4cCI6MTc2MzQ2NTg3N30.f-0gdKa_JjMQqn0WO9EZ4u7HpbVkaDSXVwvU143Ul8c
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8070/api/documentgroupdetails/updateDocumentGroupDetails
+            name: updateDocumentGroupDetails
+            meta:
+              id: req_636675a8487d491692d30cd371d51408
+              created: 1763457198907
+              modified: 1763457242221
+              isPrivate: false
+              description: ""
+              sortKey: -1763177800879
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"dcgid":1,
+                	"dcdid":"2",
+                	"userid":"1",
+                	"detailsinfo":"Testing API",
+                	"maxsignmoney":3000000
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjM0MzcwNzcsImV4cCI6MTc2MzQ2NTg3N30.f-0gdKa_JjMQqn0WO9EZ4u7HpbVkaDSXVwvU143Ul8c
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8070/api/documentgroupdetails/deleteDocumentGroupDetails
+            name: deleteDocumentGroupDetails
+            meta:
+              id: req_c2abc5311b6d45b9b0f63a9d623503e4
+              created: 1763457275048
+              modified: 1763457288407
+              isPrivate: false
+              description: ""
+              sortKey: -1763134601980.5
+            method: DELETE
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"dcgid":1
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjM0MzcwNzcsImV4cCI6MTc2MzQ2NTg3N30.f-0gdKa_JjMQqn0WO9EZ4u7HpbVkaDSXVwvU143Ul8c
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+  - name: MainData
+    meta:
+      id: fld_952e9e86413f46028d2db3d66c6591c8
+      created: 1762999680917
+      modified: 1762999680917
+      sortKey: -1762999680917
+      description: ""
+    children:
+      - name: Position
+        meta:
+          id: fld_8763184affff420aad627eb5f78245c4
+          created: 1762999718200
+          modified: 1768553977830
+          sortKey: -1762999718200
+          description: ""
+        children:
+          - url: http://localhost:8070/api/position/newPosition
+            name: newPosition
+            meta:
+              id: req_5607e462e13248879766b2daa9061c45
+              created: 1762999797915
+              modified: 1763013299068
+              isPrivate: false
+              description: ""
+              sortKey: -1762999797915
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"positionname":"ເລຂາ",
+                	"moreinfo":""
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjI5OTgwODEsImV4cCI6MTc2MzAyNjg4MX0.ui5PbcaUhy5PFV0o0jiHVqDXYrHcolShwoxUacIIneM
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _['CSC-FOCUS-API-SERVER'] }}/api/position/getAllPosition"
+            name: getAllPosition
+            meta:
+              id: req_3c4f8b61734f422bb291a3b943cb043d
+              created: 1763014107950
+              modified: 1768803820423
+              isPrivate: false
+              description: ""
+              sortKey: -1762965611654.5
+            method: GET
+            body:
+              mimeType: application/json
+              text: ""
+            parameters:
+              - name: page
+                value: "1"
+                description: ""
+                disabled: false
+              - name: limit
+                value: "10"
+                description: ""
+                disabled: false
+              - name: search
+                value: ""
+                description: ""
+                disabled: false
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2lkIjo5NCwiaWQiOiIxMTExOTgiLCJuYW1lIjoi4LqX4LuJ4Lqy4LqnIOC6hOC6s-C6l-C6tOC6lCDguqLgu4jgurLguofgu4DguqLgurHgu4nguofgup7gurvgu4nguqciLCJpYXQiOjE3Njg3OTU1MDMsImV4cCI6MTc2ODgyNDMwM30.sd5ZysSu-WL-_f3dASVF7QZAOMWJXXk9LhdxJ50ooj0
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8070/api/position/updatePosition
+            name: updatePosition
+            meta:
+              id: req_10cbeae9e1b04079bbed76deadba80df
+              created: 1763014647987
+              modified: 1763014697178
+              isPrivate: false
+              description: ""
+              sortKey: -1762982704784.75
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"pid": 1,
+                	"positionname":"ເລຂາ",
+                	"moreinfo":""
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjI5OTgwODEsImV4cCI6MTc2MzAyNjg4MX0.ui5PbcaUhy5PFV0o0jiHVqDXYrHcolShwoxUacIIneM
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8070/api/position/deletePosition
+            name: deletePosition
+            meta:
+              id: req_66b021f9355f44ca864d4b09f3a899c6
+              created: 1763014965270
+              modified: 1763015110748
+              isPrivate: false
+              description: ""
+              sortKey: -1762974158219.625
+            method: DELETE
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"pid": 1
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjI5OTgwODEsImV4cCI6MTc2MzAyNjg4MX0.ui5PbcaUhy5PFV0o0jiHVqDXYrHcolShwoxUacIIneM
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Department
+        meta:
+          id: fld_52a2da12724a4ef1b20914fc6fa2c7ad
+          created: 1762999782357
+          modified: 1768552382536
+          sortKey: -1762999782357
+          description: ""
+        children:
+          - url: http://localhost:8070/api/department/newDepartment
+            name: newDepartment
+            meta:
+              id: req_d15b840df9e44c93b3e1d8d28c19941c
+              created: 1763084349401
+              modified: 1763091405261
+              isPrivate: false
+              description: ""
+              sortKey: -1763091402882
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"bdid": 2,
+                	"departmentname":"ພັດທະນາລະບົບ",
+                	"moreinfo":"Testing"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE1MDM2NCIsIm5hbWUiOiLgupfgu4ngurLguqcg4LuA4Lqe4Lqx4LqU4Lqq4Lqy4LqE4Lqt4LqZIOC7gOC6nuC6seC6lOC6reC6suC6meC6seC6mSIsImlhdCI6MTc2MzA4NDM3MCwiZXhwIjoxNzYzMTEzMTcwfQ.yXab-_8OcUYPnrh3LPbApuAFelsJ4-c1tEO7BDLruVo
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _['CSC-FOCUS-API-SERVER'] }}/api/department/getAllDepartment"
+            name: getAllDepartment
+            meta:
+              id: req_3ea54f552f19442fbf29576ee4c0ee29
+              created: 1763085471058
+              modified: 1768804459525
+              isPrivate: false
+              description: ""
+              sortKey: -1763091402782
+            method: GET
+            body:
+              mimeType: application/json
+              text: ""
+            parameters:
+              - name: page
+                value: "1"
+                description: ""
+                disabled: false
+              - name: limit
+                value: "10"
+                description: ""
+                disabled: false
+              - name: search
+                value: ""
+                description: ""
+                disabled: false
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2lkIjo5NCwiaWQiOiIxMTExOTgiLCJuYW1lIjoi4LqX4LuJ4Lqy4LqnIOC6hOC6s-C6l-C6tOC6lCDguqLgu4jgurLguofgu4DguqLgurHgu4nguofgup7gurvgu4nguqciLCJpYXQiOjE3Njg3OTU1MDMsImV4cCI6MTc2ODgyNDMwM30.sd5ZysSu-WL-_f3dASVF7QZAOMWJXXk9LhdxJ50ooj0
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8070/api/department/updateDepartment
+            name: updateDepartment
+            meta:
+              id: req_94a0709402734c8cb915e95303f0b36c
+              created: 1763085788302
+              modified: 1763091407850
+              isPrivate: false
+              description: ""
+              sortKey: -1763091402982
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"dpid": 1,
+                	"bdid": 2,
+                	"departmentname":"ພັດທະນາລະບົບ",
+                	"moreinfo":""
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE1MDM2NCIsIm5hbWUiOiLgupfgu4ngurLguqcg4LuA4Lqe4Lqx4LqU4Lqq4Lqy4LqE4Lqt4LqZIOC7gOC6nuC6seC6lOC6reC6suC6meC6seC6mSIsImlhdCI6MTc2MzA4NDM3MCwiZXhwIjoxNzYzMTEzMTcwfQ.yXab-_8OcUYPnrh3LPbApuAFelsJ4-c1tEO7BDLruVo
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8070/api/department/deleteDepartment
+            name: deleteDepartment
+            meta:
+              id: req_e461602562ab499bbeb5a9d69e7b536d
+              created: 1763086106679
+              modified: 1763091410170
+              isPrivate: false
+              description: ""
+              sortKey: -1763091403082
+            method: DELETE
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"dpid": 1
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE1MDM2NCIsIm5hbWUiOiLgupfgu4ngurLguqcg4LuA4Lqe4Lqx4LqU4Lqq4Lqy4LqE4Lqt4LqZIOC7gOC6nuC6seC6lOC6reC6suC6meC6seC6mSIsImlhdCI6MTc2MzA4NDM3MCwiZXhwIjoxNzYzMTEzMTcwfQ.yXab-_8OcUYPnrh3LPbApuAFelsJ4-c1tEO7BDLruVo
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Branch
+        meta:
+          id: fld_52b365c14c9c4bdeac50abade13b7394
+          created: 1763016587355
+          modified: 1768544386330
+          sortKey: -1763016587355
+          description: ""
+        children:
+          - url: "{{ _['CSC-FOCUS-API-SERVER'] }}/api/branch/newBranch"
+            name: newBranch
+            meta:
+              id: req_c4597f0e687445f281e5c5d567a17110
+              created: 1763016614308
+              modified: 1768961048800
+              isPrivate: false
+              description: ""
+              sortKey: -1763016618953
+            method: POST
+            body:
+              mimeType: application/json
+              text: >-
+                {
+                	"branchname":"CSC ສາຂາ ປາກกຊ່ອງ",
+                	"phone":"CSC ສາຂາ ນະຄອນຫຼວງວຽງຈັນ ໂຊກໃຫ່ຍ 450ປິCSC ສາຂາ ນະຄອນຫຼວງວຽງຈັນ ໂຊກໃຫ່ຍ 450ປິ",
+                	"fax": "CSC ສາຂາ ນະຄອນຫຼວງວຽງຈັນ ໂຊກໃຫ່ຍ 450ປິCSC ສາຂາ ນະຄອນຫຼວງວຽງຈັນ ໂຊກໃຫ່ຍ 450ປິ",
+                	"moreinfo": "CSC ສາຂາ ນະຄອນຫຼວງວຽງຈັນ ໂຊກໃຫ່ຍ 450ປິCSC ສາຂາ ນະຄອນຫຼວງວຽງຈັນ ໂຊກໃຫ່ຍ 450ປິ"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2lkIjo5NCwiaWQiOiIxMTExOTgiLCJuYW1lIjoi4LqX4LuJ4Lqy4LqnIOC6hOC6s-C6l-C6tOC6lCDguqLgu4jgurLguofgu4DguqLgurHgu4nguofgup7gurvgu4nguqciLCJpYXQiOjE3Njg4OTgyNDUsImV4cCI6MTc2ODkyNzA0NX0.gV_37Tpxc6C-LCbz8w0o6T_KwKxAIV3EX7_Do6-HlhA
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _['CSC-FOCUS-API-SERVER'] }}/api/branch/getAllBranch"
+            name: getAllBranch
+            meta:
+              id: req_cbca135c49564bf89c91cc1e1d5633ad
+              created: 1763016786776
+              modified: 1768981503866
+              isPrivate: false
+              description: ""
+              sortKey: -1763008208434
+            method: GET
+            body:
+              mimeType: application/json
+              text: ""
+            parameters:
+              - name: page
+                value: "1"
+                description: ""
+                disabled: false
+              - name: limit
+                value: "10"
+                description: ""
+                disabled: false
+              - name: search
+                value: ""
+                description: ""
+                disabled: false
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2lkIjo5NCwiaWQiOiIxMTExOTgiLCJuYW1lIjoi4LqX4LuJ4Lqy4LqnIOC6hOC6s-C6l-C6tOC6lCDguqLgu4jgurLguofgu4DguqLgurHgu4nguofgup7gurvgu4nguqciLCJpYXQiOjE3Njg5Nzk5MDIsImV4cCI6MTc2OTAwODcwMn0.nVF-dMehlPYkVsr0YI_w1QGw0Pa1cO1u291IpVOjoqs
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _['CSC-FOCUS-API-SERVER'] }}/api/branch/updateBranch"
+            name: updateBranch
+            meta:
+              id: req_81e17eb532454afc8ea3410f99bc0f86
+              created: 1763017266873
+              modified: 1769140769311
+              isPrivate: false
+              description: ""
+              sortKey: -1763012413693.5
+            method: PUT
+            body:
+              mimeType: application/json
+              text: >-
+                {
+                	"brid":7,
+                	"branchname":"CSC ສໍານັງານໃຫ່ຍ ນະຄອນຫຼວງວຽງຈັນ",
+                	"phone":"55ff5ff55dd",
+                	"fax": "fffff",
+                	"moreinfo": "ບ້ານໂຊກໃຫ່ຍ ເມືອງໄຊເສດຖາ ນະຄອນຫຼວງວຽງຈັນ, ຖະໜົນ 450 ປີ."
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2lkIjo5NCwiaWQiOiIxMTExOTgiLCJuYW1lIjoi4LqX4LuJ4Lqy4LqnIOC6hOC6s-C6l-C6tOC6lCDguqLgu4jgurLguofgu4DguqLgurHgu4nguofgup7gurvgu4nguqciLCJpYXQiOjE3NjkxMzI1NTIsImV4cCI6MTc2OTE2MTM1Mn0.rv6EQvjj9E69M93uITJFH37_iRXSrL6qO6853AN14gI
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _['CSC-FOCUS-API-SERVER'] }}/api/branch/deleteBranch"
+            name: deleteBranch
+            meta:
+              id: req_461f3be504bb49d6b020a765cba8403c
+              created: 1763018042821
+              modified: 1768979924169
+              isPrivate: false
+              description: ""
+              sortKey: -1763010311063.75
+            method: DELETE
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"brid":9
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2lkIjo5NCwiaWQiOiIxMTExOTgiLCJuYW1lIjoi4LqX4LuJ4Lqy4LqnIOC6hOC6s-C6l-C6tOC6lCDguqLgu4jgurLguofgu4DguqLgurHgu4nguofgup7gurvgu4nguqciLCJpYXQiOjE3Njg5Nzk5MDIsImV4cCI6MTc2OTAwODcwMn0.nVF-dMehlPYkVsr0YI_w1QGw0Pa1cO1u291IpVOjoqs
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Board
+        meta:
+          id: fld_39f78dac42ce4a4c97c4ab93681d7974
+          created: 1763021786663
+          modified: 1768552752769
+          sortKey: -1763008184856
+          description: ""
+        children:
+          - url: "{{ _['CSC-FOCUS-API-SERVER'] }}/api/board/newBoard"
+            name: newBoard
+            meta:
+              id: req_d3e25ea0b941441ca563fc3320564646
+              created: 1763021786665
+              modified: 1769149339014
+              isPrivate: false
+              description: ""
+              sortKey: -1763016618953
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"boardname":"ຝ່າຍພັດທະນາกกกທຸລະກິດ",
+                	"moreinfo":""
+                }ดปห	
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2lkIjo5NCwiaWQiOiIxMTExOTgiLCJuYW1lIjoi4LqX4LuJ4Lqy4LqnIOC6hOC6s-C6l-C6tOC6lCDguqLgu4jgurLguofgu4DguqLgurHgu4nguofgup7gurvgu4nguqciLCJpYXQiOjE3NjkxMzI1NTIsImV4cCI6MTc2OTE2MTM1Mn0.rv6EQvjj9E69M93uITJFH37_iRXSrL6qO6853AN14gI
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _['CSC-FOCUS-API-SERVER'] }}/api/board/getAllBoard"
+            name: getAllBoard
+            meta:
+              id: req_ee5fd988bf97410d959a9d0801dfcc2f
+              created: 1763021786667
+              modified: 1768795563210
+              isPrivate: false
+              description: ""
+              sortKey: -1763008208434
+            method: GET
+            body:
+              mimeType: multipart/form-data
+            parameters:
+              - name: page
+                value: "1"
+                description: ""
+                disabled: false
+              - name: limit
+                value: "20"
+                description: ""
+                disabled: false
+              - name: search
+                value: ""
+                description: ""
+                disabled: false
+            headers:
+              - name: Content-Type
+                value: multipart/form-data
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2lkIjo5NCwiaWQiOiIxMTExOTgiLCJuYW1lIjoi4LqX4LuJ4Lqy4LqnIOC6hOC6s-C6l-C6tOC6lCDguqLgu4jgurLguofgu4DguqLgurHgu4nguofgup7gurvgu4nguqciLCJpYXQiOjE3Njg3OTU1MDMsImV4cCI6MTc2ODgyNDMwM30.sd5ZysSu-WL-_f3dASVF7QZAOMWJXXk9LhdxJ50ooj0
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8070/api/board/updateBoard
+            name: updateBoard
+            meta:
+              id: req_376d4b0498254dabaa986410c81ab142
+              created: 1763021786686
+              modified: 1763523976193
+              isPrivate: false
+              description: ""
+              sortKey: -1763012413693.5
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"bdid":3,
+                	"boardname":"IT"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjM1MjM5MzgsImV4cCI6MTc2MzU1MjczOH0.6rU-xAz26vzAdnM0219IJzoVpyBVI6pECP-rAPF4QGg
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8070/api/board/deleteBoard
+            name: deleteBoard
+            meta:
+              id: req_b8aef4604e82416f8a512714dceb2c20
+              created: 1763021786688
+              modified: 1763024048105
+              isPrivate: false
+              description: ""
+              sortKey: -1763010311063.75
+            method: DELETE
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"bdid":1
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjI5OTgwODEsImV4cCI6MTc2MzAyNjg4MX0.ui5PbcaUhy5PFV0o0jiHVqDXYrHcolShwoxUacIIneM
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+  - name: Category
+    meta:
+      id: fld_0cda6f87f1984322aa5a6df93b694222
+      created: 1763089985303
+      modified: 1763089985303
+      sortKey: -1762838614320
+      description: ""
+    children:
+      - name: DocumentCategory
+        meta:
+          id: fld_317266245267457898339f4c2bbef935
+          created: 1763089985311
+          modified: 1768875259889
+          sortKey: -1762931420485
+          description: ""
+        children:
+          - url: "{{ _['CSC-FOCUS-API-SERVER'] }}/api/doccategory/getalldocumentcategory"
+            name: getalldocumentcategory
+            meta:
+              id: req_1901e79405a745f38266f1d1d85d9c2f
+              created: 1763089985312
+              modified: 1768807517531
+              isPrivate: false
+              description: ""
+              sortKey: -1762931425394
+            method: GET
+            parameters:
+              - name: page
+                value: "1"
+                description: ""
+                disabled: false
+              - name: limit
+                value: "100"
+                description: ""
+                disabled: false
+              - name: search
+                value: ""
+                description: ""
+                disabled: false
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2lkIjo5NCwiaWQiOiIxMTExOTgiLCJuYW1lIjoi4LqX4LuJ4Lqy4LqnIOC6hOC6s-C6l-C6tOC6lCDguqLgu4jgurLguofgu4DguqLgurHgu4nguofgup7gurvgu4nguqciLCJpYXQiOjE3Njg3OTU1MDMsImV4cCI6MTc2ODgyNDMwM30.sd5ZysSu-WL-_f3dASVF7QZAOMWJXXk9LhdxJ50ooj0
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8070/api/doccategory/newdocumentcategory
+            name: newGroupApp
+            meta:
+              id: req_47eebccf09fa448daa70ef6e3da33af9
+              created: 1763089985314
+              modified: 1764035570578
+              isPrivate: false
+              description: ""
+              sortKey: -1762931425044
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"doccategoryname":"ໜັງສືສະເໜີ ສ້ອມແປງ/ຕໍ່ເຕີມຕືກ - ອາຄານ",
+                	"moreinfo":"ສໍາລັບ ໜັງສືສະເໜີ ສ້ອມແປງ/ຕໍ່ເຕີມຕືກ - ອາຄານ"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2lkIjoyLCJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjQwMzM4MDUsImV4cCI6MTc2NDA2MjYwNX0.C1n1t1eQ1X9BRE-afppxFHYdEuwT53_ymkaxE-ASLIE
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8070/api/doccategory/updatedocumentcategory
+            name: updateGroupApp
+            meta:
+              id: req_40e7c13dfd4147bdb0370e78771d2960
+              created: 1763089985315
+              modified: 1763091681070
+              isPrivate: false
+              description: ""
+              sortKey: -1762931425144
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"dctid": 1,
+                	"doccategoryname":"ໃບສະເໜີ",
+                	"moreinfo":"ສໍາລັບ ຮ່າງໃບສະເໜີ"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjMwODk5MjksImV4cCI6MTc2MzExODcyOX0.BPkYRpK6IzAc2pRt9X_jcMmQdgOVLdJYPpyByaIr8Fw
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8070/api/doccategory/deletedocumentcategory
+            name: deleteGroupApp
+            meta:
+              id: req_b3c99443380c4f508a767097c568b827
+              created: 1763089985317
+              modified: 1763091788990
+              isPrivate: false
+              description: ""
+              sortKey: -1762931425244
+            method: DELETE
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"dctid": 1
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjMwODk5MjksImV4cCI6MTc2MzExODcyOX0.BPkYRpK6IzAc2pRt9X_jcMmQdgOVLdJYPpyByaIr8Fw
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+  - name: Request
+    meta:
+      id: fld_7f8bf0e145114c66a39f2a24ff1bf2f7
+      created: 1763618431803
+      modified: 1763618431803
+      sortKey: -1763618431803
+      description: ""
+    children:
+      - name: Documents
+        meta:
+          id: fld_32fbbd076cc44908807a45c446411e8d
+          created: 1763618447063
+          modified: 1768788235761
+          sortKey: -1763618447063
+          description: ""
+        children:
+          - url: "{{ _['CSC-FOCUS-API-SERVER'] }}/api/requestdocument/getrequestdocumentAll"
+            name: getrequestdocumentAll
+            meta:
+              id: req_dde7b9f0783f432ca335848dc42dda9d
+              created: 1763618459757
+              modified: 1768889409788
+              isPrivate: false
+              description: ""
+              sortKey: -1763618459757
+            method: GET
+            parameters:
+              - name: page
+                value: "1"
+                description: ""
+                disabled: false
+              - name: limit
+                value: "10"
+                description: ""
+                disabled: false
+              - name: search
+                value: ""
+                description: ""
+                disabled: false
+            headers:
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2lkIjo5NCwiaWQiOiIxMTExOTgiLCJuYW1lIjoi4LqX4LuJ4Lqy4LqnIOC6hOC6s-C6l-C6tOC6lCDguqLgu4jgurLguofgu4DguqLgurHgu4nguofgup7gurvgu4nguqciLCJpYXQiOjE3Njg4ODk0MDAsImV4cCI6MTc2ODkxODIwMH0.gNE3hFd5-O_axo0udczORFLy-duoJReBsi2s4xvTCjc
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8070/api/requestdocument/newrequestdocument
+            name: newrequestdocument
+            meta:
+              id: req_4af1f460cc194b3bad29fbc3f14a960f
+              created: 1763623600382
+              modified: 1764033837106
+              isPrivate: false
+              description: ""
+              sortKey: -1763610843705
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                  "doccategoryid": 1,
+                  "req_user": 2,
+                  "req_to": "Director 3",
+                  "req_reason": "Request approval 3",
+                  "branchid": 1,
+                  "departmentid": 2,
+                  "boardId": 3,
+                	"totalmoney": 3500000
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2lkIjoyLCJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjQwMzM4MDUsImV4cCI6MTc2NDA2MjYwNX0.C1n1t1eQ1X9BRE-afppxFHYdEuwT53_ymkaxE-ASLIE
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8070/api/requestdocument/getrequestdocumentAll
+            name: getrequestdocumentByDocumentIds
+            meta:
+              id: req_7ae265d15e864c0e976377be7fce88a8
+              created: 1763692402193
+              modified: 1768793633979
+              isPrivate: false
+              description: ""
+              sortKey: -1763614651731
+            method: GET
+            parameters:
+              - name: rqdid
+                value: "1"
+                description: ""
+                disabled: false
+            headers:
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjM2OTE4MzYsImV4cCI6MTc2MzcyMDYzNn0.9jVti3LHrF-w5WXjBzPU6W2MzBHnpisX_4YxgmmSS9E
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8070/api/requestdocument/getrequestdocumentByUserId
+            name: getrequestdocumentByUserId
+            meta:
+              id: req_d1aadf3b396b4ff0ada9ddaf738c3e7f
+              created: 1763692567607
+              modified: 1763950626509
+              isPrivate: false
+              description: ""
+              sortKey: -1763612747718
+            method: GET
+            parameters:
+              - name: page
+                value: "1"
+                description: ""
+                disabled: false
+              - name: limit
+                value: "10"
+                description: ""
+                disabled: false
+              - name: userid
+                value: "2"
+                description: ""
+                disabled: false
+            headers:
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2lkIjoyLCJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjM5NDc1OTksImV4cCI6MTc2Mzk3NjM5OX0.V33kTsJ9J8gVJt-hwsXB-idNk_BAhu5loaz267k02-Y
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8070/api/requestdocument/successfinishedrequestdocument
+            name: successfinishedrequestdocument
+            meta:
+              id: req_1f84270cac174a449f3234d22b937a66
+              created: 1763708575382
+              modified: 1764034696819
+              isPrivate: false
+              description: ""
+              sortKey: -1763607035679
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                  "rqdid": 4
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2lkIjoyLCJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjQwMzM4MDUsImV4cCI6MTc2NDA2MjYwNX0.C1n1t1eQ1X9BRE-afppxFHYdEuwT53_ymkaxE-ASLIE
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Helpdesk
+        meta:
+          id: fld_6432a8bfb5734aecbb6fe04d5f562ca8
+          created: 1763618456236
+          modified: 1763618456236
+          sortKey: -1763618456236
+          description: ""
+      - name: DocumentsDetails
+        meta:
+          id: fld_2b494418d6434eff99e5e67199a8214e
+          created: 1763697845433
+          modified: 1763697845433
+          sortKey: -1763618439433
+          description: ""
+        children:
+          - url: http://localhost:8070/api/requestdocumentdetails/getrequestdocumentdetailsByDocumentId
+            name: getrequestdocumentAll
+            meta:
+              id: req_5a489f864e5f4203a3b541004dce2b42
+              created: 1763697845435
+              modified: 1763697959443
+              isPrivate: false
+              description: ""
+              sortKey: -1763618459757
+            method: GET
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"documentId":"1"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjM2OTE4MzYsImV4cCI6MTc2MzcyMDYzNn0.9jVti3LHrF-w5WXjBzPU6W2MzBHnpisX_4YxgmmSS9E
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8070/api/requestdocumentdetails/newrequestdocumentdetails
+            name: newrequestdocumentdetails
+            meta:
+              id: req_1e7436a21d8a4dfe9163094227d579c7
+              created: 1763709854708
+              modified: 1764034676925
+              isPrivate: false
+              description: ""
+              sortKey: -1763616555744
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"rqdid":"4",
+                	"req_subtitle":"Testing subtitle approve 4",
+                	"req_title":"Testing title approve 4",
+                	"req_moreinfo":"Testing moreinfo approve 4."
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2lkIjoyLCJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjQwMzM4MDUsImV4cCI6MTc2NDA2MjYwNX0.C1n1t1eQ1X9BRE-afppxFHYdEuwT53_ymkaxE-ASLIE
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8070/api/requestdocumentdetails/deleterequestdocumentdetails
+            name: deleterequestdocumentdetails
+            meta:
+              id: req_65177e542c174b57ae76d92892e31fb9
+              created: 1763710119041
+              modified: 1763713684814
+              isPrivate: false
+              description: ""
+              sortKey: -1763615603737.5
+            method: DELETE
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"rddid":"5"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjM2OTE4MzYsImV4cCI6MTc2MzcyMDYzNn0.9jVti3LHrF-w5WXjBzPU6W2MzBHnpisX_4YxgmmSS9E
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8070/api/requestdocumentdetails/getrequestdocumentdetailsbyUsers
+            name: getrequestdocumentdetailsbyUsers
+            meta:
+              id: req_3e7d81b265824f599f674b447e7f61b1
+              created: 1763710664299
+              modified: 1763949860306
+              isPrivate: false
+              description: ""
+              sortKey: -1763617507750.5
+            method: GET
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"reqUser": 2
+                }
+            parameters:
+              - name: page
+                value: "1"
+                description: ""
+                disabled: false
+              - name: limit
+                value: "10"
+                description: ""
+                disabled: false
+              - name: search
+                value: ""
+                description: ""
+                disabled: false
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2lkIjoyLCJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjM5NDc1OTksImV4cCI6MTc2Mzk3NjM5OX0.V33kTsJ9J8gVJt-hwsXB-idNk_BAhu5loaz267k02-Y
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+  - name: Approval
+    meta:
+      id: fld_3146d4771fcc45dd9871b2dd3bad5a47
+      created: 1763966863415
+      modified: 1763966863415
+      sortKey: -1763966863415
+      description: ""
+    children:
+      - name: ApprovalDocument
+        meta:
+          id: fld_86688100cf044411bbb397c019a5e0ee
+          created: 1763966875328
+          modified: 1768535118833
+          sortKey: -1763966875328
+          description: ""
+        children:
+          - url: http://localhost:8070/api/approvaldocument/displayrequestdocumentapprove
+            name: displayrequestdocumentapprove
+            meta:
+              id: req_0c54dae24c584e86a893dd5ed4a9427f
+              created: 1763966897314
+              modified: 1764033954602
+              isPrivate: false
+              description: ""
+              sortKey: -1763966897314
+            method: GET
+            parameters:
+              - name: page
+                value: "1"
+                description: ""
+                disabled: false
+              - name: limit
+                value: "100"
+                description: ""
+                disabled: false
+            headers:
+              - name: User-Agent
+                value: insomnia/12.0.0
+            authentication:
+              type: bearer
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2lkIjoyLCJpZCI6IjExMTE5ODIiLCJuYW1lIjoiS2hhbXRoaXQiLCJpYXQiOjE3NjQwMzM4MDUsImV4cCI6MTc2NDA2MjYwNX0.C1n1t1eQ1X9BRE-afppxFHYdEuwT53_ymkaxE-ASLIE
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: ApprovalHelpdesk
+        meta:
+          id: fld_e5cc9abc8fa640d08c564a8afc134d54
+          created: 1763966893409
+          modified: 1768528735005
+          sortKey: -1763966893409
+          description: ""
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_a2ebf5131f4045f28b0e079ff4d02197
+    created: 1762743822602
+    modified: 1762743822602
+environments:
+  name: Base Environment
+  meta:
+    id: env_fb67937d544c41f89832122b97824b7f
+    created: 1762743822599
+    modified: 1762936386099
+    isPrivate: false
+  data:
+    CSC-FOCUS-API-LOCAL: http://localhost:8070
+    CSC-FOCUS-API-SERVER: http://30.30.30.222:8070
