@@ -3,7 +3,7 @@ import GenericToolbar from "../components/common/GenericToolbar";
 import GenericDataTable, { Button } from "../components/common/GenericDataTable";
 import BoardFormModal from "../components/boards/BoardFormModal";
 import LoadingDialog from "../components/common/LoadingDialog";
-import { getAllBoards, deleteBoard } from "../services/boardservice";
+import { getAllBoards, deleteBoard, createNewBoard, updateBoard } from "../services/boardservice";
 
 
 export default function BoardPage() {
@@ -105,13 +105,28 @@ export default function BoardPage() {
   const handleSubmitBoard = async (formData) => {
     const isEdit = !!editingBoard;
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      if (isEdit) {
+        // Update existing board
+        await updateBoard({
+          bdid: editingBoard.bdid,
+          ...formData,
+        });
+      } else {
+        // Create new board
+        await createNewBoard(formData);
+      }
 
-    if (isEdit) {
-      console.log("update board", editingBoard.bdid, formData);
-    } else {
-      console.log("create board", formData);
+      // Refresh data after successful create/update
+      const params = { page, limit: pageSize, search: searchText };
+      const data = await getAllBoards(params);
+      setBoards(data);
+
+      // Don't close modal here - let the success dialog show first
+      // Modal will close when user clicks the close button on success dialog
+    } catch (error) {
+      console.error("Failed to submit board:", error);
+      throw error;
     }
   };
 
@@ -168,11 +183,10 @@ export default function BoardPage() {
       align: "left",
       render: (board) => (
         <span
-          className={`px-3 py-1 rounded-full text-xs font-medium ${
-            board.statustype === "ADD"
-              ? "bg-green-100 text-green-800"
-              : "bg-gray-100 text-gray-800"
-          }`}
+          className={`px-3 py-1 rounded-full text-xs font-medium ${board.statustype === "ADD"
+            ? "bg-green-100 text-green-800"
+            : "bg-gray-100 text-gray-800"
+            }`}
         >
           {board.statustype}
         </span>

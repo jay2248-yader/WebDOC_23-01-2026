@@ -1,6 +1,5 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import FormInput from "../common/FormInput";
-import Select from "../common/Select";
 import Button from "../common/Button";
 import ConfirmProgressDialog from "../common/ConfirmProgressDialog";
 
@@ -11,14 +10,9 @@ export default function BoardFormModal({
   board = null,
 }) {
   const [formData, setFormData] = useState({
-    bdid: board?.bdid || "",
-    boardtname: board?.boardtname || "",
+    boardname: board?.boardtname || "",
     moreinfo: board?.moreinfo || "",
-    statustype: board?.statustype || "ADD",
   });
-
-  // ไม่ต้องใช้ useEffect แล้ว เพราะใช้ key prop ใน parent component
-  // Component จะถูก remount ใหม่เมื่อ board เปลี่ยน
 
   const [errors, setErrors] = useState({});
   const [isClosing, setIsClosing] = useState(false);
@@ -28,17 +22,27 @@ export default function BoardFormModal({
   });
 
   // Refs for input fields
-  const boardtnameRef = useRef(null);
+  const boardnameRef = useRef(null);
   const moreinfoRef = useRef(null);
-  const statustypeRef = useRef(null);
+
+  // Reset formData and submitDialog when modal opens or board changes
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        boardname: board?.boardtname || "",
+        moreinfo: board?.moreinfo || "",
+      });
+      setSubmitDialog({ open: false, status: "confirm" });
+      setErrors({});
+    }
+  }, [isOpen, board]);
 
   if (!isOpen && !isClosing) return null;
 
   // Refs object for easy access
   const inputRefs = {
-    boardtname: boardtnameRef,
+    boardname: boardnameRef,
     moreinfo: moreinfoRef,
-    statustype: statustypeRef,
   };
 
   // Handle Enter key to move to next input
@@ -52,11 +56,6 @@ export default function BoardFormModal({
   const handleChange = (field) => (e) => {
     let value = e.target.value;
 
-    // Assuming bdid is numeric ID
-    if (field === "bdid") {
-       value = value.replace(/[^0-9]/g, "");
-    }
-
     setFormData({ ...formData, [field]: value });
 
     if (errors[field]) {
@@ -69,10 +68,8 @@ export default function BoardFormModal({
 
     // Basic validation
     const newErrors = {};
-    if (!formData.bdid) newErrors.bdid = "ກະລຸນາປ້ອນລະຫັດ";
-    if (!formData.boardtname) newErrors.boardtname = "ກະລຸນາປ້ອນຊື່ຄະນະກໍາມະການ";
-    if (!formData.moreinfo) newErrors.moreinfo = "ກະລຸນາປ້ອນລາຍລະອຽດເພີ່ມເຕີມ";
-    
+    if (!formData.boardname) newErrors.boardname = "ກະລຸນາປ້ອນຊື່ຄະນະກໍາມະການ";
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -83,9 +80,16 @@ export default function BoardFormModal({
   };
 
   const handleConfirmSubmit = async () => {
-    setSubmitDialog({ open: true, status: "loading" });
-    await onSubmit(formData);
-    setSubmitDialog({ open: true, status: "success" });
+    try {
+      setSubmitDialog({ open: true, status: "loading" });
+      await onSubmit(formData);
+      setSubmitDialog({ open: true, status: "success" });
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      setSubmitDialog({ open: false, status: "confirm" });
+      // Show error to user
+      alert(error.message || "ເກີດຂໍ້ຜິດພາດໃນການບັນທຶກຂໍ້ມູນ");
+    }
   };
 
   const handleCancelSubmit = () => {
@@ -99,7 +103,6 @@ export default function BoardFormModal({
     setIsClosing(true);
     setTimeout(() => {
       onClose();
-      // Reset form handled by useEffect
       setErrors({});
       setIsClosing(false);
     }, 300);
@@ -118,22 +121,15 @@ export default function BoardFormModal({
     handleClose();
   };
 
-  const statusOptions = [
-    { value: "ADD", label: "ເພີ່ມ" },
-    { value: "INACTIVE", label: "ປິດໃຊ້ງານ" }, 
-  ];
-
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm ${
-        isClosing ? "animate-fadeOut" : "animate-fadeIn"
-      }`}
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm ${isClosing ? "animate-fadeOut" : "animate-fadeIn"
+        }`}
       onClick={handleClose}
     >
       <div
-        className={`bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto ${
-          isClosing ? "animate-slideDown" : "animate-slideUp"
-        }`}
+        className={`bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto ${isClosing ? "animate-slideDown" : "animate-slideUp"
+          }`}
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center border-b border-blue-400 pb-2">
@@ -141,52 +137,38 @@ export default function BoardFormModal({
         </h3>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <FormInput
-            label="ລະຫັດ"
-            theme="light"
-            placeholder="ກະລຸນາປ້ອນລະຫັດ"
-            value={formData.bdid}
-            onChange={handleChange("bdid")}
-            onKeyDown={handleKeyDown("boardtname")}
-            error={errors.bdid}
-            hasError={!!errors.bdid}
-            inputMode="numeric"
-            autoComplete="off"
-            disabled={!!board} // Disable ID on edit if it's a primary key/unique ID
-          />
+          {board && (
+            <FormInput
+              label="ລະຫັດ"
+              theme="light"
+              placeholder="ລະຫັດ"
+              value={board.bdid}
+              onChange={() => { }}
+              disabled={true}
+            />
+          )}
 
           <FormInput
             label="ຊື່ຄະນະກໍາມະການ"
             theme="light"
             placeholder="ກະລຸນາປ້ອນຊື່ຄະນະກໍາມະການ"
-            value={formData.boardtname}
-            onChange={handleChange("boardtname")}
+            value={formData.boardname}
+            onChange={handleChange("boardname")}
             onKeyDown={handleKeyDown("moreinfo")}
-            inputRef={boardtnameRef}
-            error={errors.boardtname}
-            hasError={!!errors.boardtname}
+            inputRef={boardnameRef}
+            error={errors.boardname}
+            hasError={!!errors.boardname}
           />
 
           <FormInput
-            label="ລາຍລະອຽດເພີ່ມເຕີມ"
+            label="ລາຍລະອຽດເພີ່ມເຕີມ (ທາງເລືອກ)"
             theme="light"
             placeholder="ກະລຸນາປ້ອນລາຍລະອຽດ"
             value={formData.moreinfo}
             onChange={handleChange("moreinfo")}
-            onKeyDown={handleKeyDown("statustype")}
             inputRef={moreinfoRef}
             error={errors.moreinfo}
             hasError={!!errors.moreinfo}
-          />
-
-          <Select
-            label="ສະຖານະ"
-            theme="light"
-            value={formData.statustype}
-            onChange={handleChange("statustype")}
-            options={statusOptions}
-            placeholder="ເລືອກສະຖານະ"
-            inputRef={statustypeRef}
           />
 
           <div className="flex justify-end gap-3 pt-4">
@@ -218,8 +200,8 @@ export default function BoardFormModal({
         title={board ? "ຢືນຢັນການແກ້ໄຂ" : "ຢືນຢັນການເພີ່ມ"}
         message={
           board
-            ? `ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການແກ້ໄຂຂໍ້ມູນຄະນະກໍາມະການ "${formData.boardtname}"?`
-            : `ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການເພີ່ມຄະນະກໍາມະການ "${formData.boardtname}"?`
+            ? `ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການແກ້ໄຂຂໍ້ມູນຄະນະກໍາມະການ "${formData.boardname}"?`
+            : `ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການເພີ່ມຄະນະກໍາມະການ "${formData.boardname}"?`
         }
         confirmText={board ? "ແກ້ໄຂ" : "ເພີ່ມ"}
         cancelText="ຍົກເລີກ"

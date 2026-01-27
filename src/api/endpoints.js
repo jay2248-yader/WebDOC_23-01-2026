@@ -19,10 +19,15 @@ export const ENDPOINTS = {
   BOARD: {
     GET_ALL: "/api/board/getAllBoard",
     DELETE: "/api/board/deleteBoard",
+    NEW: "/api/board/newBoard",
+    UPDATE: "/api/board/updateBoard"
   },
 
   DEPARTMENT: {
     GET_ALL: "/api/department/getAllDepartment",
+    DELETE: "/api/department/deleteDepartment",
+    NEW: "/api/department/newDepartment",
+    UPDATE: "/api/department/updateDepartment",
   },
 
   POSITION: {

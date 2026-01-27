@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import FormInput from "../common/FormInput";
 import Select from "../common/Select";
 import Button from "../common/Button";
@@ -18,8 +18,20 @@ export default function DepartmentFormModal({
     statustype: department?.statustype || "ADD",
   });
 
-  // ไม่ต้องใช้ useEffect แล้ว เพราะใช้ key prop ใน parent component
-  // Component จะถูก remount ใหม่เมื่อ department เปลี่ยน
+  // Reset formData and submitDialog when modal opens or department changes
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        dpid: department?.dpid || "",
+        bdid: department?.bdid || "",
+        departmentname: department?.departmentname || "",
+        moreinfo: department?.moreinfo || "",
+        statustype: department?.statustype || "ADD",
+      });
+      setSubmitDialog({ open: false, status: "confirm" });
+      setErrors({});
+    }
+  }, [isOpen, department]);
 
   const [errors, setErrors] = useState({});
   const [isClosing, setIsClosing] = useState(false);
@@ -57,7 +69,7 @@ export default function DepartmentFormModal({
 
     // Assuming dpid and bdid are numeric IDs
     if (field === "dpid" || field === "bdid") {
-       value = value.replace(/[^0-9]/g, "");
+      value = value.replace(/[^0-9]/g, "");
     }
 
     setFormData({ ...formData, [field]: value });
@@ -72,11 +84,12 @@ export default function DepartmentFormModal({
 
     // Basic validation
     const newErrors = {};
-    if (!formData.dpid) newErrors.dpid = "ກະລຸນາປ້ອນລະຫັດພະແນກ";
+    // dpid is only required when editing (department exists)
+    if (department && !formData.dpid) newErrors.dpid = "ກະລຸນາປ້ອນລະຫັດພະແນກ";
     if (!formData.bdid) newErrors.bdid = "ກະລຸນາປ້ອນລະຫັດຄະນະ";
     if (!formData.departmentname) newErrors.departmentname = "ກະລຸນາປ້ອນຊື່ພະແນກ";
-    if (!formData.moreinfo) newErrors.moreinfo = "ກະລຸນາປ້ອນລາຍລະອຽດເພີ່ມເຕີມ";
-    
+    // moreinfo is optional
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -87,9 +100,16 @@ export default function DepartmentFormModal({
   };
 
   const handleConfirmSubmit = async () => {
-    setSubmitDialog({ open: true, status: "loading" });
-    await onSubmit(formData);
-    setSubmitDialog({ open: true, status: "success" });
+    try {
+      setSubmitDialog({ open: true, status: "loading" });
+      await onSubmit(formData);
+      setSubmitDialog({ open: true, status: "success" });
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      setSubmitDialog({ open: false, status: "confirm" });
+      // Show error to user
+      alert(error.message || "ເກີດຂໍ້ຜິດພາດໃນການບັນທຶກຂໍ້ມູນ");
+    }
   };
 
   const handleCancelSubmit = () => {
@@ -124,20 +144,18 @@ export default function DepartmentFormModal({
 
   const statusOptions = [
     { value: "ADD", label: "ເພີ່ມ" },
-    { value: "INACTIVE", label: "ປິດໃຊ້ງານ" }, 
+    { value: "INACTIVE", label: "ປິດໃຊ້ງານ" },
   ];
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm ${
-        isClosing ? "animate-fadeOut" : "animate-fadeIn"
-      }`}
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm ${isClosing ? "animate-fadeOut" : "animate-fadeIn"
+        }`}
       onClick={handleClose}
     >
       <div
-        className={`bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto ${
-          isClosing ? "animate-slideDown" : "animate-slideUp"
-        }`}
+        className={`bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto ${isClosing ? "animate-slideDown" : "animate-slideUp"
+          }`}
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center border-b border-blue-400 pb-2">
@@ -159,7 +177,7 @@ export default function DepartmentFormModal({
             disabled={!!department} // Disable ID on edit if it's a primary key
           />
 
-           <FormInput
+          <FormInput
             label="ລະຫັດຄະນະ"
             theme="light"
             placeholder="ກະລຸນາປ້ອນລະຫັດຄະນະ"

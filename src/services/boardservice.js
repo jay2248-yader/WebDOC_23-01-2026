@@ -25,3 +25,27 @@ export async function deleteBoard(bdid) {
 
   return res.data;
 }
+
+
+//Create
+export async function createNewBoard(payload) {
+  const res = await http.post(ENDPOINTS.BOARD.NEW, payload);
+
+  if (!res.data?.success) {
+    throw new Error(res.data?.message || "Failed to create board");
+  }
+
+  return res.data;
+}
+
+
+//Update
+export async function updateBoard(payload) {
+  const res = await http.put(ENDPOINTS.BOARD.UPDATE, payload);
+
+  if (!res.data?.success) {
+    throw new Error(res.data?.message || "Failed to update board");
+  }
+
+  return res.data;
+}

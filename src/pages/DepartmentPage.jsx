@@ -1,29 +1,10 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import GenericToolbar from "../components/common/GenericToolbar";
 import GenericDataTable, { Button } from "../components/common/GenericDataTable";
 import DepartmentFormModal from "../components/departments/DepartmentFormModal";
 import LoadingDialog from "../components/common/LoadingDialog";
+import { getAllDepartments, deleteDepartment, createNewDepartment, updateDepartment } from "../services/departmentservice";
 
-const departments = [
-  {
-    createdate: "2025-11-27 00:00:00",
-    dpid: 11,
-    bdid: 11,
-    departmentname: "ກວດສອບພາຍໃນ",
-    moreinfo: "",
-    statustype: "ADD",
-    createby: "IT",
-  },
-  {
-    createdate: "2025-11-28 10:00:00",
-    dpid: 12,
-    bdid: 12,
-    departmentname: "ການເງິນ",
-    moreinfo: "ພະແນກການເງິນ",
-    statustype: "ADD",
-    createby: "IT",
-  },
-];
 
 export default function DepartmentPage() {
   const [searchText, setSearchText] = useState("");
@@ -32,9 +13,31 @@ export default function DepartmentPage() {
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [departments, setDepartments] = useState([]);
+  const [loadingData, setLoadingData] = useState(true);
 
   // Reference to the delete handler from GenericDataTable
   const tableRef = useRef(null);
+
+  // Fetch departments on mount
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        setLoadingData(true);
+        const params = { page, limit: pageSize, search: searchText };
+        const data = await getAllDepartments(params);
+        console.log("Departments data received:", data);
+        console.log("Number of departments:", data?.length);
+        setDepartments(data);
+      } catch (error) {
+        console.error("Failed to fetch departments:", error);
+      } finally {
+        setLoadingData(false);
+      }
+    };
+
+    fetchDepartments();
+  }, [page, pageSize, searchText]);
 
   // 1) Filter departments
   const filtered = useMemo(() => {
@@ -44,10 +47,10 @@ export default function DepartmentPage() {
       (d) =>
         d.dpid.toString().includes(lower) ||
         d.departmentname.toLowerCase().includes(lower) ||
-        d.moreinfo.toLowerCase().includes(lower) ||
-        d.createby.toLowerCase().includes(lower)
+        (d.moreinfo && d.moreinfo.toLowerCase().includes(lower)) ||
+        (d.createby && d.createby.toLowerCase().includes(lower))
     );
-  }, [searchText]);
+  }, [searchText, departments]);
 
   // 2) Total pages
   const totalPages = Math.ceil(filtered.length / pageSize) || 1;
@@ -104,20 +107,43 @@ export default function DepartmentPage() {
   const handleSubmitDepartment = async (formData) => {
     const isEdit = !!editingDepartment;
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      if (isEdit) {
+        // Update existing department
+        await updateDepartment({
+          dpid: editingDepartment.dpid,
+          ...formData,
+        });
+      } else {
+        // Create new department
+        await createNewDepartment(formData);
+      }
 
-    if (isEdit) {
-      console.log("update department", editingDepartment.dpid, formData);
-    } else {
-      console.log("create department", formData);
+      // Refresh data after successful create/update
+      const params = { page, limit: pageSize, search: searchText };
+      const data = await getAllDepartments(params);
+      setDepartments(data);
+
+      // Don't close modal here - let the success dialog show first
+      // Modal will close when user clicks the close button on success dialog
+    } catch (error) {
+      console.error("Failed to submit department:", error);
+      throw error;
     }
   };
 
   const handleDeleteDepartment = async (department) => {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    console.log("delete department", department);
+    try {
+      await deleteDepartment(department.dpid);
+
+      // Refresh data after successful deletion
+      const params = { page, limit: pageSize, search: searchText };
+      const data = await getAllDepartments(params);
+      setDepartments(data);
+    } catch (error) {
+      console.error("Failed to delete department:", error);
+      throw error;
+    }
   };
 
   // Define columns configuration
@@ -164,11 +190,10 @@ export default function DepartmentPage() {
       align: "left",
       render: (department) => (
         <span
-          className={`px-3 py-1 rounded-full text-xs font-medium ${
-            department.statustype === "ADD"
-              ? "bg-green-100 text-green-800"
-              : "bg-gray-100 text-gray-800"
-          }`}
+          className={`px-3 py-1 rounded-full text-xs font-medium ${department.statustype === "ADD"
+            ? "bg-green-100 text-green-800"
+            : "bg-gray-100 text-gray-800"
+            }`}
         >
           {department.statustype}
         </span>
@@ -203,6 +228,10 @@ export default function DepartmentPage() {
       ),
     },
   ];
+
+  if (loadingData) {
+    return <LoadingDialog isOpen={true} message="ກຳລັງໂຫຼດຂໍ້ມູນ..." />;
+  }
 
   return (
     <div className="space-y-6">
