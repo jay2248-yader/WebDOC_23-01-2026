@@ -1,6 +1,5 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import FormInput from "../common/FormInput";
-import Select from "../common/Select";
 import Button from "../common/Button";
 import ConfirmProgressDialog from "../common/ConfirmProgressDialog";
 
@@ -13,7 +12,6 @@ export default function DocumentCategoryFormModal({
   const [formData, setFormData] = useState({
     doccategoryname: category?.doccategoryname || "",
     moreinfo: category?.moreinfo || "",
-    statustype: category?.statustype || "ADD",
   });
 
   const [errors, setErrors] = useState({});
@@ -26,7 +24,18 @@ export default function DocumentCategoryFormModal({
   // Refs for input fields
   const nameRef = useRef(null);
   const infoRef = useRef(null);
-  const statusRef = useRef(null);
+
+  // Reset form state when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        doccategoryname: category?.doccategoryname || "",
+        moreinfo: category?.moreinfo || "",
+      });
+      setSubmitDialog({ open: false, status: "confirm" });
+      setErrors({});
+    }
+  }, [isOpen, category]);
 
   if (!isOpen && !isClosing) return null;
 
@@ -34,7 +43,6 @@ export default function DocumentCategoryFormModal({
   const inputRefs = {
     doccategoryname: nameRef,
     moreinfo: infoRef,
-    statustype: statusRef,
   };
 
   // Handle Enter key to move to next input
@@ -71,9 +79,15 @@ export default function DocumentCategoryFormModal({
   };
 
   const handleConfirmSubmit = async () => {
-    setSubmitDialog({ open: true, status: "loading" });
-    await onSubmit(formData);
-    setSubmitDialog({ open: true, status: "success" });
+    try {
+      setSubmitDialog({ open: true, status: "loading" });
+      await onSubmit(formData);
+      setSubmitDialog({ open: true, status: "success" });
+    } catch (error) {
+      console.error("Error submitting document category:", error);
+      alert(error.message || "ເກີດຂໍ້ຜິດພາດໃນການບັນທຶກຂໍ້ມູນ");
+      setSubmitDialog({ open: false, status: "confirm" });
+    }
   };
 
   const handleCancelSubmit = () => {
@@ -91,7 +105,6 @@ export default function DocumentCategoryFormModal({
       setFormData({
         doccategoryname: "",
         moreinfo: "",
-        statustype: "ADD",
       });
       setErrors({});
       setIsClosing(false);
@@ -105,7 +118,6 @@ export default function DocumentCategoryFormModal({
       setFormData({
         doccategoryname: "",
         moreinfo: "",
-        statustype: "ADD",
       });
       setErrors({});
       setIsClosing(false);
@@ -115,11 +127,6 @@ export default function DocumentCategoryFormModal({
   const handleCancel = () => {
     handleClose();
   };
-
-  const statusOptions = [
-    { value: "ADD", label: "ADD - ໃຊ້ງານ" },
-    { value: "DELETE", label: "DELETE - ຍົກເລີກ" },
-  ];
 
   return (
     <div
@@ -139,6 +146,17 @@ export default function DocumentCategoryFormModal({
         </h3>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {category && (
+            <FormInput
+              label="ລະຫັດປະເພດເອກະສານ"
+              theme="light"
+              placeholder="ລະຫັດປະເພດເອກະສານ"
+              value={category.dctid}
+              onChange={() => {}}
+              disabled={true}
+            />
+          )}
+
           <FormInput
             label="ຊື່ປະເພດເອກະສານ"
             theme="light"
@@ -157,20 +175,9 @@ export default function DocumentCategoryFormModal({
             placeholder="ກະລຸນາປ້ອນລາຍລະອຽດເພີ່ມເຕີມ"
             value={formData.moreinfo}
             onChange={handleChange("moreinfo")}
-            onKeyDown={handleKeyDown("statustype")}
             inputRef={infoRef}
             error={errors.moreinfo}
             hasError={!!errors.moreinfo}
-          />
-
-          <Select
-            label="ສະຖານະ"
-            theme="light"
-            value={formData.statustype}
-            onChange={handleChange("statustype")}
-            options={statusOptions}
-            placeholder="ເລືອກສະຖານະ"
-            inputRef={statusRef}
           />
 
           <div className="flex justify-end gap-3 pt-4">

@@ -1,29 +1,19 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import GenericToolbar from "../components/common/GenericToolbar";
 import GenericDataTable, { Button } from "../components/common/GenericDataTable";
 import PositionFormModal from "../components/positions/PositionFormModal";
 import LoadingDialog from "../components/common/LoadingDialog";
-
-const positions = [
-  {
-    createdate: "2025-11-27 00:00:00",
-    pid: "2",
-    positionname: "ຮອງອຳນວຍການຊີ້ນຳ ຝ່າຍບັນຊີ-ການເງິນ",
-    moreinfo: "",
-    statustype: "ADD",
-    createby: "IT",
-  },
-  {
-    createdate: "2025-11-28 09:30:00",
-    pid: "3",
-    positionname: "ຫົວໜ້າພະແນກໄອທີ",
-    moreinfo: "ຮັບຜິດຊອບລະບົບ",
-    statustype: "ADD",
-    createby: "IT",
-  },
-];
+import {
+  getAllPositions,
+  createNewPosition,
+  updatePosition,
+  deletePosition,
+} from "../services/positionservice";
 
 export default function PositionPage() {
+  const [positions, setPositions] = useState([]);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [searchText, setSearchText] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -34,30 +24,33 @@ export default function PositionPage() {
   // Reference to the delete handler from GenericDataTable
   const tableRef = useRef(null);
 
-  // 1) Filter positions
-  const filtered = useMemo(() => {
-    if (!searchText) return positions;
-    const lower = searchText.toLowerCase();
-    return positions.filter(
-      (p) =>
-        p.pid.toString().includes(lower) ||
-        p.positionname.toLowerCase().includes(lower) ||
-        p.moreinfo.toLowerCase().includes(lower) ||
-        p.createby.toLowerCase().includes(lower)
-    );
-  }, [searchText]);
+  // Load positions from API
+  const loadPositions = async () => {
+    try {
+      setIsLoading(true);
+      const result = await getAllPositions({
+        page,
+        limit: pageSize,
+        search: searchText,
+      });
+      console.log("Loaded positions:", result);
+      setPositions(result.data);
+      setTotalItems(result.total);
+      setTotalPages(result.lastPage || 1);
+    } catch (error) {
+      console.error("Error loading positions:", error);
+      alert(error.message || "ເກີດຂໍ້ຜິດພາດໃນການໂຫຼດຂໍ້ມູນ");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  // 2) Total pages
-  const totalPages = Math.ceil(filtered.length / pageSize) || 1;
+  // Load positions on mount and when search/page changes
+  useEffect(() => {
+    loadPositions();
+  }, [page, pageSize, searchText]);
 
-  // 3) Safe page
   const safePage = Math.min(Math.max(page, 1), totalPages);
-
-  // 4) Paginate
-  const pagePositions = useMemo(
-    () => filtered.slice((safePage - 1) * pageSize, safePage * pageSize),
-    [filtered, safePage, pageSize]
-  );
 
   const handleSearchChange = (v) => {
     setSearchText(v);
@@ -102,20 +95,24 @@ export default function PositionPage() {
   const handleSubmitPosition = async (formData) => {
     const isEdit = !!editingPosition;
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
     if (isEdit) {
-      console.log("update position", editingPosition.pid, formData);
+      await updatePosition({
+        pid: editingPosition.pid,
+        ...formData,
+      });
     } else {
-      console.log("create position", formData);
+      await createNewPosition(formData);
     }
+
+    // Reload positions after successful create/edit
+    await loadPositions();
   };
 
   const handleDeletePosition = async (position) => {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    console.log("delete position", position);
+    await deletePosition(position.pid);
+
+    // Reload positions after successful delete
+    await loadPositions();
   };
 
   // Define columns configuration
@@ -223,12 +220,12 @@ export default function PositionPage() {
       />
 
       <GenericDataTable
-        data={pagePositions}
+        data={positions}
         columns={columns}
         page={safePage}
         pageSize={pageSize}
         totalPages={totalPages}
-        totalItems={filtered.length}
+        totalItems={totalItems}
         onEdit={handleEditPosition}
         onDelete={handleDeletePosition}
         onPageChange={handlePageChange}

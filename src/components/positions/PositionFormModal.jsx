@@ -1,6 +1,5 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import FormInput from "../common/FormInput";
-import Select from "../common/Select";
 import Button from "../common/Button";
 import ConfirmProgressDialog from "../common/ConfirmProgressDialog";
 
@@ -11,14 +10,9 @@ export default function PositionFormModal({
   position = null,
 }) {
   const [formData, setFormData] = useState({
-    pid: position?.pid || "",
     positionname: position?.positionname || "",
     moreinfo: position?.moreinfo || "",
-    statustype: position?.statustype || "ADD",
   });
-
-  // ไม่ต้องใช้ useEffect แล้ว เพราะใช้ key prop ใน parent component
-  // Component จะถูก remount ใหม่เมื่อ position เปลี่ยน
 
   const [errors, setErrors] = useState({});
   const [isClosing, setIsClosing] = useState(false);
@@ -30,7 +24,18 @@ export default function PositionFormModal({
   // Refs for input fields
   const positionnameRef = useRef(null);
   const moreinfoRef = useRef(null);
-  const statustypeRef = useRef(null);
+
+  // Reset formData and submitDialog when modal opens or position changes
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        positionname: position?.positionname || "",
+        moreinfo: position?.moreinfo || "",
+      });
+      setSubmitDialog({ open: false, status: "confirm" });
+      setErrors({});
+    }
+  }, [isOpen, position]);
 
   if (!isOpen && !isClosing) return null;
 
@@ -38,7 +43,6 @@ export default function PositionFormModal({
   const inputRefs = {
     positionname: positionnameRef,
     moreinfo: moreinfoRef,
-    statustype: statustypeRef,
   };
 
   // Handle Enter key to move to next input
@@ -52,11 +56,6 @@ export default function PositionFormModal({
   const handleChange = (field) => (e) => {
     let value = e.target.value;
 
-    // Assuming pid is numeric ID
-    if (field === "pid") {
-       value = value.replace(/[^0-9]/g, "");
-    }
-
     setFormData({ ...formData, [field]: value });
 
     if (errors[field]) {
@@ -69,10 +68,8 @@ export default function PositionFormModal({
 
     // Basic validation
     const newErrors = {};
-    if (!formData.pid) newErrors.pid = "ກະລຸນາປ້ອນລະຫັດ";
     if (!formData.positionname) newErrors.positionname = "ກະລຸນາປ້ອນຊື່ຕຳແໜ່ງ";
-    if (!formData.moreinfo) newErrors.moreinfo = "ກະລຸນາປ້ອນລາຍລະອຽດເພີ່ມເຕີມ";
-    
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -83,9 +80,16 @@ export default function PositionFormModal({
   };
 
   const handleConfirmSubmit = async () => {
-    setSubmitDialog({ open: true, status: "loading" });
-    await onSubmit(formData);
-    setSubmitDialog({ open: true, status: "success" });
+    try {
+      setSubmitDialog({ open: true, status: "loading" });
+      await onSubmit(formData);
+      setSubmitDialog({ open: true, status: "success" });
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      setSubmitDialog({ open: false, status: "confirm" });
+      // Show error to user
+      alert(error.message || "ເກີດຂໍ້ຜິດພາດໃນການບັນທຶກຂໍ້ມູນ");
+    }
   };
 
   const handleCancelSubmit = () => {
@@ -118,11 +122,6 @@ export default function PositionFormModal({
     handleClose();
   };
 
-  const statusOptions = [
-    { value: "ADD", label: "ເພີ່ມ" },
-    { value: "INACTIVE", label: "ປິດໃຊ້ງານ" }, 
-  ];
-
   return (
     <div
       className={`fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm ${
@@ -141,19 +140,16 @@ export default function PositionFormModal({
         </h3>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <FormInput
-            label="ລະຫັດ"
-            theme="light"
-            placeholder="ກະລຸນາປ້ອນລະຫັດ"
-            value={formData.pid}
-            onChange={handleChange("pid")}
-            onKeyDown={handleKeyDown("positionname")}
-            error={errors.pid}
-            hasError={!!errors.pid}
-            inputMode="numeric"
-            autoComplete="off"
-            disabled={!!position} // Disable ID on edit if it's a primary key/unique ID
-          />
+          {position && (
+            <FormInput
+              label="ລະຫັດຕຳແໜ່ງ"
+              theme="light"
+              placeholder="ລະຫັດຕຳແໜ່ງ"
+              value={position.pid}
+              onChange={() => {}}
+              disabled={true}
+            />
+          )}
 
           <FormInput
             label="ຊື່ຕຳແໜ່ງ"
@@ -168,25 +164,14 @@ export default function PositionFormModal({
           />
 
           <FormInput
-            label="ລາຍລະອຽດເພີ່ມເຕີມ"
+            label="ລາຍລະອຽດເພີ່ມເຕີມ (ທາງເລືອກ)"
             theme="light"
             placeholder="ກະລຸນາປ້ອນລາຍລະອຽດ"
             value={formData.moreinfo}
             onChange={handleChange("moreinfo")}
-            onKeyDown={handleKeyDown("statustype")}
             inputRef={moreinfoRef}
             error={errors.moreinfo}
             hasError={!!errors.moreinfo}
-          />
-
-          <Select
-            label="ສະຖານະ"
-            theme="light"
-            value={formData.statustype}
-            onChange={handleChange("statustype")}
-            options={statusOptions}
-            placeholder="ເລືອກສະຖານະ"
-            inputRef={statustypeRef}
           />
 
           <div className="flex justify-end gap-3 pt-4">

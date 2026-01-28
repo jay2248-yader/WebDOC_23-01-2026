@@ -1,26 +1,28 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import FormInput from "../common/FormInput";
 import Select from "../common/Select";
 import Button from "../common/Button";
 import ConfirmProgressDialog from "../common/ConfirmProgressDialog";
 
-// Parent should pass a unique `key` prop when opening modal to reset form state
 export default function UserFormModal({
   isOpen,
   onClose,
   onSubmit,
   user = null,
 }) {
-  // Initialize form with user data (runs once per formKey change due to parent key prop)
-  const [formData, setFormData] = useState(() => ({
+  const [formData, setFormData] = useState({
     usercode: user?.usercode || "",
+    pwds: "",
     username: user?.username || "",
     shortname: user?.shortname || "",
     gendername: user?.gendername || "ຊາຍ",
-    statustype: user?.statustype || "ADD",
-    changeme: user?.changeme || "YES",
-    departmentname: user?.departmentmodel?.departmentname || "",
-  }));
+    departmentid: user?.departmentid || "",
+    groupappdetailid: user?.groupappdetailid || "",
+    positionid: user?.positionid || "",
+    createby: user?.createby || "",
+    ipaddress: user?.ipaddress || "",
+    branch: user?.branch || "",
+  });
 
   const [errors, setErrors] = useState({});
   const [isClosing, setIsClosing] = useState(false);
@@ -29,24 +31,53 @@ export default function UserFormModal({
     status: "confirm",
   });
 
+  // Reset form state when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        usercode: user?.usercode || "",
+        pwds: "",
+        username: user?.username || "",
+        shortname: user?.shortname || "",
+        gendername: user?.gendername || "ຊາຍ",
+        departmentid: user?.departmentid || "",
+        groupappdetailid: user?.groupappdetailid || "",
+        positionid: user?.positionid || "",
+        createby: user?.createby || "",
+        ipaddress: user?.ipaddress || "",
+        branch: user?.branch || "",
+      });
+      setSubmitDialog({ open: false, status: "confirm" });
+      setErrors({});
+    }
+  }, [isOpen, user]);
+
   // Refs for input fields
+  const pwdsRef = useRef(null);
   const usernameRef = useRef(null);
   const shortnameRef = useRef(null);
   const gendernameRef = useRef(null);
-  const statustypeRef = useRef(null);
-  const changemeRef = useRef(null);
-  const departmentnameRef = useRef(null);
+  const departmentidRef = useRef(null);
+  const groupappdetailidRef = useRef(null);
+  const positionidRef = useRef(null);
+  const createbyRef = useRef(null);
+  const ipaddressRef = useRef(null);
+  const branchRef = useRef(null);
 
   if (!isOpen && !isClosing) return null;
 
   // Refs object for easy access
   const inputRefs = {
+    pwds: pwdsRef,
     username: usernameRef,
     shortname: shortnameRef,
     gendername: gendernameRef,
-    statustype: statustypeRef,
-    changeme: changemeRef,
-    departmentname: departmentnameRef,
+    departmentid: departmentidRef,
+    groupappdetailid: groupappdetailidRef,
+    positionid: positionidRef,
+    createby: createbyRef,
+    ipaddress: ipaddressRef,
+    branch: branchRef,
   };
 
   // Handle Enter key to move to next input
@@ -65,6 +96,11 @@ export default function UserFormModal({
       value = value.replace(/[^a-zA-Z0-9]/g, "");
     }
 
+    // allow only numbers for ID fields
+    if (["departmentid", "groupappdetailid", "positionid", "branch"].includes(field)) {
+      value = value.replace(/[^0-9]/g, "");
+    }
+
     setFormData({ ...formData, [field]: value });
 
     if (errors[field]) {
@@ -79,8 +115,15 @@ export default function UserFormModal({
     // Basic validation
     const newErrors = {};
     if (!formData.usercode) newErrors.usercode = "ກະລຸນາປ້ອນລະຫັດ";
+    if (!user && !formData.pwds) newErrors.pwds = "ກະລຸນາປ້ອນລະຫັດຜ່ານ";
     if (!formData.username) newErrors.username = "ກະລຸນາປ້ອນຊື່";
-    if (!formData.departmentname) newErrors.departmentname = "ກະລຸນາປ້ອນພະແນກ";
+    if (!formData.gendername) newErrors.gendername = "ກະລຸນາເລືອກເພດ";
+    if (!formData.departmentid) newErrors.departmentid = "ກະລຸນາປ້ອນລະຫັດພະແນກ";
+    if (!formData.groupappdetailid) newErrors.groupappdetailid = "ກະລຸນາປ້ອນລະຫັດກຸ່ມ";
+    if (!formData.positionid) newErrors.positionid = "ກະລຸນາປ້ອນລະຫັດຕຳແໜ່ງ";
+    if (!formData.createby) newErrors.createby = "ກະລຸນາປ້ອນຜູ້ສ້າງ";
+    if (!formData.ipaddress) newErrors.ipaddress = "ກະລຸນາປ້ອນ IP Address";
+    if (!formData.branch) newErrors.branch = "ກະລຸນາປ້ອນລະຫັດສາຂາ";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -92,9 +135,15 @@ export default function UserFormModal({
   };
 
   const handleConfirmSubmit = async () => {
-    setSubmitDialog({ open: true, status: "loading" });
-    await onSubmit(formData);
-    setSubmitDialog({ open: true, status: "success" });
+    try {
+      setSubmitDialog({ open: true, status: "loading" });
+      await onSubmit(formData);
+      setSubmitDialog({ open: true, status: "success" });
+    } catch (error) {
+      console.error("Error submitting user:", error);
+      alert(error.message || "ເກີດຂໍ້ຜິດພາດໃນການບັນທຶກຂໍ້ມູນ");
+      setSubmitDialog({ open: false, status: "confirm" });
+    }
   };
 
   const handleCancelSubmit = () => {
@@ -131,16 +180,6 @@ export default function UserFormModal({
     { value: "ຍິງ", label: "ຍິງ" },
   ];
 
-  const statusOptions = [
-    { value: "ADD", label: "ເພີ່ມ" },
-    { value: "INACTIVE", label: "ປິດໃຊ້ງານ" },
-  ];
-
-  const changemeOptions = [
-    { value: "YES", label: "YES" },
-    { value: "NO", label: "NO" },
-  ];
-
   return (
     <div
       className={`fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm ${
@@ -159,18 +198,45 @@ export default function UserFormModal({
         </h3>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {user && (
+            <FormInput
+              label="ລະຫັດ User (ID)"
+              theme="light"
+              placeholder="ລະຫັດ User"
+              value={user.usid}
+              onChange={() => {}}
+              disabled={true}
+            />
+          )}
+
           <FormInput
-            label="ລະຫັດ"
+            label="ລະຫັດຜູ້ໃຊ້ (User Code)"
             theme="light"
-            placeholder="ກະລຸນາປ້ອນລະຫັດ"
+            placeholder="ກະລຸນາປ້ອນລະຫັດຜູ້ໃຊ້"
             value={formData.usercode}
             onChange={handleChange("usercode")}
-            onKeyDown={handleKeyDown("username")}
+            onKeyDown={handleKeyDown("pwds")}
             error={errors.usercode}
             hasError={!!errors.usercode}
             inputMode="text"
             autoComplete="off"
           />
+
+          {!user && (
+            <FormInput
+              label="ລະຫັດຜ່ານ (Password)"
+              theme="light"
+              type="password"
+              placeholder="ກະລຸນາປ້ອນລະຫັດຜ່ານ"
+              value={formData.pwds}
+              onChange={handleChange("pwds")}
+              onKeyDown={handleKeyDown("username")}
+              inputRef={pwdsRef}
+              error={errors.pwds}
+              hasError={!!errors.pwds}
+              autoComplete="new-password"
+            />
+          )}
 
           <FormInput
             label="ຊື່"
@@ -184,7 +250,7 @@ export default function UserFormModal({
             hasError={!!errors.username}
           />
 
-           <FormInput
+          <FormInput
             label="ຊື່ຫຍໍ້"
             theme="light"
             placeholder="ກະລຸນາປ້ອນຊື່ຫຍໍ້"
@@ -194,43 +260,90 @@ export default function UserFormModal({
             inputRef={shortnameRef}
           />
 
-           <Select
+          <Select
             label="ເພດ"
             theme="light"
             value={formData.gendername}
             onChange={handleChange("gendername")}
             options={genderOptions}
             inputRef={gendernameRef}
+            error={errors.gendername}
+            hasError={!!errors.gendername}
           />
 
-           <FormInput
-            label="ພະແນກ"
+          <FormInput
+            label="ລະຫັດພະແນກ (Department ID)"
             theme="light"
-            placeholder="ກະລຸນາປ້ອນພະແນກ"
-            value={formData.departmentname}
-            onChange={handleChange("departmentname")}
-            onKeyDown={handleKeyDown("statustype")}
-            inputRef={departmentnameRef}
-            error={errors.departmentname}
-            hasError={!!errors.departmentname}
+            placeholder="ກະລຸນາປ້ອນລະຫັດພະແນກ"
+            value={formData.departmentid}
+            onChange={handleChange("departmentid")}
+            onKeyDown={handleKeyDown("groupappdetailid")}
+            inputRef={departmentidRef}
+            error={errors.departmentid}
+            hasError={!!errors.departmentid}
+            inputMode="numeric"
           />
 
-           <Select
-            label="ສະຖານະ"
+          <FormInput
+            label="ລະຫັດກຸ່ມ (Group App Detail ID)"
             theme="light"
-            value={formData.statustype}
-            onChange={handleChange("statustype")}
-            options={statusOptions}
-            inputRef={statustypeRef}
+            placeholder="ກະລຸນາປ້ອນລະຫັດກຸ່ມ"
+            value={formData.groupappdetailid}
+            onChange={handleChange("groupappdetailid")}
+            onKeyDown={handleKeyDown("positionid")}
+            inputRef={groupappdetailidRef}
+            error={errors.groupappdetailid}
+            hasError={!!errors.groupappdetailid}
+            inputMode="numeric"
           />
 
-           <Select
-            label="Change Me"
+          <FormInput
+            label="ລະຫັດຕຳແໜ່ງ (Position ID)"
             theme="light"
-            value={formData.changeme}
-            onChange={handleChange("changeme")}
-            options={changemeOptions}
-            inputRef={changemeRef}
+            placeholder="ກະລຸນາປ້ອນລະຫັດຕຳແໜ່ງ"
+            value={formData.positionid}
+            onChange={handleChange("positionid")}
+            onKeyDown={handleKeyDown("createby")}
+            inputRef={positionidRef}
+            error={errors.positionid}
+            hasError={!!errors.positionid}
+            inputMode="numeric"
+          />
+
+          <FormInput
+            label="ຜູ້ສ້າງ (Created By)"
+            theme="light"
+            placeholder="ກະລຸນາປ້ອນຜູ້ສ້າງ"
+            value={formData.createby}
+            onChange={handleChange("createby")}
+            onKeyDown={handleKeyDown("ipaddress")}
+            inputRef={createbyRef}
+            error={errors.createby}
+            hasError={!!errors.createby}
+          />
+
+          <FormInput
+            label="IP Address"
+            theme="light"
+            placeholder="ກະລຸນາປ້ອນ IP Address"
+            value={formData.ipaddress}
+            onChange={handleChange("ipaddress")}
+            onKeyDown={handleKeyDown("branch")}
+            inputRef={ipaddressRef}
+            error={errors.ipaddress}
+            hasError={!!errors.ipaddress}
+          />
+
+          <FormInput
+            label="ລະຫັດສາຂາ (Branch ID)"
+            theme="light"
+            placeholder="ກະລຸນາປ້ອນລະຫັດສາຂາ"
+            value={formData.branch}
+            onChange={handleChange("branch")}
+            inputRef={branchRef}
+            error={errors.branch}
+            hasError={!!errors.branch}
+            inputMode="numeric"
           />
 
           <div className="flex justify-end gap-3 pt-4">

@@ -1,37 +1,19 @@
-import { useState, useMemo } from "react";
+import { useState, useRef, useEffect } from "react";
 import GenericToolbar from "../components/common/GenericToolbar";
 import GenericDataTable, { Button } from "../components/common/GenericDataTable";
 import DocumentCategoryFormModal from "../components/document-categories/DocumentCategoryFormModal";
 import LoadingDialog from "../components/common/LoadingDialog";
-
-const documentCategories = [
-  {
-    dctid: 3,
-    doccategoryname: "ໜັງສືສະເໜີຂໍຈັດຊື້ອາໄຫຼ່ລົດບໍລິຫານ",
-    moreinfo: "ສໍາລັບ ໜັງສືສະເໜີຂໍຈັດຊື້ອາໄຫຼ່ລົດບໍລິຫານ",
-    statustype: "ADD",
-    createby: "1111982",
-    createdate: "2025-11-25 08:50:54",
-  },
-  {
-    dctid: 4,
-    doccategoryname: "ເອກະສານການເງິນ",
-    moreinfo: "ເອກະສານທີ່ກ່ຽວຂ້ອງກັບການເບີກຈ່າຍ",
-    statustype: "ADD",
-    createby: "1111982",
-    createdate: "2025-11-26 09:30:00",
-  },
-  {
-    dctid: 5,
-    doccategoryname: "ເອກະສານບຸກຄະລາກອນ",
-    moreinfo: "ຂໍ້ມູນພະນັກງານ ແລະ ການລາພັກ",
-    statustype: "ADD",
-    createby: "1111982",
-    createdate: "2025-11-27 10:15:20",
-  },
-];
+import {
+  getAllDocumentCategories,
+  createNewDocumentCategory,
+  updateDocumentCategory,
+  deleteDocumentCategory,
+} from "../services/documentcategoryservice";
 
 export default function DocumentCategoryPage() {
+  const [documentCategories, setDocumentCategories] = useState([]);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [searchText, setSearchText] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -40,31 +22,35 @@ export default function DocumentCategoryPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   // Reference to the delete handler from GenericDataTable
-  const [tableRef, setTableRef] = useState({ handleDeleteClick: null });
+  const tableRef = useRef(null);
 
-  // 1) Filter categories
-  const filtered = useMemo(() => {
-    if (!searchText) return documentCategories;
-    const lower = searchText.toLowerCase();
-    return documentCategories.filter(
-      (c) =>
-        c.doccategoryname.toLowerCase().includes(lower) ||
-        c.moreinfo.toLowerCase().includes(lower) ||
-        String(c.dctid).includes(lower)
-    );
-  }, [searchText]);
+  // Load document categories from API
+  const loadDocumentCategories = async () => {
+    try {
+      setIsLoading(true);
+      const result = await getAllDocumentCategories({
+        page,
+        limit: pageSize,
+        search: searchText,
+      });
+      console.log("Loaded document categories:", result);
+      setDocumentCategories(result.data);
+      setTotalItems(result.total);
+      setTotalPages(result.lastPage || 1);
+    } catch (error) {
+      console.error("Error loading document categories:", error);
+      alert(error.message || "ເກີດຂໍ້ຜິດພາດໃນການໂຫຼດຂໍ້ມູນ");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  // 2) Total pages
-  const totalPages = Math.ceil(filtered.length / pageSize) || 1;
+  // Load document categories on mount and when search/page changes
+  useEffect(() => {
+    loadDocumentCategories();
+  }, [page, pageSize, searchText]);
 
-  // 3) Safe page
   const safePage = Math.min(Math.max(page, 1), totalPages);
-
-  // 4) Paginate
-  const pageCategories = useMemo(
-    () => filtered.slice((safePage - 1) * pageSize, safePage * pageSize),
-    [filtered, safePage, pageSize]
-  );
 
   const handleSearchChange = (v) => {
     setSearchText(v);
@@ -109,20 +95,24 @@ export default function DocumentCategoryPage() {
   const handleSubmitCategory = async (formData) => {
     const isEdit = !!editingCategory;
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
     if (isEdit) {
-      console.log("update category", editingCategory.dctid, formData);
+      await updateDocumentCategory({
+        dctid: editingCategory.dctid,
+        ...formData,
+      });
     } else {
-      console.log("create category", formData);
+      await createNewDocumentCategory(formData);
     }
+
+    // Reload document categories after successful create/edit
+    await loadDocumentCategories();
   };
 
   const handleDeleteCategory = async (category) => {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    console.log("delete category", category);
+    await deleteDocumentCategory(category.dctid);
+
+    // Reload document categories after successful delete
+    await loadDocumentCategories();
   };
 
   // Define columns configuration
@@ -194,7 +184,7 @@ export default function DocumentCategoryPage() {
             fullWidth={false}
             variant="ghost"
             size="sm"
-            onClick={() => tableRef.handleDeleteClick?.(category)}
+            onClick={() => tableRef.current?.handleDeleteClick?.(category)}
             className="w-16 inline-flex items-center justify-center rounded-md bg-red-400 px-2 py-1 text-xs text-white hover:bg-red-500 hover:scale-100 hover:shadow-none"
           >
             ລົບ
@@ -230,23 +220,19 @@ export default function DocumentCategoryPage() {
       />
 
       <GenericDataTable
-        data={pageCategories}
+        data={documentCategories}
         columns={columns}
         page={safePage}
         pageSize={pageSize}
         totalPages={totalPages}
-        totalItems={filtered.length}
+        totalItems={totalItems}
         onEdit={handleEditCategory}
         onDelete={handleDeleteCategory}
         onPageChange={handlePageChange}
         onPageSizeChange={handlePageSizeChange}
         entityName="ປະເພດເອກະສານ"
         getEntityDisplayName={(category) => category.doccategoryname}
-        ref={(ref) => {
-          if (ref && !tableRef.handleDeleteClick) {
-            setTableRef({ handleDeleteClick: ref.handleDeleteClick });
-          }
-        }}
+        ref={tableRef}
       />
 
       <DocumentCategoryFormModal

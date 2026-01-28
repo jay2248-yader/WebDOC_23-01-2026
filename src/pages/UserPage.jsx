@@ -1,88 +1,53 @@
-import { useMemo, useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import GenericToolbar from "../components/common/GenericToolbar";
 import GenericDataTable, { Button } from "../components/common/GenericDataTable";
 import UserFormModal from "../components/users/UserFormModal";
 import LoadingDialog from "../components/common/LoadingDialog";
-
+import { getAllUsers, createNewUser } from "../services/userservice";
 
 import userplus from "../assets/icon/userplus.svg";
 
-// Note: ConfirmProgressDialog is used in GenericDataTable and UserFormModal
-
-const users = [
-  {
-    usid: 136,
-    usercode: "150282",
-    username: "ທ້າວ ທອງໄມ ສີຮັກສາ",
-    shortname: "",
-    gendername: "ຊາຍ",
-    statustype: "ADD",
-    createby: "IT",
-    changeme: "YES",
-    groupappId: 0,
-    departmentmodel: {
-      departmentname: "ການເງິນ ",
-      boardmodel: {
-        boardtname: "ຝ່າຍການເງິນ "
-      }
-    }
-  },
-  {
-    usid: 137,
-    usercode: "150283",
-    username: "ນາງ ສົມໃຈ",
-    shortname: "ໃຈ",
-    gendername: "ຍິງ",
-    statustype: "ADD",
-    createby: "Admin",
-    changeme: "KC",
-    groupappId: 1,
-    departmentmodel: {
-      departmentname: "ບັນຊີ",
-      boardmodel: {
-        boardtname: "ຝ່າຍບັນຊີ"
-      }
-    }
-  }
-];
-
 export default function UserPage() {
+  const [users, setUsers] = useState([]);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [searchText, setSearchText] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [formKey, setFormKey] = useState(0); // Key to reset form state
 
   // Reference to the delete handler from GenericDataTable
   const tableRef = useRef(null);
 
-  // 1) filter
-  // Since we changed the data structure, we might need to adjust filterUsers utility or just filter inline if filterUsers assumes old structure.
-  // For safety, I will implement inline filtering here or assume filterUsers can handle generic objects if updated. 
-  // Given I can't see/edit utils/filter right now easily without context switch, I'll filter inline to be safe and consistent with previous pages.
-  const filtered = useMemo(() => {
-    if (!searchText) return users;
-    const lower = searchText.toLowerCase();
-    return users.filter(u => 
-        u.usercode.toLowerCase().includes(lower) || 
-        u.username.toLowerCase().includes(lower) || 
-        (u.departmentmodel?.departmentname || "").toLowerCase().includes(lower)
-    );
-  }, [searchText]);
+  // Load users from API
+  const loadUsers = async () => {
+    try {
+      setIsLoading(true);
+      const result = await getAllUsers({
+        page,
+        limit: pageSize,
+        search: searchText,
+      });
+      console.log("Loaded users:", result);
+      setUsers(result.data);
+      setTotalItems(result.total);
+      setTotalPages(result.lastPage || 1);
+    } catch (error) {
+      console.error("Error loading users:", error);
+      alert(error.message || "ເກີດຂໍ້ຜິດພາດໃນການໂຫຼດຂໍ້ມູນ");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  // 2) total pages
-  const totalPages = Math.ceil(filtered.length / pageSize) || 1;
+  // Load users on mount and when search/page changes
+  useEffect(() => {
+    loadUsers();
+  }, [page, pageSize, searchText]);
 
-  // 3) safePage (derive only — no setState)
   const safePage = Math.min(Math.max(page, 1), totalPages);
-
-  // 4) paginate
-  const pageUsers = useMemo(
-    () => filtered.slice((safePage - 1) * pageSize, safePage * pageSize),
-    [filtered, safePage, pageSize]
-  );
 
   const handleSearchChange = (v) => {
     setSearchText(v);
@@ -105,7 +70,6 @@ export default function UserPage() {
 
     setTimeout(() => {
       setIsLoading(false);
-      setFormKey((k) => k + 1); // Increment key to reset form
       setShowFormModal(true);
     }, 500);
   };
@@ -116,7 +80,6 @@ export default function UserPage() {
 
     setTimeout(() => {
       setIsLoading(false);
-      setFormKey((k) => k + 1); // Increment key to reset form
       setShowFormModal(true);
     }, 500);
   };
@@ -129,18 +92,23 @@ export default function UserPage() {
   const handleSubmitUser = async (formData) => {
     const isEdit = !!editingUser;
 
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
     if (isEdit) {
       console.log("update user", editingUser.usid, formData);
+      // TODO: await updateUser({ usid: editingUser.usid, ...formData });
     } else {
-      console.log("create user", formData);
+      await createNewUser(formData);
     }
+
+    // Reload users after successful create/edit
+    await loadUsers();
   };
 
   const handleDeleteUser = async (user) => {
-    await new Promise(resolve => setTimeout(resolve, 1500));
     console.log("delete user", user);
+    // TODO: await deleteUser(user.usid);
+
+    // Reload users after successful delete
+    await loadUsers();
   };
 
   // Define columns configuration
@@ -238,12 +206,12 @@ export default function UserPage() {
       />
 
       <GenericDataTable
-        data={pageUsers}
+        data={users}
         columns={columns}
         page={safePage}
         pageSize={pageSize}
         totalPages={totalPages}
-        totalItems={filtered.length}
+        totalItems={totalItems}
         onEdit={handleEditUser}
         onDelete={handleDeleteUser}
         onPageChange={handlePageChange}
@@ -254,7 +222,7 @@ export default function UserPage() {
       />
 
       <UserFormModal
-        key={formKey}
+        key={editingUser?.usid || "new"}
         isOpen={showFormModal}
         user={editingUser}
         onClose={handleCloseModal}

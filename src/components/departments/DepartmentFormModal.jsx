@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from "react";
 import FormInput from "../common/FormInput";
-import Select from "../common/Select";
 import Button from "../common/Button";
 import ConfirmProgressDialog from "../common/ConfirmProgressDialog";
 
@@ -11,22 +10,18 @@ export default function DepartmentFormModal({
   department = null,
 }) {
   const [formData, setFormData] = useState({
-    dpid: department?.dpid || "",
     bdid: department?.bdid || "",
     departmentname: department?.departmentname || "",
     moreinfo: department?.moreinfo || "",
-    statustype: department?.statustype || "ADD",
   });
 
   // Reset formData and submitDialog when modal opens or department changes
   useEffect(() => {
     if (isOpen) {
       setFormData({
-        dpid: department?.dpid || "",
         bdid: department?.bdid || "",
         departmentname: department?.departmentname || "",
         moreinfo: department?.moreinfo || "",
-        statustype: department?.statustype || "ADD",
       });
       setSubmitDialog({ open: false, status: "confirm" });
       setErrors({});
@@ -44,7 +39,6 @@ export default function DepartmentFormModal({
   const bdidRef = useRef(null);
   const departmentnameRef = useRef(null);
   const moreinfoRef = useRef(null);
-  const statustypeRef = useRef(null);
 
   if (!isOpen && !isClosing) return null;
 
@@ -53,7 +47,6 @@ export default function DepartmentFormModal({
     bdid: bdidRef,
     departmentname: departmentnameRef,
     moreinfo: moreinfoRef,
-    statustype: statustypeRef,
   };
 
   // Handle Enter key to move to next input
@@ -67,8 +60,8 @@ export default function DepartmentFormModal({
   const handleChange = (field) => (e) => {
     let value = e.target.value;
 
-    // Assuming dpid and bdid are numeric IDs
-    if (field === "dpid" || field === "bdid") {
+    // bdid is numeric
+    if (field === "bdid") {
       value = value.replace(/[^0-9]/g, "");
     }
 
@@ -84,11 +77,8 @@ export default function DepartmentFormModal({
 
     // Basic validation
     const newErrors = {};
-    // dpid is only required when editing (department exists)
-    if (department && !formData.dpid) newErrors.dpid = "ກະລຸນາປ້ອນລະຫັດພະແນກ";
     if (!formData.bdid) newErrors.bdid = "ກະລຸນາປ້ອນລະຫັດຄະນະ";
     if (!formData.departmentname) newErrors.departmentname = "ກະລຸນາປ້ອນຊື່ພະແນກ";
-    // moreinfo is optional
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -123,7 +113,6 @@ export default function DepartmentFormModal({
     setIsClosing(true);
     setTimeout(() => {
       onClose();
-      // Reset form handled by useEffect
       setErrors({});
       setIsClosing(false);
     }, 300);
@@ -142,20 +131,17 @@ export default function DepartmentFormModal({
     handleClose();
   };
 
-  const statusOptions = [
-    { value: "ADD", label: "ເພີ່ມ" },
-    { value: "INACTIVE", label: "ປິດໃຊ້ງານ" },
-  ];
-
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm ${isClosing ? "animate-fadeOut" : "animate-fadeIn"
-        }`}
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm ${
+        isClosing ? "animate-fadeOut" : "animate-fadeIn"
+      }`}
       onClick={handleClose}
     >
       <div
-        className={`bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto ${isClosing ? "animate-slideDown" : "animate-slideUp"
-          }`}
+        className={`bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto ${
+          isClosing ? "animate-slideDown" : "animate-slideUp"
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center border-b border-blue-400 pb-2">
@@ -163,19 +149,16 @@ export default function DepartmentFormModal({
         </h3>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <FormInput
-            label="ລະຫັດພະແນກ"
-            theme="light"
-            placeholder="ກະລຸນາປ້ອນລະຫັດພະແນກ"
-            value={formData.dpid}
-            onChange={handleChange("dpid")}
-            onKeyDown={handleKeyDown("bdid")}
-            error={errors.dpid}
-            hasError={!!errors.dpid}
-            inputMode="numeric"
-            autoComplete="off"
-            disabled={!!department} // Disable ID on edit if it's a primary key
-          />
+          {department && (
+            <FormInput
+              label="ລະຫັດພະແນກ"
+              theme="light"
+              placeholder="ລະຫັດພະແນກ"
+              value={department.dpid}
+              onChange={() => {}}
+              disabled={true}
+            />
+          )}
 
           <FormInput
             label="ລະຫັດຄະນະ"
@@ -204,25 +187,14 @@ export default function DepartmentFormModal({
           />
 
           <FormInput
-            label="ລາຍລະອຽດເພີ່ມເຕີມ"
+            label="ລາຍລະອຽດເພີ່ມເຕີມ (ທາງເລືອກ)"
             theme="light"
             placeholder="ກະລຸນາປ້ອນລາຍລະອຽດ"
             value={formData.moreinfo}
             onChange={handleChange("moreinfo")}
-            onKeyDown={handleKeyDown("statustype")}
             inputRef={moreinfoRef}
             error={errors.moreinfo}
             hasError={!!errors.moreinfo}
-          />
-
-          <Select
-            label="ສະຖານະ"
-            theme="light"
-            value={formData.statustype}
-            onChange={handleChange("statustype")}
-            options={statusOptions}
-            placeholder="ເລືອກສະຖານະ"
-            inputRef={statustypeRef}
           />
 
           <div className="flex justify-end gap-3 pt-4">

@@ -7,6 +7,9 @@ export const ENDPOINTS = {
 
   USERS: {
     GET_ALL: "/api/users/getAllUser",
+    NEW: "/api/users/newUsers",
+    UPDATEPASS:"/api/users/updatePwds",
+    UPDATEGROUPAPPUSERS:"/api/users/updategroupappusers"
   },
 
   BRANCH: {
@@ -32,9 +35,15 @@ export const ENDPOINTS = {
 
   POSITION: {
     GET_ALL: "/api/position/getAllPosition",
+    NEW: "/api/position/newPosition",
+    DELETE: "/api/position/deletePosition",
+    UPDATE: "/api/position/updatePosition",
   },
 
   DOCUMENT_CATEGORY: {
-    GET_ALL: "/api/documentcategory/getAllDocumentCategory",
+    GET_ALL: "/api/doccategory/getalldocumentcategory",
+    NEW: "/api/doccategory/newdocumentcategory",
+    DELETE: "/api/doccategory/deletedocumentcategory",
+    UPDATE: "/api/doccategory/updatedocumentcategory"
   },
 };
