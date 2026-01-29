@@ -9,6 +9,7 @@ import BoardPage from '../pages/BoardPage';
 import DepartmentPage from '../pages/DepartmentPage';
 import PositionPage from '../pages/PositionPage';
 import DocumentCategoryPage from '../pages/DocumentCategoryPage';
+import DocumentsPage from '../pages/DocumentsPage';
 import MainLayout from '../components/layout/MainLayout';
 
 const AppRoutes = () => {
@@ -17,15 +18,15 @@ const AppRoutes = () => {
   return (
     <Routes>
       {/* Login Route */}
-      <Route 
-        path="/login" 
+      <Route
+        path="/login"
         element={
           isAuthenticated ? (
             <Navigate to="/dashboard" replace />
           ) : (
             <LoginPage />
           )
-        } 
+        }
       />
 
       {/* Protected Routes - ต้อง Login ก่อน */}
@@ -46,6 +47,7 @@ const AppRoutes = () => {
         <Route path="department" element={<DepartmentPage />} />
         <Route path="position" element={<PositionPage />} />
         <Route path="document-category" element={<DocumentCategoryPage />} />
+        <Route path="documents" element={<DocumentsPage />} />
         <Route path="users" element={<UserPage />} />
         {/* Add more routes here in the future */}
       </Route>

@@ -48,12 +48,18 @@ export const MENU_ITEMS = [
         icon: "📂",
         path: "/document-category",
       },
+      {
+        id: "documents-list",
+        label: "ເອກະສານ", // Documents
+        icon: "📄",
+        path: "/documents",
+      },
     ],
   },
   {
     id: "users",
     label: "ຈັດການຜູ້ໃຊ້",
-       icon: UsersIcon,
+    icon: UsersIcon,
     path: "/users",
   },
   {

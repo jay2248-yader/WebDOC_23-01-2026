@@ -46,4 +46,9 @@ export const ENDPOINTS = {
     DELETE: "/api/doccategory/deletedocumentcategory",
     UPDATE: "/api/doccategory/updatedocumentcategory"
   },
+
+  DOCUMENTS:{
+    GET_ALL: "/api/requestdocument/getrequestdocumentAll"
+    
+  }
 };
