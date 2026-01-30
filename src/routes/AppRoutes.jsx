@@ -10,6 +10,8 @@ import DepartmentPage from '../pages/DepartmentPage';
 import PositionPage from '../pages/PositionPage';
 import DocumentCategoryPage from '../pages/DocumentCategoryPage';
 import DocumentsPage from '../pages/DocumentsPage';
+import GroupappPage from '../pages/GroupappPage';
+import AllAppPage from '../pages/AllAppPage';
 import MainLayout from '../components/layout/MainLayout';
 
 const AppRoutes = () => {
@@ -49,6 +51,8 @@ const AppRoutes = () => {
         <Route path="document-category" element={<DocumentCategoryPage />} />
         <Route path="documents" element={<DocumentsPage />} />
         <Route path="users" element={<UserPage />} />
+        <Route path="groupapp" element={<GroupappPage />} />
+        <Route path="allapp" element={<AllAppPage />} />
         {/* Add more routes here in the future */}
       </Route>
 

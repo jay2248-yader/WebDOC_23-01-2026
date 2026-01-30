@@ -3,7 +3,7 @@ import GenericToolbar from "../components/common/GenericToolbar";
 import GenericDataTable, { Button } from "../components/common/GenericDataTable";
 import DocumentFormModal from "../components/documents/DocumentFormModal";
 import LoadingDialog from "../components/common/LoadingDialog";
-import { getAllDocuments } from "../services/documentservice";
+import { getAllDocuments, createNewDocument } from "../services/documentservice";
 
 export default function DocumentsPage() {
     const [documents, setDocuments] = useState([]);
@@ -94,8 +94,7 @@ export default function DocumentsPage() {
             console.log("update document", editingDocument.rqdid, formData);
             // TODO: await updateDocument({ rqdid: editingDocument.rqdid, ...formData });
         } else {
-            console.log("create document", formData);
-            // TODO: await createNewDocument(formData);
+            await createNewDocument(formData);
         }
 
         // Reload documents after successful create/edit

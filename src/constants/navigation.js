@@ -37,6 +37,18 @@ export const MENU_ITEMS = [
         path: "/department",
       },
       {
+        id: "groupapp",
+        label: "Groupapp",
+        icon: "👥",
+        path: "/groupapp",
+      },
+      {
+        id: "allapp",
+        label: "AllApp",
+        icon: "📱",
+        path: "/allapp",
+      },
+      {
         id: "position",
         label: "ຕຳແໜ່ງ",
         icon: "💼",

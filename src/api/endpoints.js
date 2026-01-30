@@ -8,8 +8,8 @@ export const ENDPOINTS = {
   USERS: {
     GET_ALL: "/api/users/getAllUser",
     NEW: "/api/users/newUsers",
-    UPDATEPASS:"/api/users/updatePwds",
-    UPDATEGROUPAPPUSERS:"/api/users/updategroupappusers"
+    UPDATEPASS: "/api/users/updatePwds",
+    UPDATEGROUPAPPUSERS: "/api/users/updategroupappusers"
   },
 
   BRANCH: {
@@ -47,8 +47,23 @@ export const ENDPOINTS = {
     UPDATE: "/api/doccategory/updatedocumentcategory"
   },
 
-  DOCUMENTS:{
-    GET_ALL: "/api/requestdocument/getrequestdocumentAll"
-    
+  GROUPAPP: {
+    GET_ALL: "/api/groupApp/getAllGroupApp",
+    NEW: "/api/groupApp/newGroupApp",
+    DELETE: "/api/groupApp/deleteGroupApp",
+    UPDATE: "/api/groupApp/updateGroupApp"
+  },
+
+  ALLAPP: {
+    GET_ALL: "/api/allApp/getAllApp",
+    NEW: "/api/allApp/newAllApp",
+    DELETE: "/api/allApp/deleteAllApp",
+    UPDATE: "/api/allApp/updateAllApp"
+  },
+
+  DOCUMENTS: {
+    GET_ALL: "/api/requestdocument/getrequestdocumentAll",
+    NEW: "/api/requestdocument/newrequestdocument"
+
   }
 };

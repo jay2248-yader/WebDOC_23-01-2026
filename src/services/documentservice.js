@@ -24,3 +24,15 @@ export async function getAllDocuments(params = {}) {
     lastPage: dataId.lastPage || 1,
   };
 }
+
+
+//Create
+export async function createNewDocument(payload) {
+  const res = await http.post(ENDPOINTS.DOCUMENTS.NEW, payload);
+
+  if (!res.data?.success) {
+    throw new Error(res.data?.message || "Failed to create document");
+  }
+
+  return res.data;
+}

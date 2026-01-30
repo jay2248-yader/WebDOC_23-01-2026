@@ -10,9 +10,14 @@ export default function DocumentFormModal({
     document = null,
 }) {
     const [formData, setFormData] = useState({
-        documentTitle: document?.documentTitle || "",
-        category: document?.category || "",
-        description: document?.description || "",
+        doccategoryid: document?.doccategoryid || "",
+        req_user: document?.req_user || "",
+        req_to: document?.req_to || "",
+        req_reason: document?.req_reason || "",
+        branchid: document?.branchid || "",
+        departmentid: document?.departmentid || "",
+        boardid: document?.boardid || "",
+        totalmoney: document?.totalmoney || "",
     });
 
     const [errors, setErrors] = useState({});
@@ -23,17 +28,27 @@ export default function DocumentFormModal({
     });
 
     // Refs for input fields
-    const titleRef = useRef(null);
-    const categoryRef = useRef(null);
-    const descriptionRef = useRef(null);
+    const doccategoryidRef = useRef(null);
+    const reqUserRef = useRef(null);
+    const reqToRef = useRef(null);
+    const reqReasonRef = useRef(null);
+    const branchidRef = useRef(null);
+    const departmentidRef = useRef(null);
+    const boardidRef = useRef(null);
+    const totalmoneyRef = useRef(null);
 
     // Reset formData and submitDialog when modal opens or document changes
     useEffect(() => {
         if (isOpen) {
             setFormData({
-                documentTitle: document?.documentTitle || "",
-                category: document?.category || "",
-                description: document?.description || "",
+                doccategoryid: document?.doccategoryid || "",
+                req_user: document?.req_user || "",
+                req_to: document?.req_to || "",
+                req_reason: document?.req_reason || "",
+                branchid: document?.branchid || "",
+                departmentid: document?.departmentid || "",
+                boardid: document?.boardid || "",
+                totalmoney: document?.totalmoney || "",
             });
             setSubmitDialog({ open: false, status: "confirm" });
             setErrors({});
@@ -44,9 +59,14 @@ export default function DocumentFormModal({
 
     // Refs object for easy access
     const inputRefs = {
-        documentTitle: titleRef,
-        category: categoryRef,
-        description: descriptionRef,
+        doccategoryid: doccategoryidRef,
+        req_user: reqUserRef,
+        req_to: reqToRef,
+        req_reason: reqReasonRef,
+        branchid: branchidRef,
+        departmentid: departmentidRef,
+        boardid: boardidRef,
+        totalmoney: totalmoneyRef,
     };
 
     // Handle Enter key to move to next input
@@ -60,6 +80,12 @@ export default function DocumentFormModal({
     const handleChange = (field) => (e) => {
         let value = e.target.value;
 
+        // Filter numeric fields
+        const numericFields = ["doccategoryid", "req_user", "branchid", "departmentid", "boardid", "totalmoney"];
+        if (numericFields.includes(field)) {
+            value = value.replace(/[^0-9]/g, "");
+        }
+
         setFormData({ ...formData, [field]: value });
 
         if (errors[field]) {
@@ -72,23 +98,40 @@ export default function DocumentFormModal({
 
         // Basic validation
         const newErrors = {};
-        if (!formData.documentTitle) newErrors.documentTitle = "ກະລຸນາປ້ອນຊື່ເອກະສານ"; // Please enter document title
-        if (!formData.category) newErrors.category = "ກະລຸນາປ້ອນໝວດໝູ່"; // Please enter category
+        if (!formData.doccategoryid) newErrors.doccategoryid = "ກະລຸນາເລືອກປະເພດເອກະສານ";
+        if (!formData.req_user) newErrors.req_user = "ກະລຸນາປ້ອນຜູ້ຮ້ອງຂໍ";
+        if (!formData.req_to) newErrors.req_to = "ກະລຸນາປ້ອນຮຽນ";
+        if (!formData.req_reason) newErrors.req_reason = "ກະລຸນາປ້ອນເຫດຜົນ";
+        if (!formData.branchid) newErrors.branchid = "ກະລຸນາເລືອກສາຂາ";
+        if (!formData.departmentid) newErrors.departmentid = "ກະລຸນາເລືອກພະແນກ";
+        if (!formData.boardid) newErrors.boardid = "ກະລຸນາເລືອກກອງ";
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
             return;
         }
 
+        // Convert to numbers before submitting
+        const submitData = {
+            doccategoryid: parseInt(formData.doccategoryid),
+            req_user: parseInt(formData.req_user),
+            req_to: formData.req_to,
+            req_reason: formData.req_reason,
+            branchid: parseInt(formData.branchid),
+            departmentid: parseInt(formData.departmentid),
+            boardid: parseInt(formData.boardid),
+            totalmoney: formData.totalmoney ? parseInt(formData.totalmoney) : 0,
+        };
+
         // Show confirm dialog
-        setSubmitDialog({ open: true, status: "confirm" });
+        setSubmitDialog({ open: true, status: "confirm", data: submitData });
     };
 
     const handleConfirmSubmit = async () => {
         try {
-            setSubmitDialog({ open: true, status: "loading" });
-            await onSubmit(formData);
-            setSubmitDialog({ open: true, status: "success" });
+            setSubmitDialog({ ...submitDialog, status: "loading" });
+            await onSubmit(submitDialog.data);
+            setSubmitDialog({ ...submitDialog, status: "success" });
         } catch (error) {
             console.error("Error submitting form:", error);
             setSubmitDialog({ open: false, status: "confirm" });
@@ -144,51 +187,108 @@ export default function DocumentFormModal({
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {document && (
                         <FormInput
-                            label="ລະຫັດ" // ID
+                            label="ລະຫັດ (ID)"
                             theme="light"
                             placeholder="ລະຫັດ"
-                            value={document.docId}
+                            value={document.rqdid}
                             onChange={() => { }}
                             disabled={true}
                         />
                     )}
 
                     <FormInput
-                        label="ຊື່ເອກະສານ" // Document Title
+                        label="ປະເພດເອກະສານ (ID)"
                         theme="light"
-                        placeholder="ກະລຸນາປ້ອນຊື່ເອກະສານ"
-                        value={formData.documentTitle}
-                        onChange={handleChange("documentTitle")}
-                        onKeyDown={handleKeyDown("category")}
-                        inputRef={titleRef}
-                        error={errors.documentTitle}
-                        hasError={!!errors.documentTitle}
+                        placeholder="ກະລຸນາປ້ອນລະຫັດປະເພດເອກະສານ"
+                        value={formData.doccategoryid}
+                        onChange={handleChange("doccategoryid")}
+                        onKeyDown={handleKeyDown("req_user")}
+                        inputRef={doccategoryidRef}
+                        error={errors.doccategoryid}
+                        hasError={!!errors.doccategoryid}
                     />
 
                     <FormInput
-                        label="ໝວດໝູ່" // Category
+                        label="ຜູ້ຮ້ອງຂໍ (User ID)"
                         theme="light"
-                        placeholder="ກະລຸນາປ້ອນໝວດໝູ່"
-                        value={formData.category}
-                        onChange={handleChange("category")}
-                        onKeyDown={handleKeyDown("description")}
-                        inputRef={categoryRef}
-                        error={errors.category}
-                        hasError={!!errors.category}
+                        placeholder="ກະລຸນາປ້ອນລະຫັດຜູ້ຮ້ອງຂໍ"
+                        value={formData.req_user}
+                        onChange={handleChange("req_user")}
+                        onKeyDown={handleKeyDown("req_to")}
+                        inputRef={reqUserRef}
+                        error={errors.req_user}
+                        hasError={!!errors.req_user}
                     />
 
                     <FormInput
-                        label="ລາຍລະອຽດ" // Description
+                        label="ຮຽນ"
                         theme="light"
-                        placeholder="ກະລຸນາປ້ອນລາຍລະອຽດ"
-                        value={formData.description}
-                        onChange={handleChange("description")}
-                        inputRef={descriptionRef}
-                        error={errors.description}
-                        hasError={!!errors.description}
-                    // You might want a textarea here, but FormInput is usually text. 
-                    // If FormInput supports type="textarea" or similar, use it. 
-                    // For now assuming it's a standard input.
+                        placeholder="ກະລຸນາປ້ອນຮຽນ (ເຊັ່ນ: Director 3)"
+                        value={formData.req_to}
+                        onChange={handleChange("req_to")}
+                        onKeyDown={handleKeyDown("req_reason")}
+                        inputRef={reqToRef}
+                        error={errors.req_to}
+                        hasError={!!errors.req_to}
+                    />
+
+                    <FormInput
+                        label="ເຫດຜົນ"
+                        theme="light"
+                        placeholder="ກະລຸນາປ້ອນເຫດຜົນ"
+                        value={formData.req_reason}
+                        onChange={handleChange("req_reason")}
+                        onKeyDown={handleKeyDown("branchid")}
+                        inputRef={reqReasonRef}
+                        error={errors.req_reason}
+                        hasError={!!errors.req_reason}
+                    />
+
+                    <FormInput
+                        label="ສາຂາ (ID)"
+                        theme="light"
+                        placeholder="ກະລຸນາປ້ອນລະຫັດສາຂາ"
+                        value={formData.branchid}
+                        onChange={handleChange("branchid")}
+                        onKeyDown={handleKeyDown("departmentid")}
+                        inputRef={branchidRef}
+                        error={errors.branchid}
+                        hasError={!!errors.branchid}
+                    />
+
+                    <FormInput
+                        label="ພະແນກ (ID)"
+                        theme="light"
+                        placeholder="ກະລຸນາປ້ອນລະຫັດພະແນກ"
+                        value={formData.departmentid}
+                        onChange={handleChange("departmentid")}
+                        onKeyDown={handleKeyDown("boardid")}
+                        inputRef={departmentidRef}
+                        error={errors.departmentid}
+                        hasError={!!errors.departmentid}
+                    />
+
+                    <FormInput
+                        label="ກອງ (ID)"
+                        theme="light"
+                        placeholder="ກະລຸນາປ້ອນລະຫັດກອງ"
+                        value={formData.boardid}
+                        onChange={handleChange("boardid")}
+                        onKeyDown={handleKeyDown("totalmoney")}
+                        inputRef={boardidRef}
+                        error={errors.boardid}
+                        hasError={!!errors.boardid}
+                    />
+
+                    <FormInput
+                        label="ຈຳນວນເງິນ (ບໍ່ບັງຄັບ)"
+                        theme="light"
+                        placeholder="ກະລຸນາປ້ອນຈຳນວນເງິນ"
+                        value={formData.totalmoney}
+                        onChange={handleChange("totalmoney")}
+                        inputRef={totalmoneyRef}
+                        error={errors.totalmoney}
+                        hasError={!!errors.totalmoney}
                     />
 
                     <div className="flex justify-end gap-3 pt-4">
@@ -220,11 +320,11 @@ export default function DocumentFormModal({
                 title={document ? "ຢືນຢັນການແກ້ໄຂ" : "ຢືນຢັນການເພີ່ມ"}
                 message={
                     document
-                        ? `ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການແກ້ໄຂຂໍ້ມູນເອກະສານ "${formData.documentTitle}"?`
-                        : `ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການເພີ່ມເອກະສານ "${formData.documentTitle}"?`
+                        ? `ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການແກ້ໄຂຂໍ້ມູນເອກະສານ?`
+                        : `ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການເພີ່ມເອກະສານຮ້ອງຂໍໃໝ່?`
                 }
                 confirmText={document ? "ແກ້ໄຂ" : "ເພີ່ມ"}
-                cancelText="ຍົກເລີກ" // Cancel
+                cancelText="ຍົກເລີກ"
                 loadingMessage={document ? "ກຳລັງແກ້ໄຂຂໍ້ມູນ..." : "ກຳລັງເພີ່ມເອກະສານ..."}
                 successMessage={document ? "ແກ້ໄຂຂໍ້ມູນສຳເລັດແລ້ວ" : "ເພີ່ມເອກະສານສຳເລັດແລ້ວ"}
                 onConfirm={handleConfirmSubmit}
