@@ -57,8 +57,6 @@ export const ENDPOINTS = {
   ALLAPP: {
     GET_ALL: "/api/allApp/getAllApp",
     NEW: "/api/allApp/newAllApp",
-    DELETE: "/api/allApp/deleteAllApp",
-    UPDATE: "/api/allApp/updateAllApp"
   },
 
   DOCUMENTS: {

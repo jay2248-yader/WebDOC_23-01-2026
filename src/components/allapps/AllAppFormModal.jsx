@@ -11,6 +11,7 @@ export default function AllAppFormModal({
 }) {
     const [formData, setFormData] = useState({
         appname: allApp?.appname || "",
+        applink: allApp?.applink || "",
         moreinfo: allApp?.moreinfo || "",
     });
 
@@ -23,6 +24,7 @@ export default function AllAppFormModal({
 
     // Refs for input fields
     const appnameRef = useRef(null);
+    const applinkRef = useRef(null);
     const moreinfoRef = useRef(null);
 
     // Reset formData and submitDialog when modal opens or allApp changes
@@ -30,6 +32,7 @@ export default function AllAppFormModal({
         if (isOpen) {
             setFormData({
                 appname: allApp?.appname || "",
+                applink: allApp?.applink || "",
                 moreinfo: allApp?.moreinfo || "",
             });
             setSubmitDialog({ open: false, status: "confirm" });
@@ -42,6 +45,7 @@ export default function AllAppFormModal({
     // Refs object for easy access
     const inputRefs = {
         appname: appnameRef,
+        applink: applinkRef,
         moreinfo: moreinfoRef,
     };
 
@@ -69,6 +73,7 @@ export default function AllAppFormModal({
         // Basic validation
         const newErrors = {};
         if (!formData.appname) newErrors.appname = "ກະລຸນາປ້ອນຊື່ AllApp";
+        if (!formData.applink) newErrors.applink = "ກະລຸນາປ້ອນລິ້ງ";
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
@@ -154,10 +159,22 @@ export default function AllAppFormModal({
                         placeholder="ກະລຸນາປ້ອນຊື່ AllApp"
                         value={formData.appname}
                         onChange={handleChange("appname")}
-                        onKeyDown={handleKeyDown("moreinfo")}
+                        onKeyDown={handleKeyDown("applink")}
                         inputRef={appnameRef}
                         error={errors.appname}
                         hasError={!!errors.appname}
+                    />
+
+                    <FormInput
+                        label="ລິ້ງ"
+                        theme="light"
+                        placeholder="ກະລຸນາປ້ອນລິ້ງ (ເຊັ່ນ: http://...)"
+                        value={formData.applink}
+                        onChange={handleChange("applink")}
+                        onKeyDown={handleKeyDown("moreinfo")}
+                        inputRef={applinkRef}
+                        error={errors.applink}
+                        hasError={!!errors.applink}
                     />
 
                     <FormInput

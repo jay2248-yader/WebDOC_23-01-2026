@@ -30,14 +30,7 @@ export async function deleteAllApp(ids) {
 
 //Create
 export async function createNewAllApp(payload) {
-    // Map to API expected format (camelCase assumption)
-    const apiPayload = {
-        appName: payload.appname,
-        appLink: payload.applink,
-        moreInfo: payload.moreinfo
-    };
-
-    const res = await http.post(ENDPOINTS.ALLAPP.NEW, apiPayload);
+    const res = await http.post(ENDPOINTS.ALLAPP.NEW, payload);
 
     if (!res.data?.success) {
         throw new Error(res.data?.message || "Failed to create AllApp");
