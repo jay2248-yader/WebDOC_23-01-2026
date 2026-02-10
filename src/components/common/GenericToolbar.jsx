@@ -19,6 +19,7 @@ export default function GenericToolbar({
   searchPlaceholder = "ຄົ້ນຫາ",
   createButtonText = "ສ້າງ",
   createButtonIcon = null,
+  extraButtons = null,
 }) {
   return (
     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -43,18 +44,21 @@ export default function GenericToolbar({
         />
       </div>
 
-      <Button
-        fullWidth={false}
-        variant="ghost"
-        size="sm"
-        onClick={onCreate}
-        className="bg-[#0F75BC] text-white hover:bg-blue-700 hover:scale-100 hover:shadow-none"
-      >
-        <span className="flex items-center gap-2">
-          {createButtonIcon}
-          {createButtonText}
-        </span>
-      </Button>
+      <div className="flex items-center gap-2">
+        {extraButtons}
+        <Button
+          fullWidth={false}
+          variant="ghost"
+          size="sm"
+          onClick={onCreate}
+          className="bg-[#0F75BC] text-white hover:bg-blue-700 hover:scale-100 hover:shadow-none"
+        >
+          <span className="flex items-center gap-2">
+            {createButtonIcon}
+            {createButtonText}
+          </span>
+        </Button>
+      </div>
     </div>
   );
 }

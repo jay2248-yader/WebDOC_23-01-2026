@@ -12,6 +12,9 @@ import DocumentCategoryPage from '../pages/DocumentCategoryPage';
 import DocumentsPage from '../pages/DocumentsPage';
 import GroupappPage from '../pages/GroupappPage';
 import AllAppPage from '../pages/AllAppPage';
+import DocumentGroupPage from '../pages/DocumentGroupPage';
+import DocumentGroupDetailsPage from '../pages/DocumentGroupDetailsPage';
+import DocumentPreviewPage from '../pages/DocumentPreviewPage';
 import MainLayout from '../components/layout/MainLayout';
 
 const AppRoutes = () => {
@@ -53,6 +56,9 @@ const AppRoutes = () => {
         <Route path="users" element={<UserPage />} />
         <Route path="groupapp" element={<GroupappPage />} />
         <Route path="allapp" element={<AllAppPage />} />
+        <Route path="document-group" element={<DocumentGroupPage />} />
+        <Route path="document-group-details" element={<DocumentGroupDetailsPage />} />
+        <Route path="document-preview" element={<DocumentPreviewPage />} />
         {/* Add more routes here in the future */}
       </Route>
 

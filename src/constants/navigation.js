@@ -61,6 +61,18 @@ export const MENU_ITEMS = [
         path: "/document-category",
       },
       {
+        id: "document-group",
+        label: "ກຸ່ມເອກະສານ",
+        icon: "📁",
+        path: "/document-group",
+      },
+      {
+        id: "document-group-details",
+        label: "ລາຍລະອຽດກຸ່ມເອກະສານ",
+        icon: "📋",
+        path: "/document-group-details",
+      },
+      {
         id: "documents-list",
         label: "ເອກະສານ", // Documents
         icon: "📄",

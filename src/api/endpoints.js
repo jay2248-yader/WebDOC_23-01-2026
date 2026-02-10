@@ -62,6 +62,21 @@ export const ENDPOINTS = {
   DOCUMENTS: {
     GET_ALL: "/api/requestdocument/getrequestdocumentAll",
     NEW: "/api/requestdocument/newrequestdocument"
+  },
 
+  DOCUMENT_GROUP: {
+    GET_ALL: "/api/documentgroup/getAllDocumentGroup",
+    NEW: "/api/documentgroup/newDocumentGroup",
+    DELETE: "/api/documentgroup/deleteDocumentGroup",
+    UPDATE: "/api/documentgroup/updateDocumentGroup"
+  },
+
+
+  DOCUMENT_GROUP_DETAILS: {
+    GET_ALL: "/api/documentgroupdetails/getAllDocumentGroupDetails",
+    NEW: "/api/documentgroupdetails/newDocumentGroupDetails",
+    DELETE: "/api/documentgroupdetails/deleteDocumentGroupDetails",
+    UPDATE: "/api/documentgroupdetails/updateDocumentGroupDetails"
   }
 };
+

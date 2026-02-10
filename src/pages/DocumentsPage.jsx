@@ -1,11 +1,18 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import GenericToolbar from "../components/common/GenericToolbar";
 import GenericDataTable, { Button } from "../components/common/GenericDataTable";
 import DocumentFormModal from "../components/documents/DocumentFormModal";
+import DocumentDetailModal from "../components/documents/DocumentDetailModal";
+import DocumentDetailFormModal from "../components/documents/DocumentDetailFormModal";
 import LoadingDialog from "../components/common/LoadingDialog";
 import { getAllDocuments, createNewDocument } from "../services/documentservice";
+import { useAuthStore } from "../store/authstore";
 
 export default function DocumentsPage() {
+    const navigate = useNavigate();
+    const user = useAuthStore((state) => state.user);
+
     const [documents, setDocuments] = useState([]);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
@@ -14,6 +21,10 @@ export default function DocumentsPage() {
     const [pageSize, setPageSize] = useState(10);
     const [showFormModal, setShowFormModal] = useState(false);
     const [editingDocument, setEditingDocument] = useState(null);
+    const [showDetailModal, setShowDetailModal] = useState(false);
+    const [viewingDocument, setViewingDocument] = useState(null);
+    const [showDetailFormModal, setShowDetailFormModal] = useState(false);
+    const [detailFormDocument, setDetailFormDocument] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
 
     // Reference to the delete handler from GenericDataTable
@@ -80,6 +91,66 @@ export default function DocumentsPage() {
             setIsLoading(false);
             setShowFormModal(true);
         }, 500);
+    };
+
+    const handleViewDocument = (doc) => {
+        setViewingDocument(doc);
+        setShowDetailModal(true);
+    };
+
+    const handlePreviewDocument = (doc) => {
+        navigate("/document-preview", { state: { document: doc } });
+    };
+
+    const handleCloseDetailModal = () => {
+        setShowDetailModal(false);
+        setViewingDocument(null);
+    };
+
+    const handleAddDetail = () => {
+        // เปิด form ให้กรอกข้อมูลรายละเอียดก่อน
+        setDetailFormDocument(null);
+        setShowDetailFormModal(true);
+    };
+
+    const handleCloseDetailFormModal = () => {
+        setShowDetailFormModal(false);
+        setDetailFormDocument(null);
+    };
+
+    const handleSubmitDetail = async (formData) => {
+        try {
+            // 1. สร้างเอกสารใหม่ก่อนโดยดึงข้อมูลจาก store
+            const documentPayload = {
+                doccategoryid: 1, // ค่าคงที่ไปก่อน เพราะยังไม่มี api
+                req_user: user?.usid || 1,
+                req_to: formData.req_to, // จาก form input
+                req_reason: "Request", // ต้องมีค่า
+                branchid: user?.brid || 1,
+                departmentid: 1,
+                boardId: 1, // ใช้ boardId ไม่ใช่ boardid
+                totalmoney: 0,
+            };
+
+            const result = await createNewDocument(documentPayload);
+            console.log("Created document:", result);
+
+            // 2. ได้ rqdid จากเอกสารที่สร้างใหม่
+            const newDocument = result.data_id?.fn_newrequestdoc || result.data_id || result.data || result;
+            const rqdid = newDocument?.rqdid;
+
+            console.log("New document rqdid:", rqdid);
+            console.log("Detail form data:", formData);
+
+            // TODO: 3. เพิ่มรายละเอียดเอกสาร เมื่อมี API แล้ว
+            // await createDocumentDetail({ rqdid, ...formData });
+
+            // Reload documents
+            await loadDocuments();
+        } catch (error) {
+            console.error("Error creating document:", error);
+            throw error; // ส่ง error กลับไปให้ modal แสดง
+        }
     };
 
     const handleCloseModal = () => {
@@ -174,6 +245,26 @@ export default function DocumentsPage() {
                         fullWidth={false}
                         variant="ghost"
                         size="sm"
+                        onClick={() => handleViewDocument(doc)}
+                        className="w-16 inline-flex items-center justify-center rounded-md bg-green-200 px-2 py-1 text-xs text-green-700 hover:bg-green-50 hover:scale-100 hover:shadow-none"
+                    >
+                        ເບິ່ງ
+                    </Button>
+
+                    <Button
+                        fullWidth={false}
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handlePreviewDocument(doc)}
+                        className="w-16 inline-flex items-center justify-center rounded-md bg-orange-200 px-2 py-1 text-xs text-orange-700 hover:bg-orange-50 hover:scale-100 hover:shadow-none"
+                    >
+                        ພິມ
+                    </Button>
+
+                    <Button
+                        fullWidth={false}
+                        variant="ghost"
+                        size="sm"
                         onClick={() => handleEditDocument(doc)}
                         className="w-16 inline-flex items-center justify-center rounded-md bg-blue-200 px-2 py-1 text-xs text-blue-700 hover:bg-blue-50 hover:scale-100 hover:shadow-none"
                     >
@@ -217,6 +308,32 @@ export default function DocumentsPage() {
                         />
                     </svg>
                 }
+                extraButtons={
+                    <Button
+                        fullWidth={false}
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleAddDetail(null)}
+                        className="bg-purple-600 text-white hover:bg-purple-700 hover:scale-100 hover:shadow-none"
+                    >
+                        <span className="flex items-center gap-2">
+                            <svg
+                                className="h-5 w-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                />
+                            </svg>
+                            ເພີ່ມລາຍລະອຽດ
+                        </span>
+                    </Button>
+                }
             />
 
             <GenericDataTable
@@ -241,6 +358,20 @@ export default function DocumentsPage() {
                 document={editingDocument}
                 onClose={handleCloseModal}
                 onSubmit={handleSubmitDocument}
+            />
+
+            <DocumentDetailModal
+                isOpen={showDetailModal}
+                document={viewingDocument}
+                onClose={handleCloseDetailModal}
+            />
+
+            <DocumentDetailFormModal
+                key={detailFormDocument?.rqdid || "new-detail"}
+                isOpen={showDetailFormModal}
+                document={detailFormDocument}
+                onClose={handleCloseDetailFormModal}
+                onSubmit={handleSubmitDetail}
             />
 
             <LoadingDialog isOpen={isLoading} message="ກຳລັງໂຫຼດ..." />
