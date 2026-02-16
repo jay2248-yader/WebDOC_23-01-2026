@@ -1,5 +1,8 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import cscLogo from "../assets/Logo/CSC_LOGO.svg";
+import mapRoundIcon from "../assets/icon/map-round-svgrepo-com.svg";
+import facebookIcon from "../assets/icon/facebook-brands-solid-full.svg";
+import footerCallIcon from "../assets/icon/Footercall.svg";
 
 export default function DocumentPreviewPage() {
   const location = useLocation();
@@ -22,8 +25,18 @@ export default function DocumentPreviewPage() {
           onClick={handleBack}
           className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
         >
-          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          <svg
+            className="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
           ກັບຄືນ
         </button>
@@ -31,17 +44,26 @@ export default function DocumentPreviewPage() {
           onClick={handlePrint}
           className="flex items-center gap-2 bg-[#0F75BC] text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700"
         >
-          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+          <svg
+            className="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+            />
           </svg>
           ພິມເອກະສານ
         </button>
       </div>
 
       {/* Document page */}
-      <div className="max-w-[210mm] mx-auto bg-white shadow-lg print:shadow-none print:mx-0 print:max-w-none">
+      <div className="max-w-[210mm] mx-auto bg-white shadow-lg print:shadow-none print:mx-0 print:max-w-none" style={{ fontFamily: "'TimesDoc', 'Phetsarath', sans-serif" }}>
         <div className="pt-10 min-h-[297mm] flex flex-col justify-between relative">
-
           {/* ===== HEADER ===== */}
           <div className="w-full">
             <div className="px-5">
@@ -57,10 +79,10 @@ export default function DocumentPreviewPage() {
 
                 {/* Title Text */}
                 <div className="w-full text-center pt-2 pb-8 relative z-0">
-                   <p className="text-base font-bold text-[#0F75BC] tracking-wide leading-tight">
+                  <p className="text-base font-bold text-[#0F75BC]  leading-tight">
                     ສາທາລະນະລັດ ປະຊາທິປະໄຕ ປະຊາຊົນລາວ
                   </p>
-                   <p className="text-base font-bold text-[#0F75BC] mt-1 tracking-wide ">
+                  <p className="text-base font-bold text-[#0F75BC] mt-1  ">
                     ສັນຕິພາບ ເອກະລາດ ປະຊາທິປະໄຕ ເອກະພາບ ວັດທະນະຖາວອນ
                   </p>
                 </div>
@@ -83,9 +105,9 @@ export default function DocumentPreviewPage() {
                     />
                     {/* Thin Line */}
                     <path
-                      d="M800 11 L172 11 L142 34 L0 34"
+                      d="M800 9 L172 9 L142 32 L0 32"
                       stroke="#0F75BC"
-                      strokeWidth="1.5"
+                      strokeWidth="2"
                       fill="none"
                     />
                   </svg>
@@ -94,50 +116,73 @@ export default function DocumentPreviewPage() {
             </div>
 
             {/* Department + Doc number + Date + Body */}
-            <div className="px-16">
+            <div className="px-30">
               <div className="flex items-start justify-between mt-4 text-sm text-black">
-                <p className=" ml-30 -mt-7">ຝ່າຍໃດໜຶ່ງ</p>
+                <p className=" ml-16 -mt-7">ຝ່າຍໃດໜຶ່ງ</p>
                 <div className="text-right -mt-7">
                   <p>ເລກທີ:............/{document.req_no || "ອກ"}</p>
-                  <p>ບະຖວນຫຼວງວຽງຈັນ, ວັນທີ:{document.createdate || "......./......./......."}</p>
+                  <p>
+                    ບະຖວນຫຼວງວຽງຈັນ, ວັນທີ:
+                    {document.createdate || "......./......./......."}
+                  </p>
                 </div>
               </div>
 
               {/* ===== TITLE ===== */}
-              <h1 className="text-center text-xl font-bold text-black mt-6 mb-6 underline underline-offset-4">
+              <h1 className="text-center text-xl font-bold text-black mt-6 mb-2">
                 ໃບສະເໜີ
               </h1>
 
               {/* ===== BODY ===== */}
-              <div className="text-sm text-gray-800 space-y-3 leading-relaxed">
+              <div className="text-sm text-gray-800 space-y-0.5 leading-relaxed">
                 {/* ຮຽນ */}
-                <p>
-                  <span className="font-bold text-black">ຮຽນ : </span>
-                  {document.req_to || "ທ່ານ ຮອງວານອົງການ"}
-                </p>
+                <div className="flex">
+                  <span className="font-bold text-black whitespace-nowrap">
+                    ຮຽນ :&nbsp;
+                  </span>
+                  {document.req_to ||
+                    "ທ່ານ ຮອງອຳນວການຊີ້ນຳຝ່າຍບັນຊີ ການເງີນ ຂອງບໍລິສັດ ຊີເອັດຊີ ສຳນັກງານໃຫຍ່ທີ່ນັບຖື ກດດເືຫຶສັ່ເຶສັາຫຶເ່ຫຶືກ່ເຶືຫວ່ກຶເ;"}
+                </div>
 
                 {/* ເລື່ອງ */}
-                <p>
-                  <span className="font-bold text-black">ເລື່ອງ : </span>
-                  {document.req_reason || "ຂໍສະເໜີໃຫ້ອະນຸມັດ"}
-                </p>
+                <div className="flex">
+                  <span className="font-bold text-black whitespace-nowrap">
+                    ເລື່ອງ :&nbsp;
+                  </span>
+                  <span>
+                    {document.req_reason ||
+                      "ຂໍສະເໜີພິຈາລະນາອະນຸມັດໃນເລື່ອງ ຈັດຊື້ກາຈັດຊື້ ສະປີ່ ຈຳນວນ 3 ອັນ ແລະ ກາຈ້ອນທີຈຳນວນ 3 ອັນ ຂໍສະເໜີພິຈາລະນາອະນຸມັດໃນເລື່ອງ ຈັດຊື້ກາຈັດຊື້ ສະປີ່ ຈຳນວນ 3 ອັນ ແລະ ກາຈ້ອນທີຈຳນວນ 3 ອັນ;"}
+                  </span>
+                </div>
 
                 {/* ອີງຕາມ */}
                 <div>
-                  <p className="font-bold text-black mb-1">ອີງຕາມ :</p>
-                  <ul className="list-disc ml-8 space-y-1">
-                    <li>ອີງຕາມ : ການໃຊ້ງານໃບອ້ຽງອາຊຸກລືວີ ;</li>
-                    <li>ອີງຕາມ : ໃບສະເໜີຈ່າຍສົບເສີດ ;</li>
-                    <li>ອີງຕາມ : ໃບສະເໜີສົບເສີດ ;</li>
+                  <ul className="list-none space-y-1">
+                    {(
+                      document.references || [
+                        "ການໃຊ້ງານໃບອ້ຽງອາຊຸກລືວີ",
+                        "ໃບສະເໜີຈ່າຍສົບເສີດ",
+                        "ໃບສະເໜີສົບເສີດ",
+                      ]
+                    ).map((item, index) => (
+                      <li
+                        key={index}
+                        className="relative before:content-['-'] before:absolute before:left-[-16px]"
+                      >
+                        ອີງຕາມ : {item} ;
+                      </li>
+                    ))}
                   </ul>
                 </div>
 
                 {/* Body paragraph */}
-                <p className="indent-8 mt-4">
-                  ຂ້ານະເຈົ້າ ທ້າວ ຊະນິວົງ ເງີນວົນ ໃນນາມ ຕົວແທນຝ່າຍໃດໜຶ່ງ ຂອງບໍລິສັດເປັນຜູ້ກ ທ່ານ ຮອງອໍານວຍການຝ່າຍບໍລິຫານ
-                  ຝ່າຍບໍລິສັດ - ການວີນ ເພື່ອຂໍສະເໜີໃຫ້ອະນຸມັດປ້ຽນກໍ່ ເພື່ອຈັດສົ່ງກາກາກຫ້ຈ ສະນ່ວ ໃຫ້ກໍ່ສຳຊຸ່ງແຫ່ງໃດໜຶ່ງທະພະ
-                  ແນວທາງເຂດປະນວນວິດດ ແລະ ຕົວອທິພາບແດນກອງຈະລະຊາຕິທີ່ສະດາຍກຸນ ຈຳນວນ 3 ຊົມ ແລະ ການຈ້ອງບັນທີ ຈຳນວນ
-                  1 ຊົມ
+                <p className="indent-8 ">
+                  ຂ້ານະເຈົ້າ ທ້າວ ຊະນິວົງ ເງີນວົນ ໃນນາມ ຕົວແທນຝ່າຍໃດໜຶ່ງ
+                  ຂອງບໍລິສັດເປັນຜູ້ກ ທ່ານ ຮອງອໍານວຍການຝ່າຍບໍລິຫານ ຝ່າຍບໍລິສັດ -
+                  ການວີນ ເພື່ອຂໍສະເໜີໃຫ້ອະນຸມັດປ້ຽນກໍ່ ເພື່ອຈັດສົ່ງກາກາກຫ້ຈ
+                  ສະນ່ວ ໃຫ້ກໍ່ສຳຊຸ່ງແຫ່ງໃດໜຶ່ງທະພະ ແນວທາງເຂດປະນວນວິດດ ແລະ
+                  ຕົວອທິພາບແດນກອງຈະລະຊາຕິທີ່ສະດາຍກຸນ ຈຳນວນ 3 ຊົມ ແລະ
+                  ການຈ້ອງບັນທີ ຈຳນວນ 1 ຊົມ
                 </p>
 
                 {/* Title + Table sections */}
@@ -147,7 +192,9 @@ export default function DocumentPreviewPage() {
                     <div className="flex items-center gap-4">
                       <span className="text-sm">Title</span>
                       <span className="text-sm">➤</span>
-                      <span className="text-sm text-gray-500">.................................................................</span>
+                      <span className="text-sm text-gray-500">
+                        .................................................................
+                      </span>
                     </div>
                     <div className="flex items-center gap-4 mt-1">
                       <span className="text-sm">Table</span>
@@ -160,7 +207,9 @@ export default function DocumentPreviewPage() {
                     <div className="flex items-center gap-4">
                       <span className="text-sm">Title</span>
                       <span className="text-sm">➤</span>
-                      <span className="text-sm text-gray-500">.................................................................</span>
+                      <span className="text-sm text-gray-500">
+                        .................................................................
+                      </span>
                     </div>
                     <div className="flex items-center gap-4 mt-1">
                       <span className="text-sm">Table</span>
@@ -170,9 +219,13 @@ export default function DocumentPreviewPage() {
                 </div>
 
                 {/* ສະນັ້ນ */}
-                <p className="font-bold text-black mt-6 ml-10">ສະນັ້ນເຫດ:</p>
-                <p className="indent-8 text-center">
-                  ດັ່ງນັ້ນ, ຂ້ານະເຈົ້າຈຶ່ງຂໍສະເໜີມາຍັງທ່ານ ເພື່ອພິຈາລະນາອະນຸມັດຕາມທີ່ໄດ້ລາຍຄວາມຂ້າງເທິງນີ້ດ້ວຍ.
+                <div className="flex items-baseline mt-6">
+                  <span className="text-black whitespace-nowrap ml-10">ໝາຍເຫດ:</span>
+                  <span className="flex-1 border-b border-dotted border-black ml-1"></span>
+                </div>
+                <p className="indent-20 ">
+                  ດັ່ງນັ້ນ, ຂ້ານະເຈົ້າຈຶ່ງຂໍສະເໜີມາຍັງທ່ານ
+                  ເພື່ອພິຈາລະນາອະນຸມັດຕາມທີ່ເຫັນສົມຄວນດ້ວຍ.
                 </p>
 
                 {/* Signature */}
@@ -186,7 +239,6 @@ export default function DocumentPreviewPage() {
             </div>
           </div>
 
-      
           {/* ===== FOOTER ===== */}
           <div className="w-full relative mt-10">
             <div className="h-[120px] w-full relative">
@@ -214,7 +266,7 @@ export default function DocumentPreviewPage() {
                   />
                   {/* Bottom Main Blue Shape */}
                   <path
-d="
+                    d="
   M0 60
   L500 60
   C580 60 620 60 645 40
@@ -224,10 +276,7 @@ d="
   L0 120
   Z
 "
-
-
                     fill="#0F75BC"
-
                   />
                 </svg>
               </div>
@@ -251,70 +300,41 @@ d="
                     <line x1="2" y1="12" x2="22" y2="12" />
                     <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
                   </svg>
-                  <span className="text-sm font-semibold">http://csccomplex-center.com</span>
+                  <span className="text-sm font-semibold">
+                    http://csccomplex-center.com
+                  </span>
                 </div>
 
                 {/* Facebook */}
                 <div className="flex items-center gap-2 mr-35">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="#0F75BC"
-                    stroke="none"
-                  >
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                  </svg>
-                  <span className="text-sm font-semibold">csc complex center Co.,Ltd</span>
+                  <img src={facebookIcon} alt="Facebook" width="30" height="30" />
+                  <span className="text-sm font-semibold">
+                    csc complex center Co.,Ltd
+                  </span>
                 </div>
               </div>
 
               {/* Address / Contact Info Row 2 (Blue Area) */}
-              <div className="relative z-10 flex justify-between px-16 text-white pt-5.5 items-center">
+              <div className="absolute bottom-0 left-0 right-0 z-10 flex justify-between px-16 text-white pb-2 items-end">
                 {/* Address */}
-                <div className="flex items-start gap-3">
-                  <div className="mt-1 bg-white rounded-full p-1">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="#0F75BC"
-                      stroke="#0F75BC"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                      <circle cx="12" cy="10" r="3" />
-                    </svg>
+                <div className="flex  items-end gap-3 ">
+                  <div className="rounded-full  ">
+                    <img src={mapRoundIcon} alt="Location" width="35" height="35" className="brightness-0 invert" />
                   </div>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-bold leading-tight">ຊີເອັສຊີ ນະຄອນຫຼວງວຽງຈັນ ຈຳກັດຜູ້ດຽວ</span>
-                    <span className="text-[10px] opacity-90 leading-tight mt-0.5">
-                      ຕັ້ງຢູ່ ຖະໜົນ 450 ປີ, ບ້ານ ໂຊກໃຫຍ່, ເມືອງ ໄຊເສດຖາ, ນະຄອນຫຼວງວຽງຈັນ
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[18px]  leading-tight">
+                      ຊີເອັສຊີ ນະຄອນຫຼວງວຽງຈັນ ຈຳກັດຜູ້ດຽວ
+                    </span>
+                    <span className="text-[16px] opacity-80 leading-tight">
+                      ຕັ້ງຢູ່ ຖະໜົນ 450 ປີ, ບ້ານ ໂຊກໃຫຍ່, ເມືອງ ໄຊເສດຖາ,
+                      ນະຄອນຫຼວງວຽງຈັນ
                     </span>
                   </div>
                 </div>
 
                 {/* Phone */}
-                <div className="flex items-center gap-2">
-                  <div className="bg-white rounded-full p-1">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="#0F75BC"
-                      stroke="#0F75BC"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                    </svg>
-                  </div>
+                <div className="flex items-end gap-2 -mr-5">
+                  <img src={footerCallIcon} alt="Phone" width="30" height="30" />
                   <span className="text-sm font-bold">021 463 555-57</span>
                 </div>
               </div>
@@ -322,6 +342,6 @@ d="
           </div>
         </div>
       </div>
-    </div >
+    </div>
   );
 }
