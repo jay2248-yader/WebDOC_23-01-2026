@@ -1,13 +1,18 @@
+import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import cscLogo from "../assets/Logo/CSC_LOGO.svg";
 import mapRoundIcon from "../assets/icon/map-round-svgrepo-com.svg";
 import facebookIcon from "../assets/icon/facebook-brands-solid-full.svg";
 import footerCallIcon from "../assets/icon/Footercall.svg";
+import museumIcon from "../assets/icon/MuseumExhibition.svg";
+import TitleTableModal from "../components/documents/TitleTableModal";
 
 export default function DocumentPreviewPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const document = location.state?.document || {};
+  const [showTitleTableModal, setShowTitleTableModal] = useState(false);
+  const [titleTableSections, setTitleTableSections] = useState([]);
 
   const handlePrint = () => {
     window.print();
@@ -62,7 +67,10 @@ export default function DocumentPreviewPage() {
       </div>
 
       {/* Document page */}
-      <div className="max-w-[210mm] mx-auto bg-white shadow-lg print:shadow-none print:mx-0 print:max-w-none" style={{ fontFamily: "'TimesDoc', 'Phetsarath', sans-serif" }}>
+      <div
+        className="max-w-[210mm] mx-auto bg-white shadow-lg print:shadow-none print:mx-0 print:max-w-none"
+        style={{ fontFamily: "'TimesDoc', 'Phetsarath', sans-serif" }}
+      >
         <div className="pt-10 min-h-[297mm] flex flex-col justify-between relative">
           {/* ===== HEADER ===== */}
           <div className="w-full">
@@ -186,41 +194,73 @@ export default function DocumentPreviewPage() {
                 </p>
 
                 {/* Title + Table sections */}
-                <div className="mt-6 space-y-4">
-                  {/* Section 1 */}
-                  <div>
-                    <div className="flex items-center gap-4">
-                      <span className="text-sm">Title</span>
-                      <span className="text-sm">➤</span>
-                      <span className="text-sm text-gray-500">
-                        .................................................................
-                      </span>
+                <div
+                  className=" space-y-6 cursor-pointer hover:bg-gray-50 rounded-lg p-2 -ml-2 transition-colors print:cursor-default print:hover:bg-transparent print:p-0 print:ml-0"
+                  onClick={() => setShowTitleTableModal(true)}
+                >
+                  {titleTableSections.length > 0 ? (
+                    titleTableSections.map((section, si) => (
+                      <div key={si}>
+                        {section.title && (
+                          <p className="text-sm font-bold mb-1">
+                            <span className="mr-2">➤</span>
+                            {section.title}
+                          </p>
+                        )}
+                        <table className="w-full border-collapse border border-black text-sm">
+                          <tbody>
+                            {(section.cells || []).map((row, ri) => (
+                              <tr key={ri}>
+                                {row.map((cell, ci) => {
+                                  if (!cell) return null;
+                                  return (
+                                    <td
+                                      key={ci}
+                                      colSpan={cell.colspan || 1}
+                                      rowSpan={cell.rowspan || 1}
+                                      className="border border-black px-2 py-1 text-center whitespace-pre-wrap"
+                                      style={{
+                                        backgroundColor: cell.bg || undefined,
+                                        color: cell.color || undefined,
+                                      }}
+                                    >
+                                      {cell.value ?? cell}
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            ))}
+                            {section.summaryRow && (
+                              <tr className="font-bold">
+                                <td
+                                  colSpan={section.summaryRow.labelColspan}
+                                  className="border border-black px-2 py-1 text-center"
+                                >
+                                  {section.summaryRow.label}
+                                </td>
+                                {section.summaryRow.values.map((val, vi) => (
+                                  <td key={vi} className="border border-black px-2 py-1 text-center">
+                                    {val}
+                                  </td>
+                                ))}
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center text-gray-400 border-2 border-dashed border-gray-300 rounded-lg py-6 text-sm print:hidden">
+                      ກົດເພື່ອເພີ່ມ Title + Table
                     </div>
-                    <div className="flex items-center gap-4 mt-1">
-                      <span className="text-sm">Table</span>
-                      <div className="flex-1 border-2 border-[#0F75BC] rounded h-10"></div>
-                    </div>
-                  </div>
-
-                  {/* Section 2 */}
-                  <div>
-                    <div className="flex items-center gap-4">
-                      <span className="text-sm">Title</span>
-                      <span className="text-sm">➤</span>
-                      <span className="text-sm text-gray-500">
-                        .................................................................
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-4 mt-1">
-                      <span className="text-sm">Table</span>
-                      <div className="flex-1 border-2 border-[#0F75BC] rounded h-10"></div>
-                    </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* ສະນັ້ນ */}
                 <div className="flex items-baseline mt-6">
-                  <span className="text-black whitespace-nowrap ml-10">ໝາຍເຫດ:</span>
+                  <span className="text-black whitespace-nowrap ml-10">
+                    ໝາຍເຫດ:
+                  </span>
                   <span className="flex-1 border-b border-dotted border-black ml-1"></span>
                 </div>
                 <p className="indent-20 ">
@@ -285,29 +325,20 @@ export default function DocumentPreviewPage() {
               <div className="relative z-10 flex justify-between px-16 pt-2 pb-6 text-[#0F75BC]">
                 {/* Website */}
                 <div className="flex -ml-2 items-center gap-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="2" y1="12" x2="22" y2="12" />
-                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-                  </svg>
-                  <span className="text-sm font-semibold">
+                  <img src={museumIcon} alt="Website" width="58" height="58" />
+                  <span className="text-sm font-semibold -ml-3">
                     http://csccomplex-center.com
                   </span>
                 </div>
 
                 {/* Facebook */}
                 <div className="flex items-center gap-2 mr-35">
-                  <img src={facebookIcon} alt="Facebook" width="30" height="30" />
+                  <img
+                    src={facebookIcon}
+                    alt="Facebook"
+                    width="30"
+                    height="30"
+                  />
                   <span className="text-sm font-semibold">
                     csc complex center Co.,Ltd
                   </span>
@@ -319,7 +350,13 @@ export default function DocumentPreviewPage() {
                 {/* Address */}
                 <div className="flex  items-end gap-3 ">
                   <div className="rounded-full  ">
-                    <img src={mapRoundIcon} alt="Location" width="35" height="35" className="brightness-0 invert" />
+                    <img
+                      src={mapRoundIcon}
+                      alt="Location"
+                      width="35"
+                      height="35"
+                      className="brightness-0 invert translate-y-1"
+                    />
                   </div>
                   <div className="flex flex-col gap-1">
                     <span className="text-[18px]  leading-tight">
@@ -334,7 +371,12 @@ export default function DocumentPreviewPage() {
 
                 {/* Phone */}
                 <div className="flex items-end gap-2 -mr-5">
-                  <img src={footerCallIcon} alt="Phone" width="30" height="30" />
+                  <img
+                    src={footerCallIcon}
+                    alt="Phone"
+                    width="30"
+                    height="30"
+                  />
                   <span className="text-sm font-bold">021 463 555-57</span>
                 </div>
               </div>
@@ -342,6 +384,13 @@ export default function DocumentPreviewPage() {
           </div>
         </div>
       </div>
+
+      <TitleTableModal
+        isOpen={showTitleTableModal}
+        onClose={() => setShowTitleTableModal(false)}
+        onSave={(sections) => setTitleTableSections(sections)}
+        initialSections={titleTableSections}
+      />
     </div>
   );
 }
