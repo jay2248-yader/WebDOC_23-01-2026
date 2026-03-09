@@ -1,394 +1,422 @@
-import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import cscLogo from "../assets/Logo/CSC_LOGO.svg";
-import mapRoundIcon from "../assets/icon/map-round-svgrepo-com.svg";
-import facebookIcon from "../assets/icon/facebook-brands-solid-full.svg";
-import footerCallIcon from "../assets/icon/Footercall.svg";
-import museumIcon from "../assets/icon/MuseumExhibition.svg";
+import { useState, useEffect, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 import TitleTableModal from "../components/documents/TitleTableModal";
+
+import { getDocumentDetailsByDocumentId } from "../services/documentdetailsservice";
+import { useDocumentEditStore } from "../store/documentEditStore";
+
+import PageShell from "../components/document-preview/PageShell";
+import BelowBody from "../components/document-preview/BelowBody";
+import ClosingContent from "../components/document-preview/ClosingContent";
+import DocumentDetailsSidebar from "../components/document-preview/DocumentDetailsSidebar";
+import DocumentActionBar from "../components/document-preview/DocumentActionBar";
+import { useDocumentPagination } from "../hooks/useDocumentPagination";
 
 export default function DocumentPreviewPage() {
   const location = useLocation();
-  const navigate = useNavigate();
-  const document = location.state?.document || {};
+  const docData = location.state?.document || {};
+
   const [showTitleTableModal, setShowTitleTableModal] = useState(false);
   const [titleTableSections, setTitleTableSections] = useState([]);
+  const [reqTo, setReqTo] = useState(docData.req_to || "");
+  const [reqReason, setReqReason] = useState(docData.req_reason || "");
+  const [references, setReferences] = useState(docData.references || [""]);
+  const [bodyParagraph, setBodyParagraph] = useState(docData.body_paragraph || "");
+  const [remark, setRemark] = useState(docData.remark || "");
+  const [documentDetails, setDocumentDetails] = useState([]);
+  const [loadingDetails, setLoadingDetails] = useState(!!docData.rqdid);
+  const [selectedDetailId, setSelectedDetailId] = useState(null);
+  const [extraPages, setExtraPages] = useState([]);
 
-  const handlePrint = () => {
-    window.print();
+  const {
+    bodyChunks,
+    setBodyChunks,
+    tablePageChunks,
+    page1Ref,
+    body1Ref,
+    belowBodyMeasureRef,
+    closingMeasureRef,
+    measureRef,
+    overflowPageRefs,
+    extraPageRefs
+  } = useDocumentPagination({
+    bodyParagraph,
+    titleTableSections,
+    reqTo,
+    reqReason,
+    references,
+    remark
+  });
+
+  const {
+    edits,
+    setReqTo: storeSetReqTo,
+    setReqReason: storeSetReqReason,
+    setReferences: storeSetReferences,
+    setBodyParagraph: storeSetBodyParagraph,
+    setRemark: storeSetRemark,
+    setTitleTableSections: storeSetTitleTableSections,
+    setExtraPages: storeSetExtraPages,
+  } = useDocumentEditStore();
+
+  // ── Detail selection ──────────────────────────────────────────────────────────
+  const handleSelectDetail = (detail) => {
+    if (selectedDetailId === detail.rddid) {
+      setSelectedDetailId(null);
+      setReqReason(docData.req_reason || "");
+      setReqTo(docData.req_to || "");
+      setReferences(docData.references || [""]);
+      setBodyParagraph(docData.body_paragraph || "");
+      setRemark(docData.remark || "");
+      setTitleTableSections([]);
+      setExtraPages([]);
+    } else {
+      setSelectedDetailId(detail.rddid);
+      const e = edits[detail.rddid] || {};
+      setReqReason(e.reqReason !== undefined ? e.reqReason : detail.req_title || "");
+      setReqTo(e.reqTo !== undefined ? e.reqTo : detail.req_subtitle || "");
+      setReferences(e.references !== undefined ? e.references : detail.references || docData.references || [""]);
+      setBodyParagraph(e.bodyParagraph !== undefined ? e.bodyParagraph : detail.req_moreinfo || "");
+      setRemark(e.remark !== undefined ? e.remark : "");
+      setTitleTableSections(e.titleTableSections !== undefined ? e.titleTableSections : []);
+      setExtraPages(e.extraPages !== undefined ? e.extraPages : []);
+    }
   };
 
-  const handleBack = () => {
-    navigate("/documents");
+  // ── Fetch document details ────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!docData.rqdid) return;
+    getDocumentDetailsByDocumentId(String(docData.rqdid))
+      .then((res) => setDocumentDetails(res.data_id?.data || []))
+      .catch((err) => console.error("Failed to fetch document details:", err))
+      .finally(() => setLoadingDetails(false));
+  }, [docData.rqdid]);
+
+  // ── Auto-resize textareas ─────────────────────────────────────────────────────
+  useEffect(() => {
+    window.document.querySelectorAll("textarea").forEach((ta) => {
+      ta.style.height = "auto";
+      ta.style.height = ta.scrollHeight + "px";
+    });
+  }, [reqTo, reqReason, references, bodyParagraph, remark, selectedDetailId, bodyChunks]);
+
+  // ── Print ─────────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const saved = [];
+    const before = () => window.document.querySelectorAll("textarea").forEach((ta) => { saved.push(ta.style.height); ta.style.height = ""; });
+    const after = () => { window.document.querySelectorAll("textarea").forEach((ta, i) => { ta.style.height = saved[i] || ""; }); saved.length = 0; };
+    window.addEventListener("beforeprint", before);
+    window.addEventListener("afterprint", after);
+    return () => { window.removeEventListener("beforeprint", before); window.removeEventListener("afterprint", after); };
+  }, []);
+
+  // ── Body change handlers ──────────────────────────────────────────────────────
+  const handleBodyChange = (chunkIdx, newChunkValue) => {
+    const newChunks = [...bodyChunks];
+    newChunks[chunkIdx] = newChunkValue;
+    const newFull = newChunks.join("");
+    setBodyParagraph(newFull);
+    if (selectedDetailId) storeSetBodyParagraph(selectedDetailId, newFull);
+  };
+
+  const handleBodyKeyDown = (e, chunkIdx) => {
+    if (e.key !== "Tab") return;
+    e.preventDefault();
+    const start = e.target.selectionStart;
+    const end = e.target.selectionEnd;
+    const spaces = "        ";
+    const chunk = bodyChunks[chunkIdx] || "";
+    handleBodyChange(chunkIdx, chunk.substring(0, start) + spaces + chunk.substring(end));
+    requestAnimationFrame(() => { e.target.selectionStart = e.target.selectionEnd = start + spaces.length; });
+  };
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "......./......./.......";
+    const [y, m, d] = dateStr.split(" ")[0].split("-");
+    return `${d}/${m}/${y}`;
+  };
+
+  const lastChunkIdx = bodyChunks.length - 1;
+  const closingProps = { remark, setRemark, selectedDetailId, storeSetRemark };
+  const belowBodyProps = {
+    titleTableSections, remark, setRemark,
+    selectedDetailId, storeSetRemark,
+    onOpenTitleTable: () => setShowTitleTableModal(true),
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Action buttons - hidden when printing */}
-      <div className="print:hidden flex items-center justify-between px-6 py-4 bg-white shadow-sm mb-4">
-        <button
-          onClick={handleBack}
-          className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
-        >
-          <svg
-            className="h-5 w-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-          ກັບຄືນ
-        </button>
-        <button
-          onClick={handlePrint}
-          className="flex items-center gap-2 bg-[#0F75BC] text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700"
-        >
-          <svg
-            className="h-5 w-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-            />
-          </svg>
-          ພິມເອກະສານ
-        </button>
+    <div className="min-h-screen bg-gray-100 print:bg-white print:min-h-0">
+
+      {/* Hidden measurement div */}
+      <div ref={measureRef} aria-hidden="true"
+        style={{ position: "absolute", left: "-9999px", top: 0, visibility: "hidden", pointerEvents: "none" }} />
+
+      {/* Off-screen below-body clone for height measurement */}
+      <div ref={belowBodyMeasureRef} aria-hidden="true"
+        style={{ position: "absolute", left: "-9999px", top: 0, visibility: "hidden", pointerEvents: "none", width: "174mm" }}
+        className="text-sm text-gray-800 space-y-0.5 leading-relaxed">
+        <BelowBody {...belowBodyProps} interactive={false} />
       </div>
 
-      {/* Document page */}
-      <div
-        className="max-w-[210mm] mx-auto bg-white shadow-lg print:shadow-none print:mx-0 print:max-w-none"
-        style={{ fontFamily: "'TimesDoc', 'Phetsarath', sans-serif" }}
-      >
-        <div className="pt-10 min-h-[297mm] flex flex-col justify-between relative">
-          {/* ===== HEADER ===== */}
-          <div className="w-full">
-            <div className="px-5">
-              <div className="relative w-full mb-2">
-                {/* Logo */}
-                <div className="absolute left-5 -top-5 z-10">
-                  <img
-                    src={cscLogo}
-                    alt="CSC Logo"
-                    className="w-[100px] h-[100px] object-contain object-center"
-                  />
+      {/* Off-screen closing content clone for height measurement */}
+      <div ref={closingMeasureRef} aria-hidden="true"
+        style={{ position: "absolute", left: "-9999px", top: 0, visibility: "hidden", pointerEvents: "none", width: "174mm" }}
+        className="text-sm text-gray-800 space-y-0.5 leading-relaxed">
+        <ClosingContent {...closingProps} interactive={false} />
+      </div>
+
+      <DocumentActionBar />
+
+      <div className="flex items-start gap-6 px-6 print:block print:px-0">
+
+        {/* ══════════════════ LEFT: Pages ══════════════════ */}
+        <div className="flex-1 flex flex-col gap-6 print:gap-0">
+
+          {/* ════ PAGE 1 ════ */}
+          <div className="max-w-[210mm] mx-auto w-full bg-white shadow-lg print:shadow-none print:mx-0 print:max-w-none print:p-0"
+            style={{ fontFamily: "'TimesDoc', 'Phetsarath', sans-serif" }}>
+            <PageShell pageRef={page1Ref} extraClass="print:h-auto">
+              <div data-content-area className="pt-2 h-full overflow-hidden print:overflow-visible">
+                {/* Doc number + date */}
+                <div className="flex items-start justify-between text-sm text-black mb-1 ml-22 -mt-2.5">
+                  <p>ຝ່າຍໃດໜຶ່ງ</p>
+                  <div className="text-right">
+                    <p>ເລກທີ:{docData.req_no || "ອກ"}</p>
+                    <p>ນະຄອນຫຼວງວຽງຈັນ, ວັນທີ:{formatDate(docData.createdate)}</p>
+                  </div>
                 </div>
 
-                {/* Title Text */}
-                <div className="w-full text-center pt-2 pb-8 relative z-0">
-                  <p className="text-base font-bold text-[#0F75BC]  leading-tight">
-                    ສາທາລະນະລັດ ປະຊາທິປະໄຕ ປະຊາຊົນລາວ
-                  </p>
-                  <p className="text-base font-bold text-[#0F75BC] mt-1  ">
-                    ສັນຕິພາບ ເອກະລາດ ປະຊາທິປະໄຕ ເອກະພາບ ວັດທະນະຖາວອນ
-                  </p>
-                </div>
+                <h1 className="text-center text-xl font-bold text-black mt-1 mb-2">ໃບສະເໜີ</h1>
 
-                {/* SVG Lines */}
-                <div className="absolute -bottom-2 left-0 w-full h-[40px]">
-                  <svg
-                    width="100%"
-                    height="100%"
-                    viewBox="0 0 800 40"
-                    preserveAspectRatio="none"
-                    className="overflow-visible"
-                  >
-                    {/* Thick Line */}
-                    <path
-                      d="M800 5 L170 5 L140 28 L0 28"
-                      stroke="#0F75BC"
-                      strokeWidth="3"
-                      fill="none"
-                    />
-                    {/* Thin Line */}
-                    <path
-                      d="M800 9 L172 9 L142 32 L0 32"
-                      stroke="#0F75BC"
-                      strokeWidth="2"
-                      fill="none"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </div>
+                <div className="text-sm text-gray-800 space-y-0.5 leading-relaxed">
+                  {/* ຮຽນ */}
+                  <div className="flex">
+                    <span className="font-bold text-black whitespace-nowrap">ຮຽນ :&nbsp;</span>
+                    <textarea value={reqTo}
+                      onChange={(e) => { setReqTo(e.target.value); if (selectedDetailId) storeSetReqTo(selectedDetailId, e.target.value); }}
+                      placeholder="ພິມຊື່ຜູ້ຮັບ..." rows={1}
+                      onInput={(e) => { e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }}
+                      className="flex-1 border-none outline-none bg-transparent text-gray-800 resize-none overflow-hidden break-all print:p-0" />
+                  </div>
 
-            {/* Department + Doc number + Date + Body */}
-            <div className="px-30">
-              <div className="flex items-start justify-between mt-4 text-sm text-black">
-                <p className=" ml-16 -mt-7">ຝ່າຍໃດໜຶ່ງ</p>
-                <div className="text-right -mt-7">
-                  <p>ເລກທີ:............/{document.req_no || "ອກ"}</p>
-                  <p>
-                    ບະຖວນຫຼວງວຽງຈັນ, ວັນທີ:
-                    {document.createdate || "......./......./......."}
-                  </p>
-                </div>
-              </div>
+                  {/* ເລື່ອງ */}
+                  <div className="flex">
+                    <span className="font-bold text-black whitespace-nowrap">ເລື່ອງ :&nbsp;</span>
+                    <textarea value={reqReason}
+                      onChange={(e) => { setReqReason(e.target.value); if (selectedDetailId) storeSetReqReason(selectedDetailId, e.target.value); }}
+                      placeholder="ພິມເລື່ອງ..." rows={1}
+                      onInput={(e) => { e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }}
+                      className="flex-1 border-none outline-none bg-transparent text-gray-800 resize-none overflow-hidden break-all print:p-0" />
+                  </div>
 
-              {/* ===== TITLE ===== */}
-              <h1 className="text-center text-xl font-bold text-black mt-6 mb-2">
-                ໃບສະເໜີ
-              </h1>
+                  {/* ອີງຕາມ */}
+                  <div>
+                    <ul className="list-none space-y-1">
+                      {references.map((item, index) => (
+                        <li key={index} className="relative before:content-['-'] before:absolute before:left-[-16px] flex items-start">
+                          <span className="whitespace-nowrap">ອີງຕາມ :&nbsp;</span>
+                          <textarea value={item}
+                            onChange={(e) => {
+                              const updated = [...references]; updated[index] = e.target.value;
+                              setReferences(updated); if (selectedDetailId) storeSetReferences(selectedDetailId, updated);
+                            }}
+                            placeholder="ພິມອີງຕາມ..." rows={1}
+                            onInput={(e) => { e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }}
+                            className="flex-1 border-none outline-none bg-transparent text-gray-800 resize-none overflow-hidden break-all print:p-0" />
+                          {references.length > 1 && (
+                            <button onClick={() => {
+                              const updated = references.filter((_, i) => i !== index);
+                              setReferences(updated); if (selectedDetailId) storeSetReferences(selectedDetailId, updated);
+                            }} className="text-red-400 hover:text-red-600 ml-1 print:hidden">✕</button>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                    <button onClick={() => {
+                      const updated = [...references, ""];
+                      setReferences(updated); if (selectedDetailId) storeSetReferences(selectedDetailId, updated);
+                    }} className="text-blue-500 hover:text-blue-700 text-xs mt-1 print:hidden">
+                      + ເພີ່ມອີງຕາມ
+                    </button>
+                  </div>
 
-              {/* ===== BODY ===== */}
-              <div className="text-sm text-gray-800 space-y-0.5 leading-relaxed">
-                {/* ຮຽນ */}
-                <div className="flex">
-                  <span className="font-bold text-black whitespace-nowrap">
-                    ຮຽນ :&nbsp;
-                  </span>
-                  {document.req_to ||
-                    "ທ່ານ ຮອງອຳນວການຊີ້ນຳຝ່າຍບັນຊີ ການເງີນ ຂອງບໍລິສັດ ຊີເອັດຊີ ສຳນັກງານໃຫຍ່ທີ່ນັບຖື ກດດເືຫຶສັ່ເຶສັາຫຶເ່ຫຶືກ່ເຶືຫວ່ກຶເ;"}
-                </div>
+                  {/* Body chunk 0 */}
+                  <div>
+                    <textarea ref={body1Ref}
+                      value={bodyChunks[0] ?? ""}
+                      onChange={(e) => handleBodyChange(0, e.target.value)}
+                      onKeyDown={(e) => handleBodyKeyDown(e, 0)}
+                      placeholder="ພິມເນື້ອໃນ..." rows={3}
+                      onInput={(e) => { e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }}
+                      style={{ textIndent: "1.6rem" }}
+                      className="w-full border-none outline-none bg-transparent text-gray-800 resize-none overflow-hidden break-all print:p-0" />
+                  </div>
 
-                {/* ເລື່ອງ */}
-                <div className="flex">
-                  <span className="font-bold text-black whitespace-nowrap">
-                    ເລື່ອງ :&nbsp;
-                  </span>
-                  <span>
-                    {document.req_reason ||
-                      "ຂໍສະເໜີພິຈາລະນາອະນຸມັດໃນເລື່ອງ ຈັດຊື້ກາຈັດຊື້ ສະປີ່ ຈຳນວນ 3 ອັນ ແລະ ກາຈ້ອນທີຈຳນວນ 3 ອັນ ຂໍສະເໜີພິຈາລະນາອະນຸມັດໃນເລື່ອງ ຈັດຊື້ກາຈັດຊື້ ສະປີ່ ຈຳນວນ 3 ອັນ ແລະ ກາຈ້ອນທີຈຳນວນ 3 ອັນ;"}
-                  </span>
-                </div>
-
-                {/* ອີງຕາມ */}
-                <div>
-                  <ul className="list-none space-y-1">
-                    {(
-                      document.references || [
-                        "ການໃຊ້ງານໃບອ້ຽງອາຊຸກລືວີ",
-                        "ໃບສະເໜີຈ່າຍສົບເສີດ",
-                        "ໃບສະເໜີສົບເສີດ",
-                      ]
-                    ).map((item, index) => (
-                      <li
-                        key={index}
-                        className="relative before:content-['-'] before:absolute before:left-[-16px]"
-                      >
-                        ອີງຕາມ : {item} ;
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Body paragraph */}
-                <p className="indent-8 ">
-                  ຂ້ານະເຈົ້າ ທ້າວ ຊະນິວົງ ເງີນວົນ ໃນນາມ ຕົວແທນຝ່າຍໃດໜຶ່ງ
-                  ຂອງບໍລິສັດເປັນຜູ້ກ ທ່ານ ຮອງອໍານວຍການຝ່າຍບໍລິຫານ ຝ່າຍບໍລິສັດ -
-                  ການວີນ ເພື່ອຂໍສະເໜີໃຫ້ອະນຸມັດປ້ຽນກໍ່ ເພື່ອຈັດສົ່ງກາກາກຫ້ຈ
-                  ສະນ່ວ ໃຫ້ກໍ່ສຳຊຸ່ງແຫ່ງໃດໜຶ່ງທະພະ ແນວທາງເຂດປະນວນວິດດ ແລະ
-                  ຕົວອທິພາບແດນກອງຈະລະຊາຕິທີ່ສະດາຍກຸນ ຈຳນວນ 3 ຊົມ ແລະ
-                  ການຈ້ອງບັນທີ ຈຳນວນ 1 ຊົມ
-                </p>
-
-                {/* Title + Table sections */}
-                <div
-                  className=" space-y-6 cursor-pointer hover:bg-gray-50 rounded-lg p-2 -ml-2 transition-colors print:cursor-default print:hover:bg-transparent print:p-0 print:ml-0"
-                  onClick={() => setShowTitleTableModal(true)}
-                >
-                  {titleTableSections.length > 0 ? (
-                    titleTableSections.map((section, si) => (
-                      <div key={si}>
-                        {section.title && (
-                          <p className="text-sm font-bold mb-1">
-                            <span className="mr-2">➤</span>
-                            {section.title}
-                          </p>
-                        )}
-                        <table className="w-full border-collapse border border-black text-sm">
-                          <tbody>
-                            {(section.cells || []).map((row, ri) => (
-                              <tr key={ri}>
-                                {row.map((cell, ci) => {
-                                  if (!cell) return null;
-                                  return (
-                                    <td
-                                      key={ci}
-                                      colSpan={cell.colspan || 1}
-                                      rowSpan={cell.rowspan || 1}
-                                      className="border border-black px-2 py-1 text-center whitespace-pre-wrap"
-                                      style={{
-                                        backgroundColor: cell.bg || undefined,
-                                        color: cell.color || undefined,
-                                      }}
-                                    >
-                                      {cell.value ?? cell}
-                                    </td>
-                                  );
-                                })}
-                              </tr>
-                            ))}
-                            {section.summaryRow && (
-                              <tr className="font-bold">
-                                <td
-                                  colSpan={section.summaryRow.labelColspan}
-                                  className="border border-black px-2 py-1 text-center"
-                                >
-                                  {section.summaryRow.label}
-                                </td>
-                                {section.summaryRow.values.map((val, vi) => (
-                                  <td key={vi} className="border border-black px-2 py-1 text-center">
-                                    {val}
-                                  </td>
-                                ))}
-                              </tr>
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center text-gray-400 border-2 border-dashed border-gray-300 rounded-lg py-6 text-sm print:hidden">
-                      ກົດເພື່ອເພີ່ມ Title + Table
-                    </div>
+                  {bodyChunks.length === 1 && (
+                    tablePageChunks.length === 0
+                      ? <BelowBody {...belowBodyProps} />
+                      : (tablePageChunks[0] && tablePageChunks[0].length > 0)
+                        ? <BelowBody
+                          {...belowBodyProps}
+                          partialSections={tablePageChunks[0]}
+                          showClosing={tablePageChunks.length === 1}
+                        />
+                        : null
                   )}
                 </div>
-
-                {/* ສະນັ້ນ */}
-                <div className="flex items-baseline mt-6">
-                  <span className="text-black whitespace-nowrap ml-10">
-                    ໝາຍເຫດ:
-                  </span>
-                  <span className="flex-1 border-b border-dotted border-black ml-1"></span>
-                </div>
-                <p className="indent-20 ">
-                  ດັ່ງນັ້ນ, ຂ້ານະເຈົ້າຈຶ່ງຂໍສະເໜີມາຍັງທ່ານ
-                  ເພື່ອພິຈາລະນາອະນຸມັດຕາມທີ່ເຫັນສົມຄວນດ້ວຍ.
-                </p>
-
-                {/* Signature */}
-                <div className="text-right ">
-                  <p className="text-sm">ຮຽນມາດ້ວຍຄວາມນັບຖື,</p>
-                  <div className="mt-2">
-                    <p className="font-bold text-black">ຜູ້ສະເໜີ</p>
-                  </div>
-                </div>
               </div>
-            </div>
+            </PageShell>
           </div>
 
-          {/* ===== FOOTER ===== */}
-          <div className="w-full relative mt-10">
-            <div className="h-[120px] w-full relative">
-              {/* SVG Background */}
-              <div className="absolute bottom-0 left-0 w-full h-full z-0 pointer-events-none">
-                <svg
-                  width="100%"
-                  height="100%"
-                  viewBox="0 0 800 120"
-                  preserveAspectRatio="none"
-                  className="overflow-visible"
-                >
-                  {/* Top Thick Blue Line */}
-                  <path
-                    d="
-    M0 45
-    L500 45
-    C580 45 620 45 640 25
-    C660 5 660 0 680 0
-    L800 0
-  "
-                    stroke="#0F75BC"
-                    strokeWidth="8"
-                    fill="none"
-                  />
-                  {/* Bottom Main Blue Shape */}
-                  <path
-                    d="
-  M0 60
-  L500 60
-  C580 60 620 60 645 40
-  C665 23 665 15 680 15
-  L800 15
-  L800 120
-  L0 120
-  Z
-"
-                    fill="#0F75BC"
-                  />
-                </svg>
-              </div>
-
-              {/* Logo / Contact Info Row 1 (White Area) */}
-              <div className="relative z-10 flex justify-between px-16 pt-2 pb-6 text-[#0F75BC]">
-                {/* Website */}
-                <div className="flex -ml-2 items-center gap-2">
-                  <img src={museumIcon} alt="Website" width="58" height="58" />
-                  <span className="text-sm font-semibold -ml-3">
-                    http://csccomplex-center.com
-                  </span>
-                </div>
-
-                {/* Facebook */}
-                <div className="flex items-center gap-2 mr-35">
-                  <img
-                    src={facebookIcon}
-                    alt="Facebook"
-                    width="30"
-                    height="30"
-                  />
-                  <span className="text-sm font-semibold">
-                    csc complex center Co.,Ltd
-                  </span>
-                </div>
-              </div>
-
-              {/* Address / Contact Info Row 2 (Blue Area) */}
-              <div className="absolute bottom-0 left-0 right-0 z-10 flex justify-between px-16 text-white pb-2 items-end">
-                {/* Address */}
-                <div className="flex  items-end gap-3 ">
-                  <div className="rounded-full  ">
-                    <img
-                      src={mapRoundIcon}
-                      alt="Location"
-                      width="35"
-                      height="35"
-                      className="brightness-0 invert translate-y-1"
-                    />
+          {/* ════ OVERFLOW PAGES ════ */}
+          {bodyChunks.length > 1 && bodyChunks.slice(1).map((chunk, idx) => {
+            const chunkIdx = idx + 1;
+            const isLastChunk = chunkIdx === lastChunkIdx;
+            const pageNumber = chunkIdx + 1;
+            return (
+              <div key={chunkIdx}
+                className="max-w-[210mm] mx-auto w-full bg-white shadow-lg print:shadow-none print:mx-0 print:max-w-none print:p-0"
+                style={{ fontFamily: "'TimesDoc', 'Phetsarath', sans-serif" }}>
+                <PageShell pageRef={(el) => { overflowPageRefs.current[idx] = el; }} extraClass="print:h-auto">
+                  <div className="pt-2 h-full overflow-hidden print:overflow-visible">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm text-gray-400 print:text-transparent">ໜ້າ {pageNumber} (ຕໍ່)</span>
+                    </div>
+                    <div className="text-sm text-gray-800 space-y-0.5 leading-relaxed">
+                      <div>
+                        <textarea
+                          value={chunk}
+                          onChange={(e) => handleBodyChange(chunkIdx, e.target.value)}
+                          onKeyDown={(e) => handleBodyKeyDown(e, chunkIdx)}
+                          placeholder="(ເນື້ອໃນຕໍ່)..." rows={1}
+                          onInput={(e) => { e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }}
+                          className="w-full border-none outline-none bg-transparent text-gray-800 resize-none overflow-hidden break-all print:p-0" />
+                      </div>
+                      {isLastChunk && (
+                        tablePageChunks.length === 0
+                          ? <BelowBody {...belowBodyProps} />
+                          : (tablePageChunks[0] && tablePageChunks[0].length > 0)
+                            ? <BelowBody
+                              {...belowBodyProps}
+                              partialSections={tablePageChunks[0]}
+                              showClosing={tablePageChunks.length === 1}
+                            />
+                            : null
+                      )}
+                    </div>
                   </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[18px]  leading-tight">
-                      ຊີເອັສຊີ ນະຄອນຫຼວງວຽງຈັນ ຈຳກັດຜູ້ດຽວ
-                    </span>
-                    <span className="text-[16px] opacity-80 leading-tight">
-                      ຕັ້ງຢູ່ ຖະໜົນ 450 ປີ, ບ້ານ ໂຊກໃຫຍ່, ເມືອງ ໄຊເສດຖາ,
-                      ນະຄອນຫຼວງວຽງຈັນ
-                    </span>
-                  </div>
-                </div>
-
-                {/* Phone */}
-                <div className="flex items-end gap-2 -mr-5">
-                  <img
-                    src={footerCallIcon}
-                    alt="Phone"
-                    width="30"
-                    height="30"
-                  />
-                  <span className="text-sm font-bold">021 463 555-57</span>
-                </div>
+                </PageShell>
               </div>
-            </div>
+            );
+          })}
+
+          {/* ════ TABLE CONTINUATION PAGES ════ */}
+          {tablePageChunks.length > 1 && tablePageChunks.slice(1).map((sections, idx) => {
+            const isLastTablePage = idx === tablePageChunks.length - 2;
+            const pageNumber = bodyChunks.length + 1 + idx;
+            return (
+              <div key={"table-" + idx}
+                className="max-w-[210mm] mx-auto w-full bg-white shadow-lg print:shadow-none print:mx-0 print:max-w-none print:p-0"
+                style={{ fontFamily: "'TimesDoc', 'Phetsarath', sans-serif" }}>
+                <PageShell extraClass="print:h-auto">
+                  <div className="pt-2 h-full overflow-hidden print:overflow-visible">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm text-gray-400 print:text-transparent">ໜ້າ {pageNumber} (ຕໍ່)</span>
+                    </div>
+                    <div className="text-sm text-gray-800 space-y-0.5 leading-relaxed">
+                      <BelowBody
+                        {...belowBodyProps}
+                        partialSections={sections}
+                        showClosing={isLastTablePage}
+                      />
+                    </div>
+                  </div>
+                </PageShell>
+              </div>
+            );
+          })}
+
+          {/* ════ Add extra page ════ */}
+          <div className="print:hidden flex justify-center max-w-[210mm] mx-auto w-full">
+            <button
+              onClick={() => {
+                const updated = [...extraPages, { id: Date.now(), body: "" }];
+                setExtraPages(updated); if (selectedDetailId) storeSetExtraPages(selectedDetailId, updated);
+              }}
+              className="flex items-center gap-2 text-[#0F75BC] border-2 border-dashed border-[#0F75BC] px-4 py-2 rounded-lg text-sm hover:bg-blue-50 transition-colors"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              ເພີ່ມໜ້າ
+            </button>
           </div>
+
+          {/* ════ Manual extra pages ════ */}
+          {extraPages.map((page, idx) => (
+            <div key={page.id}
+              className="max-w-[210mm] mx-auto w-full bg-white shadow-lg print:shadow-none print:mx-0 print:max-w-none print:p-0"
+              style={{ fontFamily: "'TimesDoc', 'Phetsarath', sans-serif" }}>
+              <PageShell pageRef={(el) => { extraPageRefs.current[page.id] = el; }} extraClass="print:h-auto">
+                <div className="pt-2 h-full overflow-hidden print:overflow-visible">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm text-gray-400 print:text-transparent">ໜ້າ {bodyChunks.length + tablePageChunks.length + idx}</span>
+                    <button
+                      onClick={() => {
+                        const updated = extraPages.filter((_, i) => i !== idx);
+                        setExtraPages(updated); if (selectedDetailId) storeSetExtraPages(selectedDetailId, updated);
+                      }}
+                      className="text-red-400 hover:text-red-600 text-sm print:hidden">
+                      ລົບໜ້ານີ້
+                    </button>
+                  </div>
+                  <div className="text-sm text-gray-800 leading-relaxed">
+                    <textarea
+                      ref={(el) => { extraPageRefs.current[page.id] = el; }}
+                      value={page.body}
+                      onChange={(e) => {
+                        const updated = extraPages.map((p, i) => i === idx ? { ...p, body: e.target.value } : p);
+                        setExtraPages(updated); if (selectedDetailId) storeSetExtraPages(selectedDetailId, updated);
+                      }}
+                      placeholder="ພິມເນື້ອໃນ..." rows={10}
+                      onInput={(e) => { e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }}
+                      onKeyDown={(e) => {
+                        if (e.key !== "Tab") return;
+                        e.preventDefault();
+                        const start = e.target.selectionStart; const end = e.target.selectionEnd;
+                        const spaces = "        ";
+                        const newValue = page.body.substring(0, start) + spaces + page.body.substring(end);
+                        const updated = extraPages.map((p, i) => i === idx ? { ...p, body: newValue } : p);
+                        setExtraPages(updated); if (selectedDetailId) storeSetExtraPages(selectedDetailId, updated);
+                        requestAnimationFrame(() => { e.target.selectionStart = e.target.selectionEnd = start + spaces.length; });
+                      }}
+                      style={{ textIndent: "1.6rem" }}
+                      className="w-full border-none outline-none bg-transparent text-gray-800 resize-none overflow-hidden break-all print:p-0" />
+                  </div>
+                </div>
+              </PageShell>
+            </div>
+          ))}
+
         </div>
+
+        {/* ══════════════════ RIGHT: Details panel ══════════════════ */}
+        <DocumentDetailsSidebar
+          loadingDetails={loadingDetails}
+          documentDetails={documentDetails}
+          selectedDetailId={selectedDetailId}
+          onSelectDetail={handleSelectDetail}
+        />
+
       </div>
 
       <TitleTableModal
         isOpen={showTitleTableModal}
         onClose={() => setShowTitleTableModal(false)}
-        onSave={(sections) => setTitleTableSections(sections)}
+        onSave={(sections) => {
+          setTitleTableSections(sections);
+          if (selectedDetailId) storeSetTitleTableSections(selectedDetailId, sections);
+        }}
         initialSections={titleTableSections}
       />
     </div>

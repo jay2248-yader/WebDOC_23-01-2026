@@ -77,6 +77,11 @@ export const ENDPOINTS = {
     NEW: "/api/documentgroupdetails/newDocumentGroupDetails",
     DELETE: "/api/documentgroupdetails/deleteDocumentGroupDetails",
     UPDATE: "/api/documentgroupdetails/updateDocumentGroupDetails"
+  },
+
+  DOCUMENT_DETAILS: {
+    GET_ALL: "/api/requestdocumentdetails/getrequestdocumentdetailsByDocumentId",
+    NEW: "/api/requestdocumentdetails/newrequestdocumentdetails"
   }
 };
 

@@ -43,17 +43,21 @@ export default function MainLayout({ title }) {
   const resolvedTitle = title || getPageTitle(location.pathname);
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden print:block print:h-auto print:overflow-visible">
       {/* Sidebar */}
-      <Sidebar />
+      <div className="print:hidden">
+        <Sidebar />
+      </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden print:block print:overflow-visible">
         {/* Header */}
-        <Header title={resolvedTitle} />
+        <div className="print:hidden">
+          <Header title={resolvedTitle} />
+        </div>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto bg-gray-50 p-8">
+        <main className="flex-1 overflow-y-auto bg-gray-50 p-8 print:p-0 print:bg-white print:overflow-visible">
           <Outlet />
         </main>
       </div>
