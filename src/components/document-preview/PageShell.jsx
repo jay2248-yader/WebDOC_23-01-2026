@@ -3,11 +3,11 @@ import PageHeader from "./PageHeader";
 import PageFooter from "./PageFooter";
 import { HEADER_HEIGHT_PX, FOOTER_HEIGHT_PX } from "./constants";
 
-export default function PageShell({ children, pageRef, extraClass = "" }) {
+export default function PageShell({ children, pageRef, extraClass = "", isFirstPage = false }) {
     return (
         <div
             ref={pageRef}
-            className={`doc-print-page relative overflow-hidden print:overflow-visible print:break-before-page ${extraClass}`}
+            className={`doc-print-page relative overflow-hidden ${isFirstPage ? "" : "print:break-before-page"} ${extraClass}`}
             style={{
                 height: "297mm",
             }}
@@ -27,7 +27,6 @@ export default function PageShell({ children, pageRef, extraClass = "" }) {
                     bottom: FOOTER_HEIGHT_PX,
                     overflow: "hidden",
                 }}
-                className="print:overflow-visible"
             >
                 {children}
             </div>

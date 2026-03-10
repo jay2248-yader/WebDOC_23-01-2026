@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation } from "react-router-dom";
+import { useReactToPrint } from "react-to-print";
 import TitleTableModal from "../components/documents/TitleTableModal";
 
 import { getDocumentDetailsByDocumentId } from "../services/documentdetailsservice";
@@ -27,6 +28,11 @@ export default function DocumentPreviewPage() {
   const [loadingDetails, setLoadingDetails] = useState(!!docData.rqdid);
   const [selectedDetailId, setSelectedDetailId] = useState(null);
   const [extraPages, setExtraPages] = useState([]);
+  const printRef = useRef(null);
+
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+  });
 
   const {
     bodyChunks,
@@ -100,15 +106,7 @@ export default function DocumentPreviewPage() {
     });
   }, [reqTo, reqReason, references, bodyParagraph, remark, selectedDetailId, bodyChunks]);
 
-  // ── Print ─────────────────────────────────────────────────────────────────────
-  useEffect(() => {
-    const saved = [];
-    const before = () => window.document.querySelectorAll("textarea").forEach((ta) => { saved.push(ta.style.height); ta.style.height = ""; });
-    const after = () => { window.document.querySelectorAll("textarea").forEach((ta, i) => { ta.style.height = saved[i] || ""; }); saved.length = 0; };
-    window.addEventListener("beforeprint", before);
-    window.addEventListener("afterprint", after);
-    return () => { window.removeEventListener("beforeprint", before); window.removeEventListener("afterprint", after); };
-  }, []);
+  // (Print handlers removed — textareas keep their on-screen heights during print)
 
   // ── Body change handlers ──────────────────────────────────────────────────────
   const handleBodyChange = (chunkIdx, newChunkValue) => {
@@ -149,34 +147,35 @@ export default function DocumentPreviewPage() {
 
       {/* Hidden measurement div */}
       <div ref={measureRef} aria-hidden="true"
+        className="print:hidden"
         style={{ position: "absolute", left: "-9999px", top: 0, visibility: "hidden", pointerEvents: "none" }} />
 
       {/* Off-screen below-body clone for height measurement */}
       <div ref={belowBodyMeasureRef} aria-hidden="true"
-        style={{ position: "absolute", left: "-9999px", top: 0, visibility: "hidden", pointerEvents: "none", width: "174mm" }}
-        className="text-sm text-gray-800 space-y-0.5 leading-relaxed">
+        className="print:hidden text-sm text-gray-800 space-y-0.5 leading-relaxed"
+        style={{ position: "absolute", left: "-9999px", top: 0, visibility: "hidden", pointerEvents: "none", width: "174mm" }}>
         <BelowBody {...belowBodyProps} interactive={false} />
       </div>
 
       {/* Off-screen closing content clone for height measurement */}
       <div ref={closingMeasureRef} aria-hidden="true"
-        style={{ position: "absolute", left: "-9999px", top: 0, visibility: "hidden", pointerEvents: "none", width: "174mm" }}
-        className="text-sm text-gray-800 space-y-0.5 leading-relaxed">
+        className="print:hidden text-sm text-gray-800 space-y-0.5 leading-relaxed"
+        style={{ position: "absolute", left: "-9999px", top: 0, visibility: "hidden", pointerEvents: "none", width: "174mm" }}>
         <ClosingContent {...closingProps} interactive={false} />
       </div>
 
-      <DocumentActionBar />
+      <DocumentActionBar onPrint={handlePrint} />
 
       <div className="flex items-start gap-6 px-6 print:block print:px-0">
 
         {/* ══════════════════ LEFT: Pages ══════════════════ */}
-        <div className="flex-1 flex flex-col gap-6 print:gap-0">
+        <div ref={printRef} className="flex-1 flex flex-col gap-6 print:gap-0">
 
           {/* ════ PAGE 1 ════ */}
           <div className="max-w-[210mm] mx-auto w-full bg-white shadow-lg print:shadow-none print:mx-0 print:max-w-none print:p-0"
             style={{ fontFamily: "'TimesDoc', 'Phetsarath', sans-serif" }}>
-            <PageShell pageRef={page1Ref} extraClass="print:h-auto">
-              <div data-content-area className="pt-2 h-full overflow-hidden print:overflow-visible">
+            <PageShell pageRef={page1Ref} isFirstPage extraClass="">
+              <div data-content-area className="pt-2 h-full overflow-hidden print:overflow-hidden">
                 {/* Doc number + date */}
                 <div className="flex items-start justify-between text-sm text-black mb-1 ml-22 -mt-2.5">
                   <p>ຝ່າຍໃດໜຶ່ງ</p>
@@ -277,8 +276,8 @@ export default function DocumentPreviewPage() {
               <div key={chunkIdx}
                 className="max-w-[210mm] mx-auto w-full bg-white shadow-lg print:shadow-none print:mx-0 print:max-w-none print:p-0"
                 style={{ fontFamily: "'TimesDoc', 'Phetsarath', sans-serif" }}>
-                <PageShell pageRef={(el) => { overflowPageRefs.current[idx] = el; }} extraClass="print:h-auto">
-                  <div className="pt-2 h-full overflow-hidden print:overflow-visible">
+                <PageShell pageRef={(el) => { overflowPageRefs.current[idx] = el; }} extraClass="">
+                  <div className="pt-2 h-full overflow-hidden print:overflow-hidden">
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-sm text-gray-400 print:text-transparent">ໜ້າ {pageNumber} (ຕໍ່)</span>
                     </div>
@@ -318,8 +317,8 @@ export default function DocumentPreviewPage() {
               <div key={"table-" + idx}
                 className="max-w-[210mm] mx-auto w-full bg-white shadow-lg print:shadow-none print:mx-0 print:max-w-none print:p-0"
                 style={{ fontFamily: "'TimesDoc', 'Phetsarath', sans-serif" }}>
-                <PageShell extraClass="print:h-auto">
-                  <div className="pt-2 h-full overflow-hidden print:overflow-visible">
+                <PageShell extraClass="">
+                  <div className="pt-2 h-full overflow-hidden print:overflow-hidden">
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-sm text-gray-400 print:text-transparent">ໜ້າ {pageNumber} (ຕໍ່)</span>
                     </div>
@@ -357,8 +356,8 @@ export default function DocumentPreviewPage() {
             <div key={page.id}
               className="max-w-[210mm] mx-auto w-full bg-white shadow-lg print:shadow-none print:mx-0 print:max-w-none print:p-0"
               style={{ fontFamily: "'TimesDoc', 'Phetsarath', sans-serif" }}>
-              <PageShell pageRef={(el) => { extraPageRefs.current[page.id] = el; }} extraClass="print:h-auto">
-                <div className="pt-2 h-full overflow-hidden print:overflow-visible">
+              <PageShell pageRef={(el) => { extraPageRefs.current[page.id] = el; }} extraClass="">
+                <div className="pt-2 h-full overflow-hidden print:overflow-hidden">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm text-gray-400 print:text-transparent">ໜ້າ {bodyChunks.length + tablePageChunks.length + idx}</span>
                     <button
