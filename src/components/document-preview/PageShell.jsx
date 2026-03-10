@@ -9,6 +9,7 @@ export default function PageShell({ children, pageRef, extraClass = "", isFirstP
             ref={pageRef}
             className={`doc-print-page relative overflow-hidden ${isFirstPage ? "" : "print:break-before-page"} ${extraClass}`}
             style={{
+                width: "210mm",
                 height: "297mm",
             }}
         >

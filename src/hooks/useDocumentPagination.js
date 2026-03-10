@@ -22,7 +22,10 @@ export function useDocumentPagination({ bodyParagraph, titleTableSections, reqTo
         const belowBodyEl = belowBodyMeasureRef.current;
         const belowBodyHeight = belowBodyEl ? belowBodyEl.scrollHeight : 0;
 
-        const pageHeightPx = page1El.clientHeight;
+        // ── ล็อกขนาดตาม A4 เสมอ (ไม่ขึ้นกับจอ) ──
+        // CSS: 1mm = 96/25.4 px (ค่าคงที่ตามมาตรฐาน CSS)
+        const MM_TO_PX = 96 / 25.4;
+        const pageHeightPx = 297 * MM_TO_PX;
 
         const contentAreaTop = HEADER_HEIGHT_PX;
         const contentAreaBottom = pageHeightPx - FOOTER_HEIGHT_PX;
@@ -38,9 +41,11 @@ export function useDocumentPagination({ bodyParagraph, titleTableSections, reqTo
 
         const availOverflow = contentAreaHeight - 30;
 
+        // ── ล็อก measurement width เป็น 174mm (content area) ──
+        const contentWidthMm = 174;
         const cs = getComputedStyle(body1Ta);
         Object.assign(measureDiv.style, {
-            width: `${body1Ta.clientWidth}px`,
+            width: `${contentWidthMm}mm`,
             font: cs.font,
             fontSize: cs.fontSize,
             fontFamily: cs.fontFamily,

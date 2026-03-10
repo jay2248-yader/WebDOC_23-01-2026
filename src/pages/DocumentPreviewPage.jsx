@@ -1,6 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLocation } from "react-router-dom";
-import { useReactToPrint } from "react-to-print";
 import TitleTableModal from "../components/documents/TitleTableModal";
 
 import { getDocumentDetailsByDocumentId } from "../services/documentdetailsservice";
@@ -28,11 +27,14 @@ export default function DocumentPreviewPage() {
   const [loadingDetails, setLoadingDetails] = useState(!!docData.rqdid);
   const [selectedDetailId, setSelectedDetailId] = useState(null);
   const [extraPages, setExtraPages] = useState([]);
-  const printRef = useRef(null);
 
-  const handlePrint = useReactToPrint({
-    contentRef: printRef,
-  });
+  // ── Inject @page rule via JS (ป้องกัน Tailwind strip) ──
+  useEffect(() => {
+    const style = document.createElement("style");
+    style.textContent = "@page { size: A4; margin: 0; }";
+    document.head.appendChild(style);
+    return () => document.head.removeChild(style);
+  }, []);
 
   const {
     bodyChunks,
@@ -164,12 +166,12 @@ export default function DocumentPreviewPage() {
         <ClosingContent {...closingProps} interactive={false} />
       </div>
 
-      <DocumentActionBar onPrint={handlePrint} />
+      <DocumentActionBar />
 
       <div className="flex items-start gap-6 px-6 print:block print:px-0">
 
         {/* ══════════════════ LEFT: Pages ══════════════════ */}
-        <div ref={printRef} className="flex-1 flex flex-col gap-6 print:gap-0">
+        <div className="flex-1 flex flex-col gap-6 print:gap-0">
 
           {/* ════ PAGE 1 ════ */}
           <div className="max-w-[210mm] mx-auto w-full bg-white shadow-lg print:shadow-none print:mx-0 print:max-w-none print:p-0"
