@@ -18,119 +18,158 @@ export default function Sidebar() {
     const activeItem = MENU_ITEMS.find((item) => {
       const matchesItemPath =
         pathname === item.path || pathname.startsWith(`${item.path}/`);
-
-      if (matchesItemPath) {
-        return true;
-      }
-
+      if (matchesItemPath) return true;
       return item.children?.some(
         (child) =>
           pathname === child.path || pathname.startsWith(`${child.path}/`)
       );
     });
-
     return activeItem ? activeItem.id : null;
   };
 
-  // ใช้ location.pathname โดยตรง
   const activeMenuId = getActiveMenuIdFromPath(location.pathname);
-
   const isMenuActive = (item) => activeMenuId === item.id;
 
-  const isPathActive = (path) => {
-    return location.pathname === path || location.pathname.startsWith(`${path}/`);
-  };
+  const isPathActive = (path) =>
+    location.pathname === path || location.pathname.startsWith(`${path}/`);
 
-  // เช็คว่า menu ควรเปิดหรือไม่ (user toggle หรือ active child)
   const isMenuOpen = (item) => {
-    if (openMenus[item.id] !== undefined) {
-      return openMenus[item.id];
-    }
-    // Auto-open ถ้ามี active child
+    if (openMenus[item.id] !== undefined) return openMenus[item.id];
     return item.id === activeMenuId && item.children;
   };
 
   return (
-    <div className="w-64 h-screen bg-[#0F75BC] text-white flex flex-col">
+    <div
+      className="w-64 h-screen flex flex-col"
+      style={{ background: "#0F75BC" }}
+    >
       {/* Logo Section */}
-      <div className="p-6 flex items-center justify-center bg-[#0F75BC]">
-        <img src={logo} alt="CSC Logo" className="w-20 h-20 object-contain" />
+      <div className="flex flex-col items-center pt-7 pb-5 px-4">
+        <div
+        >
+          <img src={logo} alt="CSC Logo" className="w-30 h-30 object-contain" />
+        </div>
+
       </div>
 
-      {/* Navigation Menu */}
-      <nav className="flex-1 overflow-y-auto py-4">
-        {MENU_ITEMS.map((item) => (
-          <div
-            key={item.id}
-            className="border-b border-white/80 rounded-r-xl mb-2"
-          >
-            {/* Main Menu Item */}
-            <div
-              className={`px-6 py-3 flex items-center justify-between cursor-pointer transition-all
-    ${
-      isMenuActive(item)
-        ? "bg-white text-[#0F75BC] border border-white/80 rounded-r-xl"
-        : "text-white hover:bg-blue-700"
-    }
-  `}
-              onClick={() => {
-                if (item.children) {
-                  toggleMenu(item.id);
-                }
-              }}
-            >
-              <Link
-                to={item.path}
-                className="flex items-center gap-3 flex-1"
-                onClick={(e) => item.children && e.preventDefault()}
-              >
- 
-                {typeof item.icon === "string" &&
-                (item.icon.includes("/") || item.icon.includes(".")) ? (
-                  <img
-                    src={item.icon}
-                    alt={item.label}
-                    className="w-5 h-5 object-contain transition-all duration-200"
-                    style={{
-                      filter: isMenuActive(item)
-                        ? "invert(32%) sepia(96%) saturate(1832%) hue-rotate(186deg) brightness(92%) contrast(87%)" // Blue #0F75BC
-                        : "brightness(0) invert(100%)", // Force White
-                    }}
-                  />
-                ) : (
-                  <span className="text-xl">{item.icon}</span>
-                )}
-                <span className="text-sm">{item.label}</span>
-              </Link>
+      {/* Divider */}
+      <div className="mx-5 mb-4 h-px" style={{ background: "rgba(255,255,255,0.15)" }} />
 
-              {item.children && (
-                <span className="text-xs">
-                  {isMenuOpen(item) ? "▼" : "▶"}
-                </span>
+      {/* Navigation Menu */}
+      <nav className="flex-1 overflow-y-auto px-3 pb-4 space-y-1 scrollbar-thin scrollbar-thumb-blue-600 scrollbar-track-transparent">
+        {MENU_ITEMS.map((item) => {
+          const active = isMenuActive(item);
+          const open = isMenuOpen(item);
+
+          return (
+            <div key={item.id}>
+              {/* Main Menu Item */}
+              <div
+                className={`
+                  group flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer
+                  transition-all duration-200 select-none
+                  ${active
+                    ? "bg-white text-[#0F75BC] shadow-md"
+                    : "text-blue-100 hover:bg-white/10 hover:text-white"
+                  }
+                `}
+                onClick={() => {
+                  if (item.children) toggleMenu(item.id);
+                }}
+              >
+                <Link
+                  to={item.path}
+                  className="flex items-center gap-3 flex-1 min-w-0 overflow-hidden"
+                  onClick={(e) => item.children && e.preventDefault()}
+                >
+                  {/* Icon */}
+                  <span
+                    className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-base
+                      transition-all duration-200
+                      ${active ? "bg-blue-100" : "bg-white/10 group-hover:bg-white/20"}
+                    `}
+                  >
+                    {typeof item.icon === "string" &&
+                    (item.icon.includes("/") || item.icon.includes(".")) ? (
+                      <img
+                        src={item.icon}
+                        alt={item.label}
+                        className="w-4 h-4 object-contain shrink-0"
+                        style={{
+                          filter: active
+                            ? "invert(32%) sepia(96%) saturate(1832%) hue-rotate(186deg) brightness(92%) contrast(87%)"
+                            : "brightness(0) invert(100%)",
+                        }}
+                      />
+                    ) : (
+                      <span className="leading-none">{item.icon}</span>
+                    )}
+                  </span>
+
+                  {/* Label */}
+                  <span className={`text-sm font-medium truncate ${active ? "text-[#0F75BC]" : ""}`}>
+                    {item.label}
+                  </span>
+                </Link>
+
+                {/* Chevron */}
+                {item.children && (
+                  <svg
+                    className={`w-4 h-4 shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""} ${active ? "text-[#0F75BC]" : "text-blue-200"}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                )}
+              </div>
+
+              {/* Submenu */}
+              {item.children && open && (
+                <div className="mt-1 ml-4 pl-3 space-y-0.5 border-l-2 border-white/20">
+                  {item.children.map((child) => {
+                    const childActive = isPathActive(child.path);
+                    return (
+                      <Link
+                        key={child.id}
+                        to={child.path}
+                        className={`
+                          flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all duration-150
+                          ${childActive
+                            ? "bg-white/20 text-white font-semibold"
+                            : "text-blue-200 hover:bg-white/10 hover:text-white"
+                          }
+                        `}
+                      >
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full shrink-0 ${childActive ? "bg-white" : "bg-blue-300/60"}`}
+                        />
+                        {child.label}
+                      </Link>
+                    );
+                  })}
+                </div>
               )}
             </div>
-
-            {/* Submenu */}
-            {item.children && isMenuOpen(item) && (
-              <div className="bg-blue-700 rounded-b-xl">
-                {" "}
-      
-                {item.children.map((child) => (
-                  <Link
-                    key={child.id}
-                    to={child.path}
-                    className={`block px-12 py-2 text-sm hover:bg-blue-600 transition-colors
-              ${isPathActive(child.path) ? "bg-blue-600 font-semibold" : ""}
-            `}
-                  >
-                    {child.label}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
+          );
+        })}
       </nav>
+
+      {/* Bottom Divider + Version */}
+      <div className="px-4 pb-5">
+        <div className="h-px mb-4" style={{ background: "rgba(255,255,255,0.15)" }} />
+        <div className="flex items-center gap-2 px-2">
+          <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold text-white">
+            A
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-white text-xs font-medium truncate">Admin</p>
+            <p className="text-blue-300 text-xs opacity-75 truncate">v1.0.0</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

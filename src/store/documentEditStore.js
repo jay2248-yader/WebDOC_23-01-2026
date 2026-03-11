@@ -1,69 +1,44 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 
+// Helper: update เฉพาะ field ของ rddid ที่เปลี่ยน ไม่ spread edits ทั้ง object ถ้าค่าเดิมเหมือนกัน
+const updateField = (state, rddid, field, value) => {
+  const existing = state.edits[rddid];
+  if (existing && existing[field] === value) return state; // skip ถ้าค่าเดิม
+  return {
+    edits: {
+      ...state.edits,
+      [rddid]: { ...existing, [field]: value },
+    },
+  };
+};
+
 export const useDocumentEditStore = create(
   devtools(
     persist(
       (set, get) => ({
-        // edits keyed by rddid (detail id)
-        // { [rddid]: { reqTo: "..." } }
         edits: {},
 
         setReqTo: (rddid, value) =>
-          set((state) => ({
-            edits: {
-              ...state.edits,
-              [rddid]: { ...state.edits[rddid], reqTo: value },
-            },
-          })),
+          set((state) => updateField(state, rddid, "reqTo", value)),
 
         setReqReason: (rddid, value) =>
-          set((state) => ({
-            edits: {
-              ...state.edits,
-              [rddid]: { ...state.edits[rddid], reqReason: value },
-            },
-          })),
+          set((state) => updateField(state, rddid, "reqReason", value)),
 
         setReferences: (rddid, value) =>
-          set((state) => ({
-            edits: {
-              ...state.edits,
-              [rddid]: { ...state.edits[rddid], references: value },
-            },
-          })),
+          set((state) => updateField(state, rddid, "references", value)),
 
         setBodyParagraph: (rddid, value) =>
-          set((state) => ({
-            edits: {
-              ...state.edits,
-              [rddid]: { ...state.edits[rddid], bodyParagraph: value },
-            },
-          })),
+          set((state) => updateField(state, rddid, "bodyParagraph", value)),
 
         setRemark: (rddid, value) =>
-          set((state) => ({
-            edits: {
-              ...state.edits,
-              [rddid]: { ...state.edits[rddid], remark: value },
-            },
-          })),
+          set((state) => updateField(state, rddid, "remark", value)),
 
         setTitleTableSections: (rddid, value) =>
-          set((state) => ({
-            edits: {
-              ...state.edits,
-              [rddid]: { ...state.edits[rddid], titleTableSections: value },
-            },
-          })),
+          set((state) => updateField(state, rddid, "titleTableSections", value)),
 
         setExtraPages: (rddid, value) =>
-          set((state) => ({
-            edits: {
-              ...state.edits,
-              [rddid]: { ...state.edits[rddid], extraPages: value },
-            },
-          })),
+          set((state) => updateField(state, rddid, "extraPages", value)),
 
         getReqTo: (rddid) => get().edits[rddid]?.reqTo,
         getReqReason: (rddid) => get().edits[rddid]?.reqReason,

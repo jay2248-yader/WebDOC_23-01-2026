@@ -54,30 +54,7 @@ export const MENU_ITEMS = [
         icon: "💼",
         path: "/position",
       },
-      {
-        id: "document-category",
-        label: "ປະເພດເອກະສານ",
-        icon: "📂",
-        path: "/document-category",
-      },
-      {
-        id: "document-group",
-        label: "ກຸ່ມເອກະສານ",
-        icon: "📁",
-        path: "/document-group",
-      },
-      {
-        id: "document-group-details",
-        label: "ລາຍລະອຽດກຸ່ມເອກະສານ",
-        icon: "📋",
-        path: "/document-group-details",
-      },
-      {
-        id: "documents-list",
-        label: "ເອກະສານ", // Documents
-        icon: "📄",
-        path: "/documents",
-      },
+
     ],
   },
   {
@@ -87,62 +64,34 @@ export const MENU_ITEMS = [
     path: "/users",
   },
   {
-    id: "documents",
-    label: "ຮ້ອງຂໍເອກະສານ",
+    id: "doc-management",
+    label: "ເອກະສານ",
     icon: "📄",
     path: "/documents",
     children: [
       {
-        id: "request-doc",
-        label: "ສາທາດປ້ອງເອກູ",
-        path: "/documents/request",
+        id: "doc-list",
+        label: "ເອກະສານ",
+        path: "/documents",
       },
       {
-        id: "approve-doc",
-        label: "ອົນຸມັດເອກະເອກສານ",
-        path: "/documents/approve",
+        id: "doc-category",
+        label: "ປະເພດເອກະສານ",
+        path: "/document-category",
+      },
+      {
+        id: "doc-group",
+        label: "ກຸ່ມເອກະສານ",
+        path: "/document-group",
+      },
+      {
+        id: "doc-group-details",
+        label: "ລາຍລະອຽດກຸ່ມເອກະສານ",
+        path: "/document-group-details",
       },
     ],
   },
-  {
-    id: "reports",
-    label: "ລາຍງານ",
-    icon: "📊",
-    path: "/reports",
-    children: [
-      {
-        id: "report-list",
-        label: "ແຜນການ",
-        path: "/reports/plans",
-      },
-      {
-        id: "summary",
-        label: "ຊຳນານ",
-        path: "/reports/summary",
-      },
-    ],
-  },
-  {
-    id: "admin",
-    label: "ຊຳນານ",
-    icon: "⚙️",
-    path: "/admin",
-    children: [
-      {
-        id: "manage-users",
-        label: "ການບໍລິຫານຜູ້ອະນຸຍາດ",
-        path: "/admin/permissions",
-      },
-      {
-        id: "manage-docs",
-        label: "ການບໍລິຫານເອກສານ",
-        path: "/admin/documents",
-      },
-      {
-        id: "settings",
-        label: "ການຕັ້ງຄ່າ",
-        path: "/admin/settings",
-      },
-    ],
-  },
+
+
+
 ];

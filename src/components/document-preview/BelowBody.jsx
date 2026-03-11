@@ -10,6 +10,9 @@ export default function BelowBody({
     interactive = true,
     partialSections = null,
     showClosing = true,
+    remarkOverride,
+    showSignature = true,
+    showLabel = true,
 }) {
     const sectionsToRender = partialSections !== null ? partialSections : titleTableSections;
     const showPlaceholder = titleTableSections.length === 0;
@@ -29,6 +32,9 @@ export default function BelowBody({
                     selectedDetailId={selectedDetailId}
                     storeSetRemark={storeSetRemark}
                     interactive={interactive}
+                    remarkOverride={remarkOverride}
+                    showSignature={showSignature}
+                    showLabel={showLabel}
                 />
             )}
         </>

@@ -16,12 +16,15 @@ export async function getAllUsers(params = {}) {
   // Users API returns data in 'message' field
   const messageData = res.data?.message || {};
   const dataArray = Array.isArray(messageData.data) ? messageData.data : [];
+  const total = messageData.total || dataArray.length;
+  const limit = Number(params.limit) || 10;
+  const computedLastPage = Math.ceil(total / limit) || 1;
 
   return {
     data: dataArray,
-    total: messageData.total || dataArray.length,
+    total,
     currentPage: messageData.currentPage || 1,
-    lastPage: messageData.lastPage || 1,
+    lastPage: messageData.lastPage || messageData.totalPages || messageData.last_page || computedLastPage,
   };
 }
 

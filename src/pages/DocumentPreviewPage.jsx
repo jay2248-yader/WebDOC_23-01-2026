@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useLayoutEffect, useMemo, useRef } from "react";
+
 import { useLocation } from "react-router-dom";
 import TitleTableModal from "../components/documents/TitleTableModal";
 
@@ -12,9 +13,15 @@ import DocumentDetailsSidebar from "../components/document-preview/DocumentDetai
 import DocumentActionBar from "../components/document-preview/DocumentActionBar";
 import { useDocumentPagination } from "../hooks/useDocumentPagination";
 
+function formatDate(dateStr) {
+  if (!dateStr) return "......./......./.......";
+  const [y, m, d] = dateStr.split(" ")[0].split("-");
+  return `${d}/${m}/${y}`;
+}
+
 export default function DocumentPreviewPage() {
   const location = useLocation();
-  const docData = location.state?.document || {};
+  const docData = useMemo(() => location.state?.document || {}, [location.state]);
 
   const [showTitleTableModal, setShowTitleTableModal] = useState(false);
   const [titleTableSections, setTitleTableSections] = useState([]);
@@ -27,6 +34,9 @@ export default function DocumentPreviewPage() {
   const [loadingDetails, setLoadingDetails] = useState(!!docData.rqdid);
   const [selectedDetailId, setSelectedDetailId] = useState(null);
   const [extraPages, setExtraPages] = useState([]);
+  const containerRef = useRef(null);
+  const cursorStateRef = useRef({ chunkIdx: null, start: 0, end: 0 });
+  const bodyTextareaRefs = useRef([]);
 
   // ── Inject @page rule via JS (ป้องกัน Tailwind strip) ──
   useEffect(() => {
@@ -40,6 +50,7 @@ export default function DocumentPreviewPage() {
     bodyChunks,
     setBodyChunks,
     tablePageChunks,
+    remarkChunks,
     page1Ref,
     body1Ref,
     belowBodyMeasureRef,
@@ -68,7 +79,7 @@ export default function DocumentPreviewPage() {
   } = useDocumentEditStore();
 
   // ── Detail selection ──────────────────────────────────────────────────────────
-  const handleSelectDetail = (detail) => {
+  const handleSelectDetail = useCallback((detail) => {
     if (selectedDetailId === detail.rddid) {
       setSelectedDetailId(null);
       setReqReason(docData.req_reason || "");
@@ -89,7 +100,7 @@ export default function DocumentPreviewPage() {
       setTitleTableSections(e.titleTableSections !== undefined ? e.titleTableSections : []);
       setExtraPages(e.extraPages !== undefined ? e.extraPages : []);
     }
-  };
+  }, [selectedDetailId, docData, edits]);
 
   // ── Fetch document details ────────────────────────────────────────────────────
   useEffect(() => {
@@ -100,52 +111,76 @@ export default function DocumentPreviewPage() {
       .finally(() => setLoadingDetails(false));
   }, [docData.rqdid]);
 
-  // ── Auto-resize textareas ─────────────────────────────────────────────────────
+  // ── Auto-resize textareas (only on detail switch / chunk restructure) ────────
   useEffect(() => {
-    window.document.querySelectorAll("textarea").forEach((ta) => {
-      ta.style.height = "auto";
-      ta.style.height = ta.scrollHeight + "px";
+    requestAnimationFrame(() => {
+      containerRef.current?.querySelectorAll("textarea").forEach((ta) => {
+        ta.style.height = "auto";
+        ta.style.height = ta.scrollHeight + "px";
+      });
     });
-  }, [reqTo, reqReason, references, bodyParagraph, remark, selectedDetailId, bodyChunks]);
+  }, [selectedDetailId, bodyChunks.length]);
 
   // (Print handlers removed — textareas keep their on-screen heights during print)
 
+  // ── Restore cursor after recalcChunks re-splits bodyChunks ──────────────────
+  useLayoutEffect(() => {
+    const { chunkIdx, start, end } = cursorStateRef.current;
+    if (chunkIdx === null) return;
+    const ta = chunkIdx === 0 ? body1Ref.current : bodyTextareaRefs.current[chunkIdx];
+    if (!ta) return;
+    ta.selectionStart = start;
+    ta.selectionEnd = end;
+  }, [bodyChunks, body1Ref]);
+
   // ── Body change handlers ──────────────────────────────────────────────────────
-  const handleBodyChange = (chunkIdx, newChunkValue) => {
+  const handleBodyChange = useCallback((chunkIdx, newChunkValue, cursorStart, cursorEnd) => {
+    if (cursorStart !== undefined) {
+      cursorStateRef.current = { chunkIdx, start: cursorStart, end: cursorEnd ?? cursorStart };
+    }
     const newChunks = [...bodyChunks];
     newChunks[chunkIdx] = newChunkValue;
+    setBodyChunks(newChunks);
     const newFull = newChunks.join("");
     setBodyParagraph(newFull);
     if (selectedDetailId) storeSetBodyParagraph(selectedDetailId, newFull);
-  };
+  }, [bodyChunks, selectedDetailId, storeSetBodyParagraph, setBodyChunks]);
 
-  const handleBodyKeyDown = (e, chunkIdx) => {
+  const handleBodyKeyDown = useCallback((e, chunkIdx) => {
     if (e.key !== "Tab") return;
     e.preventDefault();
     const start = e.target.selectionStart;
     const end = e.target.selectionEnd;
     const spaces = "        ";
     const chunk = bodyChunks[chunkIdx] || "";
-    handleBodyChange(chunkIdx, chunk.substring(0, start) + spaces + chunk.substring(end));
-    requestAnimationFrame(() => { e.target.selectionStart = e.target.selectionEnd = start + spaces.length; });
-  };
+    const newPos = start + spaces.length;
+    handleBodyChange(chunkIdx, chunk.substring(0, start) + spaces + chunk.substring(end), newPos, newPos);
+    requestAnimationFrame(() => { e.target.selectionStart = e.target.selectionEnd = newPos; });
+  }, [bodyChunks, handleBodyChange]);
 
-  const formatDate = (dateStr) => {
-    if (!dateStr) return "......./......./.......";
-    const [y, m, d] = dateStr.split(" ")[0].split("-");
-    return `${d}/${m}/${y}`;
-  };
+  const openTitleTableModal = useCallback(() => setShowTitleTableModal(true), []);
 
   const lastChunkIdx = bodyChunks.length - 1;
-  const closingProps = { remark, setRemark, selectedDetailId, storeSetRemark };
-  const belowBodyProps = {
+  // จำนวนหน้าจริงที่ render ก่อน extra pages:
+  // page1 + overflow pages + table continuation pages (slice(1) ไม่รวม chunk[0] ที่อยู่ใน body page สุดท้าย)
+  const remarkOverflowCount = remarkChunks ? Math.max(0, remarkChunks.length - 1) : 0;
+  const renderedPageCount = bodyChunks.length + Math.max(0, tablePageChunks.length - 1) + remarkOverflowCount;
+  const closingProps = useMemo(() => ({ remark, setRemark, selectedDetailId, storeSetRemark }),
+    [remark, selectedDetailId, storeSetRemark]);
+  const belowBodyProps = useMemo(() => ({
     titleTableSections, remark, setRemark,
     selectedDetailId, storeSetRemark,
-    onOpenTitleTable: () => setShowTitleTableModal(true),
-  };
+    onOpenTitleTable: openTitleTableModal,
+  }), [titleTableSections, remark, selectedDetailId, storeSetRemark, openTitleTableModal]);
+
+  // Props เพิ่มเติมสำหรับ remark split (ถ้า remarkChunks !== null)
+  const remarkSplitProps = remarkChunks ? {
+    remarkOverride: remarkChunks[0],
+    showSignature: remarkChunks.length === 1,
+  } : {};
 
   return (
-    <div className="min-h-screen bg-gray-100 print:bg-white print:min-h-0">
+    <div ref={containerRef} className="min-h-screen bg-gray-100 print:bg-white print:min-h-0">
 
       {/* Hidden measurement div */}
       <div ref={measureRef} aria-hidden="true"
@@ -245,7 +280,7 @@ export default function DocumentPreviewPage() {
                   <div>
                     <textarea ref={body1Ref}
                       value={bodyChunks[0] ?? ""}
-                      onChange={(e) => handleBodyChange(0, e.target.value)}
+                      onChange={(e) => handleBodyChange(0, e.target.value, e.target.selectionStart, e.target.selectionEnd)}
                       onKeyDown={(e) => handleBodyKeyDown(e, 0)}
                       placeholder="ພິມເນື້ອໃນ..." rows={3}
                       onInput={(e) => { e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }}
@@ -255,12 +290,13 @@ export default function DocumentPreviewPage() {
 
                   {bodyChunks.length === 1 && (
                     tablePageChunks.length === 0
-                      ? <BelowBody {...belowBodyProps} />
+                      ? <BelowBody {...belowBodyProps} {...remarkSplitProps} />
                       : (tablePageChunks[0] && tablePageChunks[0].length > 0)
                         ? <BelowBody
                           {...belowBodyProps}
                           partialSections={tablePageChunks[0]}
                           showClosing={tablePageChunks.length === 1}
+                          {...(tablePageChunks.length === 1 ? remarkSplitProps : {})}
                         />
                         : null
                   )}
@@ -286,8 +322,9 @@ export default function DocumentPreviewPage() {
                     <div className="text-sm text-gray-800 space-y-0.5 leading-relaxed">
                       <div>
                         <textarea
+                          ref={(el) => { bodyTextareaRefs.current[chunkIdx] = el; }}
                           value={chunk}
-                          onChange={(e) => handleBodyChange(chunkIdx, e.target.value)}
+                          onChange={(e) => handleBodyChange(chunkIdx, e.target.value, e.target.selectionStart, e.target.selectionEnd)}
                           onKeyDown={(e) => handleBodyKeyDown(e, chunkIdx)}
                           placeholder="(ເນື້ອໃນຕໍ່)..." rows={1}
                           onInput={(e) => { e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }}
@@ -295,12 +332,13 @@ export default function DocumentPreviewPage() {
                       </div>
                       {isLastChunk && (
                         tablePageChunks.length === 0
-                          ? <BelowBody {...belowBodyProps} />
+                          ? <BelowBody {...belowBodyProps} {...remarkSplitProps} />
                           : (tablePageChunks[0] && tablePageChunks[0].length > 0)
                             ? <BelowBody
                               {...belowBodyProps}
                               partialSections={tablePageChunks[0]}
                               showClosing={tablePageChunks.length === 1}
+                              {...(tablePageChunks.length === 1 ? remarkSplitProps : {})}
                             />
                             : null
                       )}
@@ -329,6 +367,35 @@ export default function DocumentPreviewPage() {
                         {...belowBodyProps}
                         partialSections={sections}
                         showClosing={isLastTablePage}
+                        {...(isLastTablePage ? remarkSplitProps : {})}
+                      />
+                    </div>
+                  </div>
+                </PageShell>
+              </div>
+            );
+          })}
+
+          {/* ════ REMARK OVERFLOW PAGES ════ */}
+          {remarkChunks && remarkChunks.length > 1 && remarkChunks.slice(1).map((rmChunk, idx) => {
+            const isLastRemarkChunk = idx === remarkChunks.length - 2;
+            const pageNumber = bodyChunks.length + Math.max(0, tablePageChunks.length - 1) + idx + 1;
+            return (
+              <div key={"remark-" + idx}
+                className="max-w-[210mm] mx-auto w-full bg-white shadow-lg print:shadow-none print:mx-0 print:max-w-none print:p-0"
+                style={{ fontFamily: "'TimesDoc', 'Phetsarath', sans-serif" }}>
+                <PageShell extraClass="">
+                  <div className="pt-2 h-full overflow-hidden print:overflow-hidden">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm text-gray-400 print:text-transparent">ໜ້າ {pageNumber} (ຕໍ່)</span>
+                    </div>
+                    <div className="text-sm text-gray-800 space-y-0.5 leading-relaxed">
+                      <ClosingContent
+                        {...closingProps}
+                        interactive={false}
+                        remarkOverride={rmChunk}
+                        showLabel={false}
+                        showSignature={isLastRemarkChunk}
                       />
                     </div>
                   </div>
@@ -361,7 +428,7 @@ export default function DocumentPreviewPage() {
               <PageShell pageRef={(el) => { extraPageRefs.current[page.id] = el; }} extraClass="">
                 <div className="pt-2 h-full overflow-hidden print:overflow-hidden">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm text-gray-400 print:text-transparent">ໜ້າ {bodyChunks.length + tablePageChunks.length + idx}</span>
+                    <span className="text-sm text-gray-400 print:text-transparent">ໜ້າ {renderedPageCount + 1 + idx}</span>
                     <button
                       onClick={() => {
                         const updated = extraPages.filter((_, i) => i !== idx);
@@ -373,7 +440,6 @@ export default function DocumentPreviewPage() {
                   </div>
                   <div className="text-sm text-gray-800 leading-relaxed">
                     <textarea
-                      ref={(el) => { extraPageRefs.current[page.id] = el; }}
                       value={page.body}
                       onChange={(e) => {
                         const updated = extraPages.map((p, i) => i === idx ? { ...p, body: e.target.value } : p);
