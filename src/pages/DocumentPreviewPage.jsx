@@ -111,15 +111,14 @@ export default function DocumentPreviewPage() {
       .finally(() => setLoadingDetails(false));
   }, [docData.rqdid]);
 
-  // ── Auto-resize textareas (only on detail switch / chunk restructure) ────────
-  useEffect(() => {
-    requestAnimationFrame(() => {
-      containerRef.current?.querySelectorAll("textarea").forEach((ta) => {
-        ta.style.height = "auto";
-        ta.style.height = ta.scrollHeight + "px";
-      });
+  // ── Auto-resize textareas ────────────────────────────────────────────────────
+  // useLayoutEffect: fire ก่อน paint → ไม่มีการกระพริบ 1 แถว
+  useLayoutEffect(() => {
+    containerRef.current?.querySelectorAll("textarea").forEach((ta) => {
+      ta.style.height = "auto";
+      ta.style.height = ta.scrollHeight + "px";
     });
-  }, [selectedDetailId, bodyChunks.length]);
+  }, [selectedDetailId, bodyChunks, remark]);
 
   // (Print handlers removed — textareas keep their on-screen heights during print)
 
@@ -190,14 +189,14 @@ export default function DocumentPreviewPage() {
       {/* Off-screen below-body clone for height measurement */}
       <div ref={belowBodyMeasureRef} aria-hidden="true"
         className="print:hidden text-sm text-gray-800 space-y-0.5 leading-relaxed"
-        style={{ position: "absolute", left: "-9999px", top: 0, visibility: "hidden", pointerEvents: "none", width: "174mm" }}>
+        style={{ position: "absolute", left: "-9999px", top: 0, visibility: "hidden", pointerEvents: "none", width: "174mm", fontFamily: "'TimesDoc', 'Phetsarath', sans-serif" }}>
         <BelowBody {...belowBodyProps} interactive={false} />
       </div>
 
       {/* Off-screen closing content clone for height measurement */}
       <div ref={closingMeasureRef} aria-hidden="true"
         className="print:hidden text-sm text-gray-800 space-y-0.5 leading-relaxed"
-        style={{ position: "absolute", left: "-9999px", top: 0, visibility: "hidden", pointerEvents: "none", width: "174mm" }}>
+        style={{ position: "absolute", left: "-9999px", top: 0, visibility: "hidden", pointerEvents: "none", width: "174mm", fontFamily: "'TimesDoc', 'Phetsarath', sans-serif" }}>
         <ClosingContent {...closingProps} interactive={false} />
       </div>
 

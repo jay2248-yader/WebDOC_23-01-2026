@@ -54,7 +54,7 @@ export function useDocumentPagination({ bodyParagraph, titleTableSections, reqTo
 
         const availP1WithBelow = contentAreaHeight - bodyTopInContent - belowBodyHeight;
         const availP1BodyOnly = contentAreaHeight - bodyTopInContent;
-        const availOverflow = contentAreaHeight - 30;
+        const availOverflow = contentAreaHeight - 40;
 
         // ── ล็อก measurement width เป็น 174mm (content area) ──
         const contentWidthMm = 174;
@@ -105,9 +105,10 @@ export function useDocumentPagination({ bodyParagraph, titleTableSections, reqTo
                 return measureDiv.scrollHeight;
             };
             const fullRemarkH = measureRemarkH(remarkText);
-            // Closing = ໝາຍເຫດ label (~24px) + remark + signature
-            const labelH = 24;
-            const remarkAvailFirst = firstPageAvail - labelH - SIGNATURE_HEIGHT_PX;
+            // Closing = ໝາຍເຫດ label (mt-6=24px + text~24px = ~48px) + remark + signature
+            const labelH = 48;
+            // First chunk ไม่แสดง signature (showSignature=false) → ไม่ต้อง reserve ที่
+            const remarkAvailFirst = firstPageAvail - labelH;
 
             if (fullRemarkH + labelH + SIGNATURE_HEIGHT_PX <= firstPageAvail) {
                 // closing พอดีหน้าปัจจุบัน
@@ -375,10 +376,14 @@ export function useDocumentPagination({ bodyParagraph, titleTableSections, reqTo
         return () => { observer.disconnect(); clearTimeout(debounceId); };
     }, [recalcChunks]);
 
-    // Trigger recalc เมื่อ content เปลี่ยน
+    // Trigger recalc เมื่อ content เปลี่ยน (รอ font โหลดก่อน ป้องกันวัดผิด)
     useEffect(() => {
-        const id = setTimeout(recalcChunks, 0);
-        return () => clearTimeout(id);
+        let id;
+        let cancelled = false;
+        document.fonts.ready.then(() => {
+            if (!cancelled) id = setTimeout(recalcChunks, 0);
+        });
+        return () => { cancelled = true; clearTimeout(id); };
     }, [recalcChunks, bodyParagraph, titleTableSections, reqTo, reqReason, references, remark]);
 
     return {

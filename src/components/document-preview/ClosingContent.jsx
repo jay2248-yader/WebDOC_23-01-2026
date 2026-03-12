@@ -1,4 +1,4 @@
-import React from "react";
+import { useRef, useLayoutEffect } from "react";
 
 export default function ClosingContent({
     remark, setRemark, selectedDetailId, storeSetRemark, interactive,
@@ -7,6 +7,15 @@ export default function ClosingContent({
     showLabel = true, // false → ซ่อน "ໝາຍເຫດ:" label (overflow chunk)
 }) {
     const displayRemark = remarkOverride !== undefined ? remarkOverride : remark;
+    const taRef = useRef(null);
+
+    // Auto-resize เมื่อ displayRemark เปลี่ยน (mount / remount / value เปลี่ยนแบบ programmatic)
+    useLayoutEffect(() => {
+        const ta = taRef.current;
+        if (!ta) return;
+        ta.style.height = "auto";
+        ta.style.height = ta.scrollHeight + "px";
+    }, [displayRemark]);
 
     return (
         <>
@@ -15,6 +24,7 @@ export default function ClosingContent({
                     <span className="text-black whitespace-nowrap ml-10">ໝາຍເຫດ:</span>
                     {interactive && remarkOverride === undefined ? (
                         <textarea
+                            ref={taRef}
                             value={displayRemark}
                             onChange={(e) => { setRemark(e.target.value); if (selectedDetailId) storeSetRemark(selectedDetailId, e.target.value); }}
                             placeholder="ພິມໝາຍເຫດ..." rows={1}
