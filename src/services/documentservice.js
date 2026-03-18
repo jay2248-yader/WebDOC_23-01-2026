@@ -5,23 +5,19 @@ import { ENDPOINTS } from "../api/endpoints";
 export async function getAllDocuments(params = {}) {
   const res = await http.get(ENDPOINTS.DOCUMENTS.GET_ALL, { params });
 
-  console.log("API Response:", res.data);
-  console.log("Success:", res.data?.success);
-  console.log("data_id:", res.data?.data_id);
-
   if (!res.data?.success) {
     throw new Error("Failed to fetch documents");
   }
 
-  // Documents API returns data in 'data_id' field
-  const dataId = res.data?.data_id || {};
+  const dataId = res.data.data_id || res.data.message || {};
   const dataArray = Array.isArray(dataId.data) ? dataId.data : [];
+  const total = dataId.total ?? dataArray.length;
+  const limit = Number(params.limit) || 10;
 
   return {
     data: dataArray,
-    total: dataId.total || dataArray.length,
-    currentPage: dataId.currentPage || 1,
-    lastPage: dataId.lastPage || 1,
+    total,
+    lastPage: dataId.lastPage || dataId.last_page || dataId.totalPages || Math.ceil(total / limit) || 1,
   };
 }
 

@@ -5,23 +5,19 @@ import { ENDPOINTS } from "../api/endpoints";
 export async function getAllDocumentCategories(params = {}) {
   const res = await http.get(ENDPOINTS.DOCUMENT_CATEGORY.GET_ALL, { params });
 
-  console.log("API Response:", res.data);
-  console.log("Success:", res.data?.success);
-  console.log("message:", res.data?.message);
-
   if (!res.data?.success) {
     throw new Error("Failed to fetch document categories");
   }
 
-  // Document category API returns data in 'message' field
-  const messageData = res.data?.message || {};
-  const dataArray = Array.isArray(messageData.data) ? messageData.data : [];
+  const dataId = res.data.data_id || res.data.message || {};
+  const dataArray = Array.isArray(dataId.data) ? dataId.data : [];
+  const total = dataId.total ?? dataArray.length;
+  const limit = Number(params.limit) || 10;
 
   return {
     data: dataArray,
-    total: messageData.total || dataArray.length,
-    currentPage: messageData.currentPage || 1,
-    lastPage: messageData.lastPage || 1,
+    total,
+    lastPage: dataId.lastPage || dataId.last_page || dataId.totalPages || Math.ceil(total / limit) || 1,
   };
 }
 

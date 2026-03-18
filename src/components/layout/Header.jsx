@@ -38,7 +38,7 @@ export default function Header({ title = 'ໜ້າຫຼັກ' }) {
               </svg>
             </div>
             <div className="text-left hidden sm:block">
-              <p className="text-sm text-gray-400 leading-tight">@{user?.usercode || 'user'}</p>
+              <p className="text-sm text-gray-400 leading-tight">{user?.usercode || 'user'}</p>
               <p className="text-base font-semibold text-green-600 leading-tight">{user?.username || 'Admin'}</p>
             </div>
             <svg className={`w-5 h-5 text-gray-400 transition-transform duration-150 ${showDropdown ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

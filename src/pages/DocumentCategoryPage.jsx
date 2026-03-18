@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import GenericToolbar from "../components/common/GenericToolbar";
 import GenericDataTable, { Button } from "../components/common/GenericDataTable";
 import DocumentCategoryFormModal from "../components/document-categories/DocumentCategoryFormModal";
@@ -14,6 +14,7 @@ export default function DocumentCategoryPage() {
   const [documentCategories, setDocumentCategories] = useState([]);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  const [inputText, setInputText] = useState("");
   const [searchText, setSearchText] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -21,39 +22,32 @@ export default function DocumentCategoryPage() {
   const [editingCategory, setEditingCategory] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Reference to the delete handler from GenericDataTable
   const tableRef = useRef(null);
 
-  // Load document categories from API
-  const loadDocumentCategories = async () => {
+  const loadDocumentCategories = useCallback(async (silent = false) => {
     try {
-      setIsLoading(true);
-      const result = await getAllDocumentCategories({
-        page,
-        limit: pageSize,
-        search: searchText,
-      });
-      console.log("Loaded document categories:", result);
+      if (!silent) setIsLoading(true);
+      const result = await getAllDocumentCategories({ page, limit: pageSize, search: searchText });
       setDocumentCategories(result.data);
       setTotalItems(result.total);
       setTotalPages(result.lastPage || 1);
     } catch (error) {
-      console.error("Error loading document categories:", error);
-      alert(error.message || "ເກີດຂໍ້ຜິດພາດໃນການໂຫຼດຂໍ້ມູນ");
+      console.error("Failed to fetch document categories:", error);
     } finally {
-      setIsLoading(false);
+      if (!silent) setIsLoading(false);
     }
-  };
+  }, [page, pageSize, searchText]);
 
-  // Load document categories on mount and when search/page changes
   useEffect(() => {
     loadDocumentCategories();
-  }, [page, pageSize, searchText]);
+  }, [loadDocumentCategories]);
 
   const safePage = Math.min(Math.max(page, 1), totalPages);
 
-  const handleSearchChange = (v) => {
-    setSearchText(v);
+  const handleSearchChange = (v) => setInputText(v);
+
+  const handleSearch = () => {
+    setSearchText(inputText);
     setPage(1);
   };
 
@@ -63,28 +57,17 @@ export default function DocumentCategoryPage() {
   };
 
   const handlePageChange = (nextPage) => {
-    const clamped = Math.min(Math.max(nextPage, 1), totalPages);
-    setPage(clamped);
+    setPage(Math.min(Math.max(nextPage, 1), totalPages));
   };
 
   const handleCreateCategory = () => {
-    setIsLoading(true);
     setEditingCategory(null);
-
-    setTimeout(() => {
-      setIsLoading(false);
-      setShowFormModal(true);
-    }, 500);
+    setShowFormModal(true);
   };
 
   const handleEditCategory = (category) => {
-    setIsLoading(true);
     setEditingCategory(category);
-
-    setTimeout(() => {
-      setIsLoading(false);
-      setShowFormModal(true);
-    }, 500);
+    setShowFormModal(true);
   };
 
   const handleCloseModal = () => {
@@ -93,77 +76,31 @@ export default function DocumentCategoryPage() {
   };
 
   const handleSubmitCategory = async (formData) => {
-    const isEdit = !!editingCategory;
-
-    if (isEdit) {
-      await updateDocumentCategory({
-        dctid: editingCategory.dctid,
-        ...formData,
-      });
+    if (editingCategory) {
+      await updateDocumentCategory({ dctid: editingCategory.dctid, ...formData });
     } else {
       await createNewDocumentCategory(formData);
     }
-
-    // Reload document categories after successful create/edit
-    await loadDocumentCategories();
+    await loadDocumentCategories(true);
   };
 
   const handleDeleteCategory = async (category) => {
     await deleteDocumentCategory(category.dctid);
-
-    // Reload document categories after successful delete
-    await loadDocumentCategories();
+    await loadDocumentCategories(true);
   };
 
-  // Define columns configuration
   const columns = [
     {
       key: "index",
       label: "ລຳດັບ",
       align: "left",
-      render: (item, index, page, pageSize) => (page - 1) * pageSize + index + 1,
+      render: (_item, index, page, pageSize) => (page - 1) * pageSize + index + 1,
     },
-    {
-      key: "dctid",
-      label: "ລະຫັດ (ID)",
-      align: "left",
-    },
-    {
-      key: "doccategoryname",
-      label: "ຊື່ປະເພດເອກະສານ",
-      align: "left",
-    },
-    {
-      key: "moreinfo",
-      label: "ລາຍລະອຽດ",
-      align: "left",
-    },
-    {
-      key: "createdate",
-      label: "ວັນທີສ້າງ",
-      align: "left",
-    },
-    {
-      key: "createby",
-      label: "ຜູ້ສ້າງ",
-      align: "left",
-    },
-    {
-      key: "statustype",
-      label: "ສະຖານະ",
-      align: "left",
-      render: (category) => (
-        <span
-          className={`px-3 py-1 rounded-full text-xs font-medium ${
-            category.statustype === "ADD"
-              ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-800"
-          }`}
-        >
-          {category.statustype}
-        </span>
-      ),
-    },
+    { key: "dctid", label: "ລະຫັດ (ID)", align: "left" },
+    { key: "doccategoryname", label: "ຊື່ປະເພດເອກະສານ", align: "left" },
+    { key: "moreinfo", label: "ລາຍລະອຽດ", align: "left" },
+    { key: "createdate", label: "ວັນທີສ້າງ", align: "left" },
+    { key: "createby", label: "ຜູ້ສ້າງ", align: "left" },
     {
       key: "actions",
       label: "ຈັດການ",
@@ -171,19 +108,14 @@ export default function DocumentCategoryPage() {
       render: (category) => (
         <div className="flex items-center gap-2">
           <Button
-            fullWidth={false}
-            variant="ghost"
-            size="sm"
+            fullWidth={false} variant="ghost" size="sm"
             onClick={() => handleEditCategory(category)}
             className="w-16 inline-flex items-center justify-center rounded-md bg-blue-200 px-2 py-1 text-xs text-blue-700 hover:bg-blue-50 hover:scale-100 hover:shadow-none"
           >
             ແກ້ໄຂ
           </Button>
-
           <Button
-            fullWidth={false}
-            variant="ghost"
-            size="sm"
+            fullWidth={false} variant="ghost" size="sm"
             onClick={() => tableRef.current?.handleDeleteClick?.(category)}
             className="w-16 inline-flex items-center justify-center rounded-md bg-red-400 px-2 py-1 text-xs text-white hover:bg-red-500 hover:scale-100 hover:shadow-none"
           >
@@ -197,24 +129,15 @@ export default function DocumentCategoryPage() {
   return (
     <div className="space-y-6">
       <GenericToolbar
-        searchText={searchText}
+        searchText={inputText}
         onSearchChange={handleSearchChange}
+        onSearch={handleSearch}
         onCreate={handleCreateCategory}
         searchPlaceholder="ຄົ້ນຫາປະເພດເອກະສານ..."
         createButtonText="ເພີ່ມປະເພດ"
         createButtonIcon={
-          <svg
-            className="h-5 w-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
+          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
         }
       />

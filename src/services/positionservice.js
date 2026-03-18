@@ -5,20 +5,19 @@ import { ENDPOINTS } from "../api/endpoints";
 export async function getAllPositions(params = {}) {
   const res = await http.get(ENDPOINTS.POSITION.GET_ALL, { params });
 
-  console.log("API Response:", res.data);
-  console.log("Success:", res.data?.success);
-  console.log("data_id:", res.data?.data_id);
-  console.log("Final data:", res.data.data_id);
-
   if (!res.data?.success) {
     throw new Error(res.data?.message || "Failed to fetch positions");
   }
 
+  const dataId = res.data.data_id || {};
+  const dataArray = dataId.data || [];
+  const total = dataId.total ?? dataArray.length;
+  const limit = Number(params.limit) || 10;
+
   return {
-    data: res.data.data_id?.data || [],
-    total: res.data.data_id?.total || 0,
-    currentPage: res.data.data_id?.currentPage || 1,
-    lastPage: res.data.data_id?.lastPage || 1,
+    data: dataArray,
+    total,
+    lastPage: dataId.lastPage || dataId.last_page || dataId.totalPages || Math.ceil(total / limit) || 1,
   };
 }
 

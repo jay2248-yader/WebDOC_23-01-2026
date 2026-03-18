@@ -1,7 +1,10 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import FormInput from "../common/FormInput";
+import Select from "../common/Select";
 import Button from "../common/Button";
 import ConfirmProgressDialog from "../common/ConfirmProgressDialog";
+import { getAllDocumentGroup } from "../../services/documentgroupservice";
+import { getAllUsers } from "../../services/userservice";
 
 export default function DocumentGroupDetailsFormModal({
   isOpen,
@@ -18,10 +21,23 @@ export default function DocumentGroupDetailsFormModal({
 
   const [errors, setErrors] = useState({});
   const [isClosing, setIsClosing] = useState(false);
+  const [documentGroups, setDocumentGroups] = useState([]);
+  const [groupPage, setGroupPage] = useState(1);
+  const [groupHasMore, setGroupHasMore] = useState(false);
+  const [groupLoadingMore, setGroupLoadingMore] = useState(false);
+  const [groupSearch, setGroupSearch] = useState("");
+  const [users, setUsers] = useState([]);
+  const [userPage, setUserPage] = useState(1);
+  const [userHasMore, setUserHasMore] = useState(false);
+  const [userLoadingMore, setUserLoadingMore] = useState(false);
+  const [userSearch, setUserSearch] = useState("");
   const [submitDialog, setSubmitDialog] = useState({
     open: false,
     status: "confirm",
   });
+
+  const GROUP_LIMIT = 10;
+  const USER_LIMIT = 10;
 
   const dcdidRef = useRef(null);
   const useridRef = useRef(null);
@@ -30,9 +46,79 @@ export default function DocumentGroupDetailsFormModal({
 
   useEffect(() => {
     if (isOpen) {
+      setGroupPage(1);
+      setGroupSearch("");
+      getAllDocumentGroup({ page: 1, limit: GROUP_LIMIT })
+        .then((res) => {
+          setDocumentGroups(res.data);
+          setGroupHasMore(res.data.length === GROUP_LIMIT && res.total > GROUP_LIMIT);
+        })
+        .catch(() => {});
+
+      setUserPage(1);
+      setUserSearch("");
+      getAllUsers({ page: 1, limit: USER_LIMIT })
+        .then((res) => {
+          setUsers(res.data);
+          setUserHasMore(res.data.length === USER_LIMIT && res.total > USER_LIMIT);
+        })
+        .catch(() => {});
+    }
+  }, [isOpen]);
+
+  const handleGroupSearch = useCallback((text) => {
+    setGroupSearch(text);
+    setGroupPage(1);
+    getAllDocumentGroup({ page: 1, limit: GROUP_LIMIT, search: text })
+      .then((res) => {
+        setDocumentGroups(res.data);
+        setGroupHasMore(res.data.length === GROUP_LIMIT && res.total > GROUP_LIMIT);
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleGroupLoadMore = () => {
+    const nextPage = groupPage + 1;
+    setGroupLoadingMore(true);
+    getAllDocumentGroup({ page: nextPage, limit: GROUP_LIMIT, search: groupSearch })
+      .then((res) => {
+        setDocumentGroups((prev) => [...prev, ...res.data]);
+        setGroupPage(nextPage);
+        setGroupHasMore(res.data.length === GROUP_LIMIT && (documentGroups.length + res.data.length) < res.total);
+      })
+      .catch(() => {})
+      .finally(() => setGroupLoadingMore(false));
+  };
+
+  const handleUserSearch = useCallback((text) => {
+    setUserSearch(text);
+    setUserPage(1);
+    getAllUsers({ page: 1, limit: USER_LIMIT, search: text })
+      .then((res) => {
+        setUsers(res.data);
+        setUserHasMore(res.data.length === USER_LIMIT && res.total > USER_LIMIT);
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleUserLoadMore = () => {
+    const nextPage = userPage + 1;
+    setUserLoadingMore(true);
+    getAllUsers({ page: nextPage, limit: USER_LIMIT, search: userSearch })
+      .then((res) => {
+        setUsers((prev) => [...prev, ...res.data]);
+        setUserPage(nextPage);
+        setUserHasMore(res.data.length === USER_LIMIT && (users.length + res.data.length) < res.total);
+      })
+      .catch(() => {})
+      .finally(() => setUserLoadingMore(false));
+  };
+
+  useEffect(() => {
+    if (isOpen) {
       setFormData({
-        dcdid: detail?.dcdid || "",
-        userid: detail?.userid || "",
+        dcdid: detail?.dcdid ? String(detail.dcdid) : "",
+        userid: detail?.userid ? String(detail.userid) : "",
         detailsinfo: detail?.detailsinfo || "",
         maxsignmoney: detail?.maxsignmoney || "",
       });
@@ -60,7 +146,7 @@ export default function DocumentGroupDetailsFormModal({
   const handleChange = (field) => (e) => {
     let value = e.target.value;
 
-    if (field === "dcdid" || field === "userid" || field === "maxsignmoney") {
+    if (field === "userid" || field === "maxsignmoney") {
       value = value.replace(/[^0-9]/g, "");
     }
 
@@ -162,28 +248,44 @@ export default function DocumentGroupDetailsFormModal({
             />
           )}
 
-          <FormInput
-            label="ລະຫັດກຸ່ມເອກະສານ (dcdid)"
+          <Select
+            label="ກຸ່ມເອກະສານ"
             theme="light"
-            placeholder="ກະລຸນາປ້ອນລະຫັດກຸ່ມເອກະສານ"
+            placeholder="ກະລຸນາເລືອກກຸ່ມເອກະສານ"
             value={formData.dcdid}
             onChange={handleChange("dcdid")}
-            onKeyDown={handleKeyDown("userid")}
+            options={documentGroups.map((g) => ({
+              value: String(g.dcdid),
+              label: g.docgroupname,
+            }))}
             inputRef={dcdidRef}
             error={errors.dcdid}
             hasError={!!errors.dcdid}
+            searchable
+            onSearch={handleGroupSearch}
+            hasMore={groupHasMore}
+            onLoadMore={handleGroupLoadMore}
+            isLoadingMore={groupLoadingMore}
           />
 
-          <FormInput
-            label="ລະຫັດຜູ້ໃຊ້ (userid)"
+          <Select
+            label="ຜູ້ໃຊ້"
             theme="light"
-            placeholder="ກະລຸນາປ້ອນລະຫັດຜູ້ໃຊ້"
+            placeholder="ກະລຸນາເລືອກຜູ້ໃຊ້"
             value={formData.userid}
             onChange={handleChange("userid")}
-            onKeyDown={handleKeyDown("detailsinfo")}
+            options={users.map((u) => ({
+              value: String(u.usid),
+              label: `${u.username} (${u.usercode})`,
+            }))}
             inputRef={useridRef}
             error={errors.userid}
             hasError={!!errors.userid}
+            searchable
+            onSearch={handleUserSearch}
+            hasMore={userHasMore}
+            onLoadMore={handleUserLoadMore}
+            isLoadingMore={userLoadingMore}
           />
 
           <FormInput

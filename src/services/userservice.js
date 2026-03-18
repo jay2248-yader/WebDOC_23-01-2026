@@ -29,6 +29,17 @@ export async function getAllUsers(params = {}) {
 }
 
 
+//Update Password
+export async function updatePwds({ usercode, pwds }) {
+  const res = await http.post(ENDPOINTS.USERS.UPDATEPASS, { usercode, pwds });
+
+  if (!res.data?.success) {
+    throw new Error(res.data?.message || "Failed to update password");
+  }
+
+  return res.data;
+}
+
 //Create
 export async function createNewUser(payload) {
   const res = await http.post(ENDPOINTS.USERS.NEW, payload);

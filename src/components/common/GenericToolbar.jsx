@@ -15,12 +15,17 @@ import search from "../../assets/icon/search.svg";
 export default function GenericToolbar({
   searchText,
   onSearchChange,
+  onSearch,
   onCreate,
   searchPlaceholder = "ຄົ້ນຫາ",
   createButtonText = "ສ້າງ",
   createButtonIcon = null,
   extraButtons = null,
 }) {
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && onSearch) onSearch();
+  };
+
   return (
     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <div className="w-full md:max-w-md">
@@ -30,11 +35,13 @@ export default function GenericToolbar({
           placeholder={searchPlaceholder}
           value={searchText}
           onChange={(e) => onSearchChange(e.target.value)}
+          onKeyDown={handleKeyDown}
           rightIcon={
             <img
               src={search}
               alt="search"
-              className="h-4 w-4"
+              className="h-4 w-4 cursor-pointer"
+              onClick={onSearch}
               style={{
                 filter:
                   "invert(32%) sepia(96%) saturate(1832%) hue-rotate(186deg) brightness(92%) contrast(87%)",

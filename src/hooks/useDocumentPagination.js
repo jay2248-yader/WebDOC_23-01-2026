@@ -4,7 +4,11 @@ import { HEADER_HEIGHT_PX, FOOTER_HEIGHT_PX } from "../components/document-previ
 // ความสูงคงที่ของส่วนลายเซ็น (ດັ່ງນັ້ນ... + ຮຽນມາ... + ຜູ້ສະເໜີ + margins)
 const SIGNATURE_HEIGHT_PX = 90;
 
-export function useDocumentPagination({ bodyParagraph, titleTableSections, reqTo, reqReason, references, remark }) {
+export function useDocumentPagination({
+    bodyParagraph, titleTableSections, reqTo, reqReason, references, remark,
+    headerHeight = HEADER_HEIGHT_PX,
+    footerHeight = FOOTER_HEIGHT_PX,
+}) {
     const [bodyChunks, setBodyChunks] = useState([""]);
     const [tablePageChunks, setTablePageChunks] = useState([]);
     const [remarkChunks, setRemarkChunks] = useState(null); // null = ไม่ split, ใช้ remark เต็ม
@@ -21,11 +25,15 @@ export function useDocumentPagination({ bodyParagraph, titleTableSections, reqTo
     const bodyParagraphRef = useRef(bodyParagraph);
     const titleTableSectionsRef = useRef(titleTableSections);
     const remarkRef = useRef(remark);
+    const headerHeightRef = useRef(headerHeight);
+    const footerHeightRef = useRef(footerHeight);
     useEffect(() => {
         bodyParagraphRef.current = bodyParagraph;
         titleTableSectionsRef.current = titleTableSections;
         remarkRef.current = remark;
-    }, [bodyParagraph, titleTableSections, remark]);
+        headerHeightRef.current = headerHeight;
+        footerHeightRef.current = footerHeight;
+    }, [bodyParagraph, titleTableSections, remark, headerHeight, footerHeight]);
 
     const recalcChunks = useCallback(() => {
         const page1El = page1Ref.current;
@@ -43,8 +51,8 @@ export function useDocumentPagination({ bodyParagraph, titleTableSections, reqTo
         const MM_TO_PX = 96 / 25.4;
         const pageHeightPx = 297 * MM_TO_PX;
 
-        const contentAreaTop = HEADER_HEIGHT_PX;
-        const contentAreaBottom = pageHeightPx - FOOTER_HEIGHT_PX;
+        const contentAreaTop = headerHeightRef.current;
+        const contentAreaBottom = pageHeightPx - footerHeightRef.current;
         const contentAreaHeight = contentAreaBottom - contentAreaTop;
 
         const contentEl = page1El.querySelector("[data-content-area]");
@@ -384,7 +392,7 @@ export function useDocumentPagination({ bodyParagraph, titleTableSections, reqTo
             if (!cancelled) id = setTimeout(recalcChunks, 0);
         });
         return () => { cancelled = true; clearTimeout(id); };
-    }, [recalcChunks, bodyParagraph, titleTableSections, reqTo, reqReason, references, remark]);
+    }, [recalcChunks, bodyParagraph, titleTableSections, reqTo, reqReason, references, remark, headerHeight, footerHeight]);
 
     return {
         bodyChunks,

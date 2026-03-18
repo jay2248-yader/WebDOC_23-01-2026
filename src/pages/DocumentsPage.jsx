@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import GenericToolbar from "../components/common/GenericToolbar";
 import GenericDataTable, { Button } from "../components/common/GenericDataTable";
@@ -16,6 +16,7 @@ export default function DocumentsPage() {
     const [documents, setDocuments] = useState([]);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
+    const [inputText, setInputText] = useState("");
     const [searchText, setSearchText] = useState("");
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
@@ -27,39 +28,32 @@ export default function DocumentsPage() {
     const [detailFormDocument, setDetailFormDocument] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    // Reference to the delete handler from GenericDataTable
     const tableRef = useRef(null);
 
-    // Load documents from API
-    const loadDocuments = async () => {
+    const loadDocuments = useCallback(async (silent = false) => {
         try {
-            setIsLoading(true);
-            const result = await getAllDocuments({
-                page,
-                limit: pageSize,
-                search: searchText,
-            });
-            console.log("Loaded documents:", result);
+            if (!silent) setIsLoading(true);
+            const result = await getAllDocuments({ page, limit: pageSize, search: searchText });
             setDocuments(result.data);
             setTotalItems(result.total);
             setTotalPages(result.lastPage || 1);
         } catch (error) {
             console.error("Error loading documents:", error);
-            alert(error.message || "ເກີດຂໍ້ຜິດພາດໃນການໂຫຼດຂໍ້ມູນ");
         } finally {
-            setIsLoading(false);
+            if (!silent) setIsLoading(false);
         }
-    };
+    }, [page, pageSize, searchText]);
 
-    // Load documents on mount and when search/page changes
     useEffect(() => {
         loadDocuments();
-    }, [page, pageSize, searchText]);
+    }, [loadDocuments]);
 
     const safePage = Math.min(Math.max(page, 1), totalPages);
 
-    const handleSearchChange = (v) => {
-        setSearchText(v);
+    const handleSearchChange = (v) => setInputText(v);
+
+    const handleSearch = () => {
+        setSearchText(inputText);
         setPage(1);
     };
 
@@ -69,36 +63,20 @@ export default function DocumentsPage() {
     };
 
     const handlePageChange = (nextPage) => {
-        const clamped = Math.min(Math.max(nextPage, 1), totalPages);
-        setPage(clamped);
+        setPage(Math.min(Math.max(nextPage, 1), totalPages));
     };
 
     const handleCreateDocument = () => {
-        setIsLoading(true);
         setEditingDocument(null);
-
-        setTimeout(() => {
-            setIsLoading(false);
-            setShowFormModal(true);
-        }, 500);
+        setShowFormModal(true);
     };
 
     const handleEditDocument = (doc) => {
-        setIsLoading(true);
         setEditingDocument(doc);
-
-        setTimeout(() => {
-            setIsLoading(false);
-            setShowFormModal(true);
-        }, 500);
+        setShowFormModal(true);
     };
 
-    const handleViewDocument = (doc) => {
-        setViewingDocument(doc);
-        setShowDetailModal(true);
-    };
-
-    const handlePreviewDocument = (doc) => {
+const handlePreviewDocument = (doc) => {
         navigate("/document-preview", { state: { document: doc } });
     };
 
@@ -107,13 +85,7 @@ export default function DocumentsPage() {
         setViewingDocument(null);
     };
 
-    const handleAddDetail = () => {
-        // เปิด form ให้กรอกข้อมูลรายละเอียดก่อน
-        setDetailFormDocument(null);
-        setShowDetailFormModal(true);
-    };
-
-    const handleCloseDetailFormModal = () => {
+const handleCloseDetailFormModal = () => {
         setShowDetailFormModal(false);
         setDetailFormDocument(null);
     };
@@ -159,25 +131,19 @@ export default function DocumentsPage() {
     };
 
     const handleSubmitDocument = async (formData) => {
-        const isEdit = !!editingDocument;
-
-        if (isEdit) {
+        if (editingDocument) {
             console.log("update document", editingDocument.rqdid, formData);
             // TODO: await updateDocument({ rqdid: editingDocument.rqdid, ...formData });
         } else {
             await createNewDocument(formData);
         }
-
-        // Reload documents after successful create/edit
-        await loadDocuments();
+        await loadDocuments(true);
     };
 
     const handleDeleteDocument = async (doc) => {
         console.log("delete document", doc);
         // TODO: await deleteDocument(doc.rqdid);
-
-        // Reload documents after successful delete
-        await loadDocuments();
+        await loadDocuments(true);
     };
 
     // Define columns configuration
@@ -186,7 +152,7 @@ export default function DocumentsPage() {
             key: "index",
             label: "ລຳດັບ", // Order
             align: "center",
-            render: (item, index, page, pageSize) => (page - 1) * pageSize + index + 1,
+            render: (_item, index, page, pageSize) => (page - 1) * pageSize + index + 1,
         },
         {
             key: "req_no",
@@ -223,17 +189,23 @@ export default function DocumentsPage() {
             key: "statustype",
             label: "ສະຖານະ",
             align: "center",
-            render: (doc) => (
-                <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        doc.statustype === "ADD"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-gray-100 text-gray-800"
-                    }`}
-                >
-                    {doc.statustype}
-                </span>
-            ),
+            render: (doc) => {
+                const colorMap = {
+                    "ADD":      "bg-emerald-100 text-emerald-700 border-emerald-300",
+                    "ADD-DATA": "bg-blue-100    text-blue-700    border-blue-300",
+                    "EDIT":     "bg-amber-100   text-amber-700   border-amber-300",
+                    "APPROVE":  "bg-teal-100    text-teal-700    border-teal-300",
+                    "REJECT":   "bg-red-100     text-red-700     border-red-300",
+                    "PENDING":  "bg-orange-100  text-orange-700  border-orange-300",
+                    "DELETE":   "bg-rose-100    text-rose-700    border-rose-300",
+                };
+                const cls = colorMap[doc.statustype] ?? "bg-gray-100 text-gray-600 border-gray-300";
+                return (
+                    <span className={`inline-flex items-center whitespace-nowrap px-2.5 py-1 rounded-full text-xs font-semibold border ${cls}`}>
+                        {doc.statustype}
+                    </span>
+                );
+            },
         },
         {
             key: "actions",
@@ -241,16 +213,6 @@ export default function DocumentsPage() {
             align: "center",
             render: (doc) => (
                 <div className="flex items-center justify-center gap-2">
-                    <Button
-                        fullWidth={false}
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleViewDocument(doc)}
-                        className="w-16 inline-flex items-center justify-center rounded-md bg-green-200 px-2 py-1 text-xs text-green-700 hover:bg-green-50 hover:scale-100 hover:shadow-none"
-                    >
-                        ເບິ່ງ
-                    </Button>
-
                     <Button
                         fullWidth={false}
                         variant="ghost"
@@ -288,8 +250,9 @@ export default function DocumentsPage() {
     return (
         <div className="space-y-6">
             <GenericToolbar
-                searchText={searchText}
+                searchText={inputText}
                 onSearchChange={handleSearchChange}
+                onSearch={handleSearch}
                 onCreate={handleCreateDocument}
                 searchPlaceholder="ຄົ້ນຫາເອກະສານ..."
                 createButtonText="ເພີ່ມເອກະສານ"
@@ -308,32 +271,7 @@ export default function DocumentsPage() {
                         />
                     </svg>
                 }
-                extraButtons={
-                    <Button
-                        fullWidth={false}
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleAddDetail(null)}
-                        className="bg-purple-600 text-white hover:bg-purple-700 hover:scale-100 hover:shadow-none"
-                    >
-                        <span className="flex items-center gap-2">
-                            <svg
-                                className="h-5 w-5"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                />
-                            </svg>
-                            ເພີ່ມລາຍລະອຽດ
-                        </span>
-                    </Button>
-                }
+
             />
 
             <GenericDataTable

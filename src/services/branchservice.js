@@ -9,7 +9,16 @@ export async function getAllBranches(params = {}) {
     throw new Error(res.data?.message || "Failed to fetch branches");
   }
 
-  return res.data.data_id?.data || [];
+  const dataId = res.data.data_id || {};
+  const dataArray = dataId.data || [];
+  const total = dataId.total ?? dataArray.length;
+  const limit = Number(params.limit) || 10;
+
+  return {
+    data: dataArray,
+    total,
+    lastPage: dataId.lastPage || dataId.last_page || dataId.totalPages || Math.ceil(total / limit) || 1,
+  };
 }
 
 

@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import GenericToolbar from "../components/common/GenericToolbar";
 import GenericDataTable, { Button } from "../components/common/GenericDataTable";
 import DepartmentFormModal from "../components/departments/DepartmentFormModal";
@@ -7,65 +7,43 @@ import { getAllDepartments, deleteDepartment, createNewDepartment, updateDepartm
 
 
 export default function DepartmentPage() {
+  const [departments, setDepartments] = useState([]);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [inputText, setInputText] = useState("");
   const [searchText, setSearchText] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [departments, setDepartments] = useState([]);
-  const [loadingData, setLoadingData] = useState(true);
 
-  // Reference to the delete handler from GenericDataTable
   const tableRef = useRef(null);
 
-  // Fetch departments on mount
-  useEffect(() => {
-    const fetchDepartments = async () => {
-      try {
-        setLoadingData(true);
-        const params = { page, limit: pageSize, search: searchText };
-        const data = await getAllDepartments(params);
-        console.log("Departments data received:", data);
-        console.log("Number of departments:", data?.length);
-        setDepartments(data);
-      } catch (error) {
-        console.error("Failed to fetch departments:", error);
-      } finally {
-        setLoadingData(false);
-      }
-    };
-
-    fetchDepartments();
+  const loadDepartments = useCallback(async (silent = false) => {
+    try {
+      if (!silent) setIsLoading(true);
+      const result = await getAllDepartments({ page, limit: pageSize, search: searchText });
+      setDepartments(result.data);
+      setTotalItems(result.total);
+      setTotalPages(result.lastPage || 1);
+    } catch (error) {
+      console.error("Failed to fetch departments:", error);
+    } finally {
+      if (!silent) setIsLoading(false);
+    }
   }, [page, pageSize, searchText]);
 
-  // 1) Filter departments
-  const filtered = useMemo(() => {
-    if (!searchText) return departments;
-    const lower = searchText.toLowerCase();
-    return departments.filter(
-      (d) =>
-        d.dpid.toString().includes(lower) ||
-        d.departmentname.toLowerCase().includes(lower) ||
-        (d.moreinfo && d.moreinfo.toLowerCase().includes(lower)) ||
-        (d.createby && d.createby.toLowerCase().includes(lower))
-    );
-  }, [searchText, departments]);
+  useEffect(() => {
+    loadDepartments();
+  }, [loadDepartments]);
 
-  // 2) Total pages
-  const totalPages = Math.ceil(filtered.length / pageSize) || 1;
-
-  // 3) Safe page
   const safePage = Math.min(Math.max(page, 1), totalPages);
 
-  // 4) Paginate
-  const pageDepartments = useMemo(
-    () => filtered.slice((safePage - 1) * pageSize, safePage * pageSize),
-    [filtered, safePage, pageSize]
-  );
+  const handleSearchChange = (v) => setInputText(v);
 
-  const handleSearchChange = (v) => {
-    setSearchText(v);
+  const handleSearch = () => {
+    setSearchText(inputText);
     setPage(1);
   };
 
@@ -75,28 +53,17 @@ export default function DepartmentPage() {
   };
 
   const handlePageChange = (nextPage) => {
-    const clamped = Math.min(Math.max(nextPage, 1), totalPages);
-    setPage(clamped);
+    setPage(Math.min(Math.max(nextPage, 1), totalPages));
   };
 
   const handleCreateDepartment = () => {
-    setIsLoading(true);
     setEditingDepartment(null);
-
-    setTimeout(() => {
-      setIsLoading(false);
-      setShowFormModal(true);
-    }, 500);
+    setShowFormModal(true);
   };
 
   const handleEditDepartment = (department) => {
-    setIsLoading(true);
     setEditingDepartment(department);
-
-    setTimeout(() => {
-      setIsLoading(false);
-      setShowFormModal(true);
-    }, 500);
+    setShowFormModal(true);
   };
 
   const handleCloseModal = () => {
@@ -105,100 +72,32 @@ export default function DepartmentPage() {
   };
 
   const handleSubmitDepartment = async (formData) => {
-    const isEdit = !!editingDepartment;
-
-    try {
-      if (isEdit) {
-        // Update existing department
-        await updateDepartment({
-          dpid: editingDepartment.dpid,
-          ...formData,
-        });
-      } else {
-        // Create new department
-        await createNewDepartment(formData);
-      }
-
-      // Refresh data after successful create/update
-      const params = { page, limit: pageSize, search: searchText };
-      const data = await getAllDepartments(params);
-      setDepartments(data);
-
-      // Don't close modal here - let the success dialog show first
-      // Modal will close when user clicks the close button on success dialog
-    } catch (error) {
-      console.error("Failed to submit department:", error);
-      throw error;
+    if (editingDepartment) {
+      await updateDepartment({ dpid: editingDepartment.dpid, ...formData });
+    } else {
+      await createNewDepartment(formData);
     }
+    await loadDepartments(true);
   };
 
   const handleDeleteDepartment = async (department) => {
-    try {
-      await deleteDepartment(department.dpid);
-
-      // Refresh data after successful deletion
-      const params = { page, limit: pageSize, search: searchText };
-      const data = await getAllDepartments(params);
-      setDepartments(data);
-    } catch (error) {
-      console.error("Failed to delete department:", error);
-      throw error;
-    }
+    await deleteDepartment(department.dpid);
+    await loadDepartments(true);
   };
 
-  // Define columns configuration
   const columns = [
     {
       key: "index",
       label: "ລຳດັບ",
       align: "left",
-      render: (item, index, page, pageSize) => (page - 1) * pageSize + index + 1,
+      render: (_item, index, page, pageSize) => (page - 1) * pageSize + index + 1,
     },
-    {
-      key: "dpid",
-      label: "ລະຫັດພະແນກ",
-      align: "left",
-    },
-    {
-      key: "bdid",
-      label: "ລະຫັດຄະນະ",
-      align: "left",
-    },
-    {
-      key: "departmentname",
-      label: "ຊື່ພະແນກ",
-      align: "left",
-    },
-    {
-      key: "createdate",
-      label: "ວັນທີສ້າງ",
-      align: "left",
-    },
-    {
-      key: "moreinfo",
-      label: "ລາຍລະອຽດເພີ່ມເຕີມ",
-      align: "left",
-    },
-    {
-      key: "createby",
-      label: "ສ້າງໂດຍ",
-      align: "left",
-    },
-    {
-      key: "statustype",
-      label: "ສະຖານະ",
-      align: "left",
-      render: (department) => (
-        <span
-          className={`px-3 py-1 rounded-full text-xs font-medium ${department.statustype === "ADD"
-            ? "bg-green-100 text-green-800"
-            : "bg-gray-100 text-gray-800"
-            }`}
-        >
-          {department.statustype}
-        </span>
-      ),
-    },
+    { key: "dpid", label: "ລະຫັດພະແນກ", align: "left" },
+    { key: "bdid", label: "ລະຫັດຄະນະ", align: "left" },
+    { key: "departmentname", label: "ຊື່ພະແນກ", align: "left" },
+    { key: "createdate", label: "ວັນທີສ້າງ", align: "left" },
+    { key: "moreinfo", label: "ລາຍລະອຽດເພີ່ມເຕີມ", align: "left" },
+    { key: "createby", label: "ສ້າງໂດຍ", align: "left" },
     {
       key: "actions",
       label: "ຈັດການ",
@@ -206,19 +105,14 @@ export default function DepartmentPage() {
       render: (department) => (
         <div className="flex items-center gap-2">
           <Button
-            fullWidth={false}
-            variant="ghost"
-            size="sm"
+            fullWidth={false} variant="ghost" size="sm"
             onClick={() => handleEditDepartment(department)}
             className="w-16 inline-flex items-center justify-center rounded-md bg-blue-200 px-2 py-1 text-xs text-blue-700 hover:bg-blue-50 hover:scale-100 hover:shadow-none"
           >
             ແກ້ໄຂ
           </Button>
-
           <Button
-            fullWidth={false}
-            variant="ghost"
-            size="sm"
+            fullWidth={false} variant="ghost" size="sm"
             onClick={() => tableRef.current?.handleDeleteClick?.(department)}
             className="w-16 inline-flex items-center justify-center rounded-md bg-red-400 px-2 py-1 text-xs text-white hover:bg-red-500 hover:scale-100 hover:shadow-none"
           >
@@ -229,42 +123,29 @@ export default function DepartmentPage() {
     },
   ];
 
-  if (loadingData) {
-    return <LoadingDialog isOpen={true} message="ກຳລັງໂຫຼດຂໍ້ມູນ..." />;
-  }
-
   return (
     <div className="space-y-6">
       <GenericToolbar
-        searchText={searchText}
+        searchText={inputText}
         onSearchChange={handleSearchChange}
+        onSearch={handleSearch}
         onCreate={handleCreateDepartment}
         searchPlaceholder="ຄົ້ນຫາພະແນກ..."
         createButtonText="ເພີ່ມພະແນກ"
         createButtonIcon={
-          <svg
-            className="h-5 w-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
+          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
         }
       />
 
       <GenericDataTable
-        data={pageDepartments}
+        data={departments}
         columns={columns}
         page={safePage}
         pageSize={pageSize}
         totalPages={totalPages}
-        totalItems={filtered.length}
+        totalItems={totalItems}
         onEdit={handleEditDepartment}
         onDelete={handleDeleteDepartment}
         onPageChange={handlePageChange}

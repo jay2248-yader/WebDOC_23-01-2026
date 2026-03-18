@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import FormInput from "../common/FormInput";
 import Button from "../common/Button";
 import ConfirmProgressDialog from "../common/ConfirmProgressDialog";
+import Select from "../common/Select";
+import { getAllBoards } from "../../services/boardservice";
 
 export default function DepartmentFormModal({
   isOpen,
@@ -15,6 +17,11 @@ export default function DepartmentFormModal({
     moreinfo: department?.moreinfo || "",
   });
 
+  const [boards, setBoards] = useState([]);
+  const [boardsPage, setBoardsPage] = useState(1);
+  const [hasMoreBoards, setHasMoreBoards] = useState(false);
+  const [isLoadingBoards, setIsLoadingBoards] = useState(false);
+
   // Reset formData and submitDialog when modal opens or department changes
   useEffect(() => {
     if (isOpen) {
@@ -25,8 +32,43 @@ export default function DepartmentFormModal({
       });
       setSubmitDialog({ open: false, status: "confirm" });
       setErrors({});
+      setBoardsPage(1);
+      setHasMoreBoards(false);
+
+      // Fetch boards initial page
+      fetchBoards(1);
     }
   }, [isOpen, department]);
+
+  const fetchBoards = async (page = 1) => {
+    try {
+      setIsLoadingBoards(true);
+      const res = await getAllBoards({ page, limit: 10 });
+      const options = res.data.map((b) => ({
+        value: String(b.bdid), // Using bdid as value
+        label: b.boardtname || b.boardname || String(b.bdid), // Showing boardname as label, fallback to boardname then ID
+      }));
+
+      if (page === 1) {
+        setBoards(options);
+      } else {
+        setBoards((prev) => [...prev, ...options]);
+      }
+
+      setHasMoreBoards(page < (res.lastPage || 1));
+      setBoardsPage(page);
+    } catch (error) {
+      console.error("Failed to fetch boards:", error);
+    } finally {
+      setIsLoadingBoards(false);
+    }
+  };
+
+  const loadMoreBoards = () => {
+    if (!isLoadingBoards && hasMoreBoards) {
+      fetchBoards(boardsPage + 1);
+    }
+  };
 
   const [errors, setErrors] = useState({});
   const [isClosing, setIsClosing] = useState(false);
@@ -133,15 +175,13 @@ export default function DepartmentFormModal({
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm ${
-        isClosing ? "animate-fadeOut" : "animate-fadeIn"
-      }`}
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm ${isClosing ? "animate-fadeOut" : "animate-fadeIn"
+        }`}
       onClick={handleClose}
     >
       <div
-        className={`bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto ${
-          isClosing ? "animate-slideDown" : "animate-slideUp"
-        }`}
+        className={`bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto ${isClosing ? "animate-slideDown" : "animate-slideUp"
+          }`}
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center border-b border-blue-400 pb-2">
@@ -155,23 +195,24 @@ export default function DepartmentFormModal({
               theme="light"
               placeholder="ລະຫັດພະແນກ"
               value={department.dpid}
-              onChange={() => {}}
+              onChange={() => { }}
               disabled={true}
             />
           )}
 
-          <FormInput
+          <Select
             label="ລະຫັດຄະນະ"
             theme="light"
-            placeholder="ກະລຸນາປ້ອນລະຫັດຄະນະ"
-            value={formData.bdid}
+            placeholder="ກະລຸນາເລືອກຄະນະ"
+            value={String(formData.bdid)}
             onChange={handleChange("bdid")}
-            onKeyDown={handleKeyDown("departmentname")}
-            inputRef={bdidRef}
+            options={boards}
+            searchable={true}
             error={errors.bdid}
             hasError={!!errors.bdid}
-            inputMode="numeric"
-            autoComplete="off"
+            hasMore={hasMoreBoards}
+            isLoadingMore={isLoadingBoards}
+            onLoadMore={loadMoreBoards}
           />
 
           <FormInput

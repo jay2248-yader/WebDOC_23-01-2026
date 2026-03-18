@@ -19,6 +19,7 @@ export default function FormInput({
   rightIcon = null,
   rounded = "full",   // ✅ "none" | "sm" | "md" | "lg" | "xl" | "2xl" | "full"
   size = "md",        // ✅ "sm" | "md" | "lg"
+  disabled = false,
 }) {
   const isPasswordField = type === "password";
   const actualType = isPasswordField && showPassword ? "text" : type;
@@ -59,16 +60,17 @@ export default function FormInput({
           onChange={onChange}
           onKeyDown={onKeyDown}
           maxLength={maxLength}
+          disabled={disabled}
           className={`w-full ${roundedClass} ${sizeClass} focus:outline-none focus:ring-2 transition-all duration-200
             ${(isPasswordField || rightIcon) ? "pr-10" : ""}
             ${hasError ? "border-2 border-red-500 focus:ring-red-200" : ""}
-            ${inputBase}
+            ${disabled ? "bg-gray-100 text-gray-400 cursor-not-allowed" : inputBase}
           `}
         />
 
         {/* ✅ ไอคอนฝั่งขวา (เช่น Search) */}
         {rightIcon && !isPasswordField && (
-          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-blue-500">
+          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-500 cursor-pointer transition-transform duration-150 hover:scale-125 active:scale-95">
             {rightIcon}
           </span>
         )}

@@ -1,7 +1,9 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import FormInput from "../common/FormInput";
+import Select from "../common/Select";
 import Button from "../common/Button";
 import ConfirmProgressDialog from "../common/ConfirmProgressDialog";
+import { getAllDocumentCategories } from "../../services/documentcategoryservice";
 
 export default function DocumentGroupFormModal({
   isOpen,
@@ -18,16 +20,61 @@ export default function DocumentGroupFormModal({
 
   const [errors, setErrors] = useState({});
   const [isClosing, setIsClosing] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [categoryPage, setCategoryPage] = useState(1);
+  const [categoryHasMore, setCategoryHasMore] = useState(false);
+  const [categoryLoadingMore, setCategoryLoadingMore] = useState(false);
+  const [categorySearch, setCategorySearch] = useState("");
   const [submitDialog, setSubmitDialog] = useState({
     open: false,
     status: "confirm",
   });
+
+  const CATEGORY_LIMIT = 10;
 
   // Refs for input fields
   const docgroupnameRef = useRef(null);
   const levelapproveRef = useRef(null);
   const comparingRef = useRef(null);
   const dctidRef = useRef(null);
+
+  // Fetch categories when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setCategoryPage(1);
+      setCategorySearch("");
+      getAllDocumentCategories({ page: 1, limit: CATEGORY_LIMIT })
+        .then((res) => {
+          setCategories(res.data);
+          setCategoryHasMore(res.data.length === CATEGORY_LIMIT && res.total > CATEGORY_LIMIT);
+        })
+        .catch(() => {});
+    }
+  }, [isOpen]);
+
+  const handleCategorySearch = useCallback((text) => {
+    setCategorySearch(text);
+    setCategoryPage(1);
+    getAllDocumentCategories({ page: 1, limit: CATEGORY_LIMIT, search: text })
+      .then((res) => {
+        setCategories(res.data);
+        setCategoryHasMore(res.data.length === CATEGORY_LIMIT && res.total > CATEGORY_LIMIT);
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleCategoryLoadMore = () => {
+    const nextPage = categoryPage + 1;
+    setCategoryLoadingMore(true);
+    getAllDocumentCategories({ page: nextPage, limit: CATEGORY_LIMIT, search: categorySearch })
+      .then((res) => {
+        setCategories((prev) => [...prev, ...res.data]);
+        setCategoryPage(nextPage);
+        setCategoryHasMore(res.data.length === CATEGORY_LIMIT && (categories.length + res.data.length) < res.total);
+      })
+      .catch(() => {})
+      .finally(() => setCategoryLoadingMore(false));
+  };
 
   // Reset formData and submitDialog when modal opens or documentGroup changes
   useEffect(() => {
@@ -36,7 +83,7 @@ export default function DocumentGroupFormModal({
         docgroupname: documentGroup?.docgroupname || "",
         levelapprove: documentGroup?.levelapprove || "",
         comparing: documentGroup?.comparing || "N",
-        dctid: documentGroup?.dctid || "",
+        dctid: documentGroup?.dctid ? String(documentGroup.dctid) : "",
       });
       setSubmitDialog({ open: false, status: "confirm" });
       setErrors({});
@@ -50,7 +97,6 @@ export default function DocumentGroupFormModal({
     docgroupname: docgroupnameRef,
     levelapprove: levelapproveRef,
     comparing: comparingRef,
-    dctid: dctidRef,
   };
 
   // Handle Enter key to move to next input
@@ -65,7 +111,7 @@ export default function DocumentGroupFormModal({
     let value = e.target.value;
 
     // Filter numeric fields
-    if (field === "levelapprove" || field === "dctid") {
+    if (field === "levelapprove") {
       value = value.replace(/[^0-9]/g, "");
     }
 
@@ -171,16 +217,24 @@ export default function DocumentGroupFormModal({
             />
           )}
 
-          <FormInput
-            label="ລະຫັດປະເພດເອກະສານ (dctid)"
+          <Select
+            label="ປະເພດເອກະສານ"
             theme="light"
-            placeholder="ກະລຸນາປ້ອນລະຫັດປະເພດເອກະສານ"
+            placeholder="ກະລຸນາເລືອກປະເພດເອກະສານ"
             value={formData.dctid}
             onChange={handleChange("dctid")}
-            onKeyDown={handleKeyDown("docgroupname")}
+            options={categories.map((c) => ({
+              value: String(c.dctid),
+              label: c.doccategoryname,
+            }))}
             inputRef={dctidRef}
             error={errors.dctid}
             hasError={!!errors.dctid}
+            searchable
+            onSearch={handleCategorySearch}
+            hasMore={categoryHasMore}
+            onLoadMore={handleCategoryLoadMore}
+            isLoadingMore={categoryLoadingMore}
           />
 
           <FormInput

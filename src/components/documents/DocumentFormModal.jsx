@@ -1,7 +1,12 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import FormInput from "../common/FormInput";
+import Select from "../common/Select";
 import Button from "../common/Button";
 import ConfirmProgressDialog from "../common/ConfirmProgressDialog";
+import { getAllDocumentCategories } from "../../services/documentcategoryservice";
+import { getAllUsers } from "../../services/userservice";
+import { getAllBranches } from "../../services/branchservice";
+import { getAllDepartments } from "../../services/departmentservice";
 
 export default function DocumentFormModal({
     isOpen,
@@ -16,16 +21,40 @@ export default function DocumentFormModal({
         req_reason: document?.req_reason || "",
         branchid: document?.branchid || "",
         departmentid: document?.departmentid || "",
-        boardid: document?.boardid || "",
         totalmoney: document?.totalmoney || "",
     });
 
     const [errors, setErrors] = useState({});
     const [isClosing, setIsClosing] = useState(false);
+    const [categories, setCategories] = useState([]);
+    const [categoryPage, setCategoryPage] = useState(1);
+    const [categoryHasMore, setCategoryHasMore] = useState(false);
+    const [categoryLoadingMore, setCategoryLoadingMore] = useState(false);
+    const [categorySearch, setCategorySearch] = useState("");
+    const [users, setUsers] = useState([]);
+    const [userPage, setUserPage] = useState(1);
+    const [userHasMore, setUserHasMore] = useState(false);
+    const [userLoadingMore, setUserLoadingMore] = useState(false);
+    const [userSearch, setUserSearch] = useState("");
+    const [branches, setBranches] = useState([]);
+    const [branchPage, setBranchPage] = useState(1);
+    const [branchHasMore, setBranchHasMore] = useState(false);
+    const [branchLoadingMore, setBranchLoadingMore] = useState(false);
+    const [branchSearch, setBranchSearch] = useState("");
+    const [departments, setDepartments] = useState([]);
+    const [departmentPage, setDepartmentPage] = useState(1);
+    const [departmentHasMore, setDepartmentHasMore] = useState(false);
+    const [departmentLoadingMore, setDepartmentLoadingMore] = useState(false);
+    const [departmentSearch, setDepartmentSearch] = useState("");
     const [submitDialog, setSubmitDialog] = useState({
         open: false,
         status: "confirm",
     });
+
+    const CATEGORY_LIMIT = 10;
+    const USER_LIMIT = 10;
+    const BRANCH_LIMIT = 10;
+    const DEPARTMENT_LIMIT = 10;
 
     // Refs for input fields
     const doccategoryidRef = useRef(null);
@@ -34,20 +63,154 @@ export default function DocumentFormModal({
     const reqReasonRef = useRef(null);
     const branchidRef = useRef(null);
     const departmentidRef = useRef(null);
-    const boardidRef = useRef(null);
     const totalmoneyRef = useRef(null);
+
+    useEffect(() => {
+        if (isOpen) {
+            setCategoryPage(1);
+            setCategorySearch("");
+            getAllDocumentCategories({ page: 1, limit: CATEGORY_LIMIT })
+                .then((res) => {
+                    setCategories(res.data);
+                    setCategoryHasMore(res.data.length === CATEGORY_LIMIT && res.total > CATEGORY_LIMIT);
+                })
+                .catch(() => {});
+
+            setUserPage(1);
+            setUserSearch("");
+            getAllUsers({ page: 1, limit: USER_LIMIT })
+                .then((res) => {
+                    setUsers(res.data);
+                    setUserHasMore(res.data.length === USER_LIMIT && res.total > USER_LIMIT);
+                })
+                .catch(() => {});
+
+            setBranchPage(1);
+            setBranchSearch("");
+            getAllBranches({ page: 1, limit: BRANCH_LIMIT })
+                .then((res) => {
+                    setBranches(res.data);
+                    setBranchHasMore(res.data.length === BRANCH_LIMIT && res.total > BRANCH_LIMIT);
+                })
+                .catch(() => {});
+
+            setDepartmentPage(1);
+            setDepartmentSearch("");
+            getAllDepartments({ page: 1, limit: DEPARTMENT_LIMIT })
+                .then((res) => {
+                    setDepartments(res.data);
+                    setDepartmentHasMore(res.data.length === DEPARTMENT_LIMIT && res.total > DEPARTMENT_LIMIT);
+                })
+                .catch(() => {});
+        }
+    }, [isOpen]);
+
+    const handleCategorySearch = useCallback((text) => {
+        setCategorySearch(text);
+        setCategoryPage(1);
+        getAllDocumentCategories({ page: 1, limit: CATEGORY_LIMIT, search: text })
+            .then((res) => {
+                setCategories(res.data);
+                setCategoryHasMore(res.data.length === CATEGORY_LIMIT && res.total > CATEGORY_LIMIT);
+            })
+            .catch(() => {});
+    }, []);
+
+    const handleCategoryLoadMore = () => {
+        const nextPage = categoryPage + 1;
+        setCategoryLoadingMore(true);
+        getAllDocumentCategories({ page: nextPage, limit: CATEGORY_LIMIT, search: categorySearch })
+            .then((res) => {
+                setCategories((prev) => [...prev, ...res.data]);
+                setCategoryPage(nextPage);
+                setCategoryHasMore(res.data.length === CATEGORY_LIMIT && (categories.length + res.data.length) < res.total);
+            })
+            .catch(() => {})
+            .finally(() => setCategoryLoadingMore(false));
+    };
+
+    const handleUserSearch = useCallback((text) => {
+        setUserSearch(text);
+        setUserPage(1);
+        getAllUsers({ page: 1, limit: USER_LIMIT, search: text })
+            .then((res) => {
+                setUsers(res.data);
+                setUserHasMore(res.data.length === USER_LIMIT && res.total > USER_LIMIT);
+            })
+            .catch(() => {});
+    }, []);
+
+    const handleUserLoadMore = () => {
+        const nextPage = userPage + 1;
+        setUserLoadingMore(true);
+        getAllUsers({ page: nextPage, limit: USER_LIMIT, search: userSearch })
+            .then((res) => {
+                setUsers((prev) => [...prev, ...res.data]);
+                setUserPage(nextPage);
+                setUserHasMore(res.data.length === USER_LIMIT && (users.length + res.data.length) < res.total);
+            })
+            .catch(() => {})
+            .finally(() => setUserLoadingMore(false));
+    };
+
+    const handleBranchSearch = useCallback((text) => {
+        setBranchSearch(text);
+        setBranchPage(1);
+        getAllBranches({ page: 1, limit: BRANCH_LIMIT, search: text })
+            .then((res) => {
+                setBranches(res.data);
+                setBranchHasMore(res.data.length === BRANCH_LIMIT && res.total > BRANCH_LIMIT);
+            })
+            .catch(() => {});
+    }, []);
+
+    const handleBranchLoadMore = () => {
+        const nextPage = branchPage + 1;
+        setBranchLoadingMore(true);
+        getAllBranches({ page: nextPage, limit: BRANCH_LIMIT, search: branchSearch })
+            .then((res) => {
+                setBranches((prev) => [...prev, ...res.data]);
+                setBranchPage(nextPage);
+                setBranchHasMore(res.data.length === BRANCH_LIMIT && (branches.length + res.data.length) < res.total);
+            })
+            .catch(() => {})
+            .finally(() => setBranchLoadingMore(false));
+    };
+
+    const handleDepartmentSearch = useCallback((text) => {
+        setDepartmentSearch(text);
+        setDepartmentPage(1);
+        getAllDepartments({ page: 1, limit: DEPARTMENT_LIMIT, search: text })
+            .then((res) => {
+                setDepartments(res.data);
+                setDepartmentHasMore(res.data.length === DEPARTMENT_LIMIT && res.total > DEPARTMENT_LIMIT);
+            })
+            .catch(() => {});
+    }, []);
+
+    const handleDepartmentLoadMore = () => {
+        const nextPage = departmentPage + 1;
+        setDepartmentLoadingMore(true);
+        getAllDepartments({ page: nextPage, limit: DEPARTMENT_LIMIT, search: departmentSearch })
+            .then((res) => {
+                setDepartments((prev) => [...prev, ...res.data]);
+                setDepartmentPage(nextPage);
+                setDepartmentHasMore(res.data.length === DEPARTMENT_LIMIT && (departments.length + res.data.length) < res.total);
+            })
+            .catch(() => {})
+            .finally(() => setDepartmentLoadingMore(false));
+    };
 
     // Reset formData and submitDialog when modal opens or document changes
     useEffect(() => {
         if (isOpen) {
             setFormData({
-                doccategoryid: document?.doccategoryid || "",
-                req_user: document?.req_user || "",
+                doccategoryid: document?.doccategoryid ? String(document.doccategoryid) : "",
+                req_user: document?.req_user ? String(document.req_user) : "",
                 req_to: document?.req_to || "",
                 req_reason: document?.req_reason || "",
-                branchid: document?.branchid || "",
-                departmentid: document?.departmentid || "",
-                boardid: document?.boardid || "",
+                branchid: document?.branchid ? String(document.branchid) : "",
+                departmentid: document?.departmentid ? String(document.departmentid) : "",
                 totalmoney: document?.totalmoney || "",
             });
             setSubmitDialog({ open: false, status: "confirm" });
@@ -65,7 +228,6 @@ export default function DocumentFormModal({
         req_reason: reqReasonRef,
         branchid: branchidRef,
         departmentid: departmentidRef,
-        boardid: boardidRef,
         totalmoney: totalmoneyRef,
     };
 
@@ -81,7 +243,7 @@ export default function DocumentFormModal({
         let value = e.target.value;
 
         // Filter numeric fields
-        const numericFields = ["doccategoryid", "req_user", "branchid", "departmentid", "boardid", "totalmoney"];
+        const numericFields = ["totalmoney"];
         if (numericFields.includes(field)) {
             value = value.replace(/[^0-9]/g, "");
         }
@@ -104,7 +266,7 @@ export default function DocumentFormModal({
         if (!formData.req_reason) newErrors.req_reason = "ກະລຸນາປ້ອນເຫດຜົນ";
         if (!formData.branchid) newErrors.branchid = "ກະລຸນາເລືອກສາຂາ";
         if (!formData.departmentid) newErrors.departmentid = "ກະລຸນາເລືອກພະແນກ";
-        if (!formData.boardid) newErrors.boardid = "ກະລຸນາເລືອກກອງ";
+
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
@@ -119,7 +281,6 @@ export default function DocumentFormModal({
             req_reason: formData.req_reason,
             branchid: parseInt(formData.branchid),
             departmentid: parseInt(formData.departmentid),
-            boardid: parseInt(formData.boardid),
             totalmoney: formData.totalmoney ? parseInt(formData.totalmoney) : 0,
         };
 
@@ -196,28 +357,44 @@ export default function DocumentFormModal({
                         />
                     )}
 
-                    <FormInput
-                        label="ປະເພດເອກະສານ (ID)"
+                    <Select
+                        label="ປະເພດເອກະສານ"
                         theme="light"
-                        placeholder="ກະລຸນາປ້ອນລະຫັດປະເພດເອກະສານ"
+                        placeholder="ກະລຸນາເລືອກປະເພດເອກະສານ"
                         value={formData.doccategoryid}
                         onChange={handleChange("doccategoryid")}
-                        onKeyDown={handleKeyDown("req_user")}
+                        options={categories.map((c) => ({
+                            value: String(c.dctid),
+                            label: c.doccategoryname,
+                        }))}
                         inputRef={doccategoryidRef}
                         error={errors.doccategoryid}
                         hasError={!!errors.doccategoryid}
+                        searchable
+                        onSearch={handleCategorySearch}
+                        hasMore={categoryHasMore}
+                        onLoadMore={handleCategoryLoadMore}
+                        isLoadingMore={categoryLoadingMore}
                     />
 
-                    <FormInput
-                        label="ຜູ້ຮ້ອງຂໍ (User ID)"
+                    <Select
+                        label="ຜູ້ຮ້ອງຂໍ"
                         theme="light"
-                        placeholder="ກະລຸນາປ້ອນລະຫັດຜູ້ຮ້ອງຂໍ"
+                        placeholder="ກະລຸນາເລືອກຜູ້ຮ້ອງຂໍ"
                         value={formData.req_user}
                         onChange={handleChange("req_user")}
-                        onKeyDown={handleKeyDown("req_to")}
+                        options={users.map((u) => ({
+                            value: String(u.usid),
+                            label: `${u.username} (${u.usercode})`,
+                        }))}
                         inputRef={reqUserRef}
                         error={errors.req_user}
                         hasError={!!errors.req_user}
+                        searchable
+                        onSearch={handleUserSearch}
+                        hasMore={userHasMore}
+                        onLoadMore={handleUserLoadMore}
+                        isLoadingMore={userLoadingMore}
                     />
 
                     <FormInput
@@ -244,41 +421,46 @@ export default function DocumentFormModal({
                         hasError={!!errors.req_reason}
                     />
 
-                    <FormInput
-                        label="ສາຂາ (ID)"
+                    <Select
+                        label="ສາຂາ"
                         theme="light"
-                        placeholder="ກະລຸນາປ້ອນລະຫັດສາຂາ"
+                        placeholder="ກະລຸນາເລືອກສາຂາ"
                         value={formData.branchid}
                         onChange={handleChange("branchid")}
-                        onKeyDown={handleKeyDown("departmentid")}
+                        options={branches.map((b) => ({
+                            value: String(b.brid),
+                            label: b.branchname,
+                        }))}
                         inputRef={branchidRef}
                         error={errors.branchid}
                         hasError={!!errors.branchid}
+                        searchable
+                        onSearch={handleBranchSearch}
+                        hasMore={branchHasMore}
+                        onLoadMore={handleBranchLoadMore}
+                        isLoadingMore={branchLoadingMore}
                     />
 
-                    <FormInput
-                        label="ພະແນກ (ID)"
+                    <Select
+                        label="ພະແນກ"
                         theme="light"
-                        placeholder="ກະລຸນາປ້ອນລະຫັດພະແນກ"
+                        placeholder="ກະລຸນາເລືອກພະແນກ"
                         value={formData.departmentid}
                         onChange={handleChange("departmentid")}
-                        onKeyDown={handleKeyDown("boardid")}
+                        options={departments.map((d) => ({
+                            value: String(d.dpid),
+                            label: d.departmentname,
+                        }))}
                         inputRef={departmentidRef}
                         error={errors.departmentid}
                         hasError={!!errors.departmentid}
+                        searchable
+                        onSearch={handleDepartmentSearch}
+                        hasMore={departmentHasMore}
+                        onLoadMore={handleDepartmentLoadMore}
+                        isLoadingMore={departmentLoadingMore}
                     />
 
-                    <FormInput
-                        label="ກອງ (ID)"
-                        theme="light"
-                        placeholder="ກະລຸນາປ້ອນລະຫັດກອງ"
-                        value={formData.boardid}
-                        onChange={handleChange("boardid")}
-                        onKeyDown={handleKeyDown("totalmoney")}
-                        inputRef={boardidRef}
-                        error={errors.boardid}
-                        hasError={!!errors.boardid}
-                    />
 
                     <FormInput
                         label="ຈຳນວນເງິນ (ບໍ່ບັງຄັບ)"

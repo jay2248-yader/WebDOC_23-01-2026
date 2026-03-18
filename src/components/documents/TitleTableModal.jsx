@@ -720,60 +720,31 @@ export default function TitleTableModal({ isOpen, onClose, onSave, initialSectio
 
                 {/* Toolbar */}
                 <div className="flex items-center gap-1 flex-wrap mb-2 p-2 bg-gray-50 rounded-lg border border-gray-200">
+                  {/* Row ops */}
+                  <span className="text-[10px] text-gray-400 select-none">ແຖວ</span>
                   <TBtn
-                    onClick={() => addRowAt(si, hasSelection ? selRi : 0)}
-                    title="ເພີ່ມແຖວດ້ານເທິງ"
-                  >
-                    ▲ ແຖວ
-                  </TBtn>
-                  <TBtn
-                    onClick={() =>
-                      addRowAt(
-                        si,
-                        hasSelection
-                          ? Math.max(sel.startR, sel.endR) + 1
-                          : section.cells.length
-                      )
-                    }
-                    title="ເພີ່ມແຖວດ້ານລຸ່ມ"
-                  >
-                    ▼ ແຖວ
-                  </TBtn>
-                  <span className="w-px h-5 bg-gray-300 mx-1" />
-                  <TBtn
-                    onClick={() => addColumnAt(si, hasSelection ? selCi : 0)}
-                    title="ເພີ່ມຄໍລຳດ້ານຊ້າຍ"
-                  >
-                    ◀ ຄໍລຳ
-                  </TBtn>
-                  <TBtn
-                    onClick={() =>
-                      addColumnAt(
-                        si,
-                        hasSelection ? Math.max(sel.startC, sel.endC) + 1 : section.colCount
-                      )
-                    }
-                    title="ເພີ່ມຄໍລຳດ້ານຂວາ"
-                  >
-                    ▶ ຄໍລຳ
-                  </TBtn>
-                  <span className="w-px h-5 bg-gray-300 mx-1" />
+                    onClick={() => addRowAt(si, hasSelection ? Math.max(sel.startR, sel.endR) + 1 : section.cells.length)}
+                    title="ເພີ່ມແຖວ"
+                  >+</TBtn>
                   <TBtn
                     onClick={() => hasSelection && removeRowAt(si, selRi)}
                     title="ລົບແຖວ"
                     disabled={!hasSelection || section.cells.length <= 1}
                     danger
-                  >
-                    ລົບແຖວ
-                  </TBtn>
+                  >−</TBtn>
+                  <span className="w-px h-5 bg-gray-300 mx-1" />
+                  {/* Col ops */}
+                  <span className="text-[10px] text-gray-400 select-none">ຄໍລຳ</span>
+                  <TBtn
+                    onClick={() => addColumnAt(si, hasSelection ? Math.max(sel.startC, sel.endC) + 1 : section.colCount)}
+                    title="ເພີ່ມຄໍລຳ"
+                  >+</TBtn>
                   <TBtn
                     onClick={() => hasSelection && removeColumnAt(si, selCi)}
                     title="ລົບຄໍລຳ"
                     disabled={!hasSelection || section.colCount <= 1}
                     danger
-                  >
-                    ລົບຄໍລຳ
-                  </TBtn>
+                  >−</TBtn>
                   <span className="w-px h-5 bg-gray-300 mx-1" />
                   <TBtn onClick={mergeCells} title="ລວມເຊລ (Merge)" disabled={!canMerge()}>
                     ⊞ Merge
@@ -901,8 +872,7 @@ export default function TitleTableModal({ isOpen, onClose, onSave, initialSectio
                 </div>
 
                 <p className="text-[10px] text-gray-400 mt-1">
-                  Tab = ເຊລຕໍ່ໄປ | Enter = ແຖວຖັດໄປ | ຄິກລາກ = ເລືອກເຊລ | ຄິກຂວາ = ເມນູ | Esc =
-                  ປິດ | ທາສີ header ເອງ
+                  Tab/Enter = ໄປເຊລຕໍ່ໄປ · ລາກ = ເລືອກ · ຄິກຂວາ = ຕົວເລືອກເພີ່ມເຕີມ
                 </p>
               </div>
             );

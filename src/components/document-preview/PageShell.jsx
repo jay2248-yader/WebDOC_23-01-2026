@@ -1,39 +1,35 @@
-import React from "react";
 import PageHeader from "./PageHeader";
 import PageFooter from "./PageFooter";
 import { HEADER_HEIGHT_PX, FOOTER_HEIGHT_PX } from "./constants";
 
-export default function PageShell({ children, pageRef, extraClass = "", isFirstPage = false }) {
+export default function PageShell({ children, pageRef, extraClass = "", isFirstPage = false, headerH = HEADER_HEIGHT_PX, footerH = FOOTER_HEIGHT_PX }) {
+    const headerScale = headerH / HEADER_HEIGHT_PX;
+    const footerScale = footerH / FOOTER_HEIGHT_PX;
+
     return (
         <div
             ref={pageRef}
             className={`doc-print-page relative overflow-hidden ${isFirstPage ? "" : "print:break-before-page"} ${extraClass}`}
-            style={{
-                width: "210mm",
-                height: "297mm",
-            }}
+            style={{ width: "210mm", height: "297mm" }}
         >
-            {/* ── HEADER: ล็อกบนสุด ── */}
-            <div style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 10 }}>
-                <PageHeader />
+            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: headerH, overflow: "hidden", zIndex: 10 }}>
+                <PageHeader scale={headerScale} />
             </div>
 
-            {/* ── CONTENT: อยู่ระหว่าง header และ footer ── */}
             <div
                 style={{
                     position: "absolute",
-                    top: HEADER_HEIGHT_PX,
+                    top: headerH,
                     left: "18mm",
                     right: "18mm",
-                    bottom: FOOTER_HEIGHT_PX,
+                    bottom: footerH,
                     overflow: "hidden",
                 }}
             >
                 {children}
             </div>
 
-            {/* ── FOOTER: ล็อกล่างสุด ── */}
-            <PageFooter />
+            <PageFooter scale={footerScale} />
         </div>
     );
 }

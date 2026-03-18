@@ -5,20 +5,19 @@ import { ENDPOINTS } from "../api/endpoints";
 export async function getAllDocumentGroupDetails(params = {}) {
   const res = await http.get(ENDPOINTS.DOCUMENT_GROUP_DETAILS.GET_ALL, { params });
 
-  console.log("Document Group Details API Response:", res.data);
-
   if (!res.data?.success) {
     throw new Error("Failed to fetch document group details");
   }
 
-  const messageData = res.data?.message || {};
-  const dataArray = Array.isArray(messageData.data) ? messageData.data : [];
+  const dataId = res.data.data_id || res.data.message || {};
+  const dataArray = Array.isArray(dataId.data) ? dataId.data : [];
+  const total = dataId.total ?? dataArray.length;
+  const limit = Number(params.limit) || 10;
 
   return {
     data: dataArray,
-    total: messageData.total || dataArray.length,
-    currentPage: messageData.currentPage || 1,
-    lastPage: messageData.lastPage || 1,
+    total,
+    lastPage: dataId.lastPage || dataId.last_page || dataId.totalPages || Math.ceil(total / limit) || 1,
   };
 }
 

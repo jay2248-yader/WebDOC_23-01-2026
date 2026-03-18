@@ -7,7 +7,7 @@ export default function DocumentDetailsSidebar({
     onSelectDetail
 }) {
     return (
-        <div className="print:hidden flex flex-col gap-4 w-[380px] shrink-0">
+        <div className="print:hidden flex flex-col gap-4 w-75 shrink-0">
             <div className="bg-white rounded-lg shadow-lg p-6">
                 <h2 className="text-lg font-bold text-[#0F75BC] mb-4 border-b-2 border-[#0F75BC] pb-2">
                     ລາຍລະອຽດເອກະສານ

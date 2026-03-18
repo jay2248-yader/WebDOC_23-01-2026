@@ -20,7 +20,7 @@ export default function ClosingContent({
     return (
         <>
             {showLabel && (
-                <div className="flex items-start mt-6">
+                <div className={`flex items-start mt-6${!displayRemark ? " print:hidden" : ""}`}>
                     <span className="text-black whitespace-nowrap ml-10">ໝາຍເຫດ:</span>
                     {interactive && remarkOverride === undefined ? (
                         <textarea

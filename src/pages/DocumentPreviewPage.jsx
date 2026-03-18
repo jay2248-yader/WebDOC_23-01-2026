@@ -9,9 +9,11 @@ import { useDocumentEditStore } from "../store/documentEditStore";
 import PageShell from "../components/document-preview/PageShell";
 import BelowBody from "../components/document-preview/BelowBody";
 import ClosingContent from "../components/document-preview/ClosingContent";
-import DocumentDetailsSidebar from "../components/document-preview/DocumentDetailsSidebar";
+import DocumentInfoPanel from "../components/documents/DocumentInfoPanel";
 import DocumentActionBar from "../components/document-preview/DocumentActionBar";
 import { useDocumentPagination } from "../hooks/useDocumentPagination";
+import { HEADER_HEIGHT_PX, FOOTER_HEIGHT_PX, COMPACT_HEADER_HEIGHT_PX, COMPACT_FOOTER_HEIGHT_PX } from "../components/document-preview/constants";
+import DocNumberRow from "../components/document-preview/DocNumberRow";
 
 function formatDate(dateStr) {
   if (!dateStr) return "......./......./.......";
@@ -31,9 +33,12 @@ export default function DocumentPreviewPage() {
   const [bodyParagraph, setBodyParagraph] = useState(docData.body_paragraph || "");
   const [remark, setRemark] = useState(docData.remark || "");
   const [documentDetails, setDocumentDetails] = useState([]);
-  const [loadingDetails, setLoadingDetails] = useState(!!docData.rqdid);
+  const [_loadingDetails, setLoadingDetails] = useState(!!docData.rqdid);
   const [selectedDetailId, setSelectedDetailId] = useState(null);
   const [extraPages, setExtraPages] = useState([]);
+  const [compactLevel, setCompactLevel] = useState(0); // 0-100
+  const headerH = HEADER_HEIGHT_PX - (HEADER_HEIGHT_PX - COMPACT_HEADER_HEIGHT_PX) * (compactLevel / 100);
+  const footerH = FOOTER_HEIGHT_PX - (FOOTER_HEIGHT_PX - COMPACT_FOOTER_HEIGHT_PX) * (compactLevel / 100);
   const containerRef = useRef(null);
   const cursorStateRef = useRef({ chunkIdx: null, start: 0, end: 0 });
   const bodyTextareaRefs = useRef([]);
@@ -64,7 +69,9 @@ export default function DocumentPreviewPage() {
     reqTo,
     reqReason,
     references,
-    remark
+    remark,
+    headerHeight: headerH,
+    footerHeight: footerH,
   });
 
   const {
@@ -79,7 +86,7 @@ export default function DocumentPreviewPage() {
   } = useDocumentEditStore();
 
   // ── Detail selection ──────────────────────────────────────────────────────────
-  const handleSelectDetail = useCallback((detail) => {
+  const _handleSelectDetail = useCallback((detail) => {
     if (selectedDetailId === detail.rddid) {
       setSelectedDetailId(null);
       setReqReason(docData.req_reason || "");
@@ -200,7 +207,7 @@ export default function DocumentPreviewPage() {
         <ClosingContent {...closingProps} interactive={false} />
       </div>
 
-      <DocumentActionBar />
+      <DocumentActionBar compactLevel={compactLevel} onCompactLevelChange={setCompactLevel} />
 
       <div className="flex items-start gap-6 px-6 print:block print:px-0">
 
@@ -208,20 +215,16 @@ export default function DocumentPreviewPage() {
         <div className="flex-1 flex flex-col gap-6 print:gap-0">
 
           {/* ════ PAGE 1 ════ */}
-          <div className="max-w-[210mm] mx-auto w-full bg-white shadow-lg print:shadow-none print:mx-0 print:max-w-none print:p-0"
+          <div className="relative max-w-[210mm] mx-auto w-full bg-white shadow-lg print:shadow-none print:mx-0 print:max-w-none print:p-0"
             style={{ fontFamily: "'TimesDoc', 'Phetsarath', sans-serif" }}>
-            <PageShell pageRef={page1Ref} isFirstPage extraClass="">
-              <div data-content-area className="pt-2 h-full overflow-hidden print:overflow-hidden">
-                {/* Doc number + date */}
-                <div className="flex items-start justify-between text-sm text-black mb-1 ml-22 -mt-2.5">
-                  <p>ຝ່າຍໃດໜຶ່ງ</p>
-                  <div className="text-right">
-                    <p>ເລກທີ:{docData.req_no || "ອກ"}</p>
-                    <p>ນະຄອນຫຼວງວຽງຈັນ, ວັນທີ:{formatDate(docData.createdate)}</p>
-                  </div>
-                </div>
-
-                <h1 className="text-center text-xl font-bold text-black mt-1 mb-2">ໃບສະເໜີ</h1>
+            {/* Doc number + date row — positioned over the decorative lines area */}
+            <div style={{ position: "absolute", top: Math.round(0.52 * headerH + 20), left: 8, right: 8, zIndex: 15, pointerEvents: "none" }}>
+              <DocNumberRow reqNo={docData.req_no} date={formatDate(docData.createdate)} />
+            </div>
+            <PageShell pageRef={page1Ref} isFirstPage extraClass="" headerH={headerH} footerH={footerH}>
+              <div data-content-area className="h-full overflow-hidden print:overflow-hidden">
+                <h1 className="text-center text-xl font-bold text-black mb-2"
+                  style={{ marginTop: Math.max(4, Math.round(61 - 0.48 * headerH)) }}>ໃບສະເໜີ</h1>
 
                 <div className="text-sm text-gray-800 space-y-0.5 leading-relaxed">
                   {/* ຮຽນ */}
@@ -245,7 +248,7 @@ export default function DocumentPreviewPage() {
                   </div>
 
                   {/* ອີງຕາມ */}
-                  <div>
+                  <div className={references.every(r => !r.trim()) ? "print:hidden" : ""}>
                     <ul className="list-none space-y-1">
                       {references.map((item, index) => (
                         <li key={index} className="relative before:content-['-'] before:absolute before:left-[-16px] flex items-start">
@@ -276,7 +279,7 @@ export default function DocumentPreviewPage() {
                   </div>
 
                   {/* Body chunk 0 */}
-                  <div>
+                  <div className={!(bodyChunks[0] ?? "").trim() ? "print:hidden" : ""}>
                     <textarea ref={body1Ref}
                       value={bodyChunks[0] ?? ""}
                       onChange={(e) => handleBodyChange(0, e.target.value, e.target.selectionStart, e.target.selectionEnd)}
@@ -308,16 +311,13 @@ export default function DocumentPreviewPage() {
           {bodyChunks.length > 1 && bodyChunks.slice(1).map((chunk, idx) => {
             const chunkIdx = idx + 1;
             const isLastChunk = chunkIdx === lastChunkIdx;
-            const pageNumber = chunkIdx + 1;
             return (
               <div key={chunkIdx}
                 className="max-w-[210mm] mx-auto w-full bg-white shadow-lg print:shadow-none print:mx-0 print:max-w-none print:p-0"
                 style={{ fontFamily: "'TimesDoc', 'Phetsarath', sans-serif" }}>
-                <PageShell pageRef={(el) => { overflowPageRefs.current[idx] = el; }} extraClass="">
+                <PageShell pageRef={(el) => { overflowPageRefs.current[idx] = el; }} extraClass="" headerH={headerH} footerH={footerH}>
                   <div className="pt-2 h-full overflow-hidden print:overflow-hidden">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm text-gray-400 print:text-transparent">ໜ້າ {pageNumber} (ຕໍ່)</span>
-                    </div>
+
                     <div className="text-sm text-gray-800 space-y-0.5 leading-relaxed">
                       <div>
                         <textarea
@@ -351,16 +351,13 @@ export default function DocumentPreviewPage() {
           {/* ════ TABLE CONTINUATION PAGES ════ */}
           {tablePageChunks.length > 1 && tablePageChunks.slice(1).map((sections, idx) => {
             const isLastTablePage = idx === tablePageChunks.length - 2;
-            const pageNumber = bodyChunks.length + 1 + idx;
             return (
               <div key={"table-" + idx}
                 className="max-w-[210mm] mx-auto w-full bg-white shadow-lg print:shadow-none print:mx-0 print:max-w-none print:p-0"
                 style={{ fontFamily: "'TimesDoc', 'Phetsarath', sans-serif" }}>
-                <PageShell extraClass="">
+                <PageShell extraClass="" headerH={headerH} footerH={footerH}>
                   <div className="pt-2 h-full overflow-hidden print:overflow-hidden">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm text-gray-400 print:text-transparent">ໜ້າ {pageNumber} (ຕໍ່)</span>
-                    </div>
+
                     <div className="text-sm text-gray-800 space-y-0.5 leading-relaxed">
                       <BelowBody
                         {...belowBodyProps}
@@ -378,16 +375,13 @@ export default function DocumentPreviewPage() {
           {/* ════ REMARK OVERFLOW PAGES ════ */}
           {remarkChunks && remarkChunks.length > 1 && remarkChunks.slice(1).map((rmChunk, idx) => {
             const isLastRemarkChunk = idx === remarkChunks.length - 2;
-            const pageNumber = bodyChunks.length + Math.max(0, tablePageChunks.length - 1) + idx + 1;
             return (
               <div key={"remark-" + idx}
                 className="max-w-[210mm] mx-auto w-full bg-white shadow-lg print:shadow-none print:mx-0 print:max-w-none print:p-0"
                 style={{ fontFamily: "'TimesDoc', 'Phetsarath', sans-serif" }}>
-                <PageShell extraClass="">
+                <PageShell extraClass="" headerH={headerH} footerH={footerH}>
                   <div className="pt-2 h-full overflow-hidden print:overflow-hidden">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm text-gray-400 print:text-transparent">ໜ້າ {pageNumber} (ຕໍ່)</span>
-                    </div>
+
                     <div className="text-sm text-gray-800 space-y-0.5 leading-relaxed">
                       <ClosingContent
                         {...closingProps}
@@ -424,7 +418,7 @@ export default function DocumentPreviewPage() {
             <div key={page.id}
               className="max-w-[210mm] mx-auto w-full bg-white shadow-lg print:shadow-none print:mx-0 print:max-w-none print:p-0"
               style={{ fontFamily: "'TimesDoc', 'Phetsarath', sans-serif" }}>
-              <PageShell pageRef={(el) => { extraPageRefs.current[page.id] = el; }} extraClass="">
+              <PageShell pageRef={(el) => { extraPageRefs.current[page.id] = el; }} extraClass="" headerH={headerH} footerH={footerH}>
                 <div className="pt-2 h-full overflow-hidden print:overflow-hidden">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm text-gray-400 print:text-transparent">ໜ້າ {renderedPageCount + 1 + idx}</span>
@@ -467,12 +461,19 @@ export default function DocumentPreviewPage() {
         </div>
 
         {/* ══════════════════ RIGHT: Details panel ══════════════════ */}
-        <DocumentDetailsSidebar
-          loadingDetails={loadingDetails}
-          documentDetails={documentDetails}
-          selectedDetailId={selectedDetailId}
-          onSelectDetail={handleSelectDetail}
-        />
+        <div className="print:hidden w-75 shrink-0 sticky top-6 self-start">
+          <DocumentInfoPanel
+            document={docData}
+            approvalLevels={documentDetails.map((d, i) => ({
+              level: i + 1,
+              name: d.req_title || "-",
+              status: d.statustype === "APPROVED" ? "current" : "pending",
+            }))}
+            attachments={[]}
+            onCancel={() => window.history.back()}
+            onEdit={() => {}}
+          />
+        </div>
 
       </div>
 

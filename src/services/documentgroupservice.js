@@ -5,29 +5,25 @@ import { ENDPOINTS } from "../api/endpoints";
 export async function getAllDocumentGroup(params = {}) {
   const res = await http.get(ENDPOINTS.DOCUMENT_GROUP.GET_ALL, { params });
 
-  console.log("Document Group API Response:", res.data);
-
   if (!res.data?.success) {
     throw new Error("Failed to fetch document groups");
   }
 
-  // API returns data in 'message.data' field
-  const messageData = res.data?.message || {};
-  const dataArray = Array.isArray(messageData.data) ? messageData.data : [];
+  const dataId = res.data.data_id || res.data.message || {};
+  const dataArray = Array.isArray(dataId.data) ? dataId.data : [];
+  const total = dataId.total ?? dataArray.length;
+  const limit = Number(params.limit) || 10;
 
   return {
     data: dataArray,
-    total: messageData.total || dataArray.length,
-    currentPage: messageData.currentPage || 1,
-    lastPage: messageData.lastPage || 1,
+    total,
+    lastPage: dataId.lastPage || dataId.last_page || dataId.totalPages || Math.ceil(total / limit) || 1,
   };
 }
 
 // Create - New document group
 export async function createNewDocumentGroup(payload) {
   const res = await http.post(ENDPOINTS.DOCUMENT_GROUP.NEW, payload);
-
-  console.log("Create Document Group Response:", res.data);
 
   if (!res.data?.success) {
     throw new Error(res.data?.message || "Failed to create document group");

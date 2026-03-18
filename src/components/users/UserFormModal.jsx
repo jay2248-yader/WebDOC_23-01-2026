@@ -1,8 +1,12 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import FormInput from "../common/FormInput";
 import Select from "../common/Select";
 import Button from "../common/Button";
 import ConfirmProgressDialog from "../common/ConfirmProgressDialog";
+import { getAllDepartments } from "../../services/departmentservice";
+import { getAllPositions } from "../../services/positionservice";
+import { getAllBranches } from "../../services/branchservice";
+import { useAuthStore } from "../../store/authstore";
 
 export default function UserFormModal({
   isOpen,
@@ -10,26 +14,52 @@ export default function UserFormModal({
   onSubmit,
   user = null,
 }) {
+  const authUser = useAuthStore((state) => state.user);
+
   const [formData, setFormData] = useState({
     usercode: user?.usercode || "",
     pwds: "",
     username: user?.username || "",
     shortname: user?.shortname || "",
     gendername: user?.gendername || "ຊາຍ",
-    departmentid: user?.departmentid || "",
+    departmentid: user?.departmentid ? String(user.departmentid) : "",
     groupappdetailid: user?.groupappdetailid || "",
     positionid: user?.positionid || "",
-    createby: user?.createby || "",
+    createby: user?.createby || authUser?.username || authUser?.usercode || "",
     ipaddress: user?.ipaddress || "",
-    branch: user?.branch || "",
+    branch: user?.branch ? String(user.branch) : "",
   });
 
   const [errors, setErrors] = useState({});
   const [isClosing, setIsClosing] = useState(false);
+  const [departments, setDepartments] = useState([]);
+  const [positions, setPositions] = useState([]);
+  const [branches, setBranches] = useState([]);
   const [submitDialog, setSubmitDialog] = useState({
     open: false,
     status: "confirm",
   });
+
+  // Fetch departments + positions + branches when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      getAllDepartments({ page: 1, limit: 10 }).then((res) => setDepartments(res.data)).catch(() => { });
+      getAllPositions({ page: 1, limit: 10 }).then((res) => setPositions(res.data)).catch(() => { });
+      getAllBranches({ page: 1, limit: 10 }).then((res) => setBranches(res.data)).catch(() => { });
+    }
+  }, [isOpen]);
+
+  const handleDepartmentSearch = useCallback((text) => {
+    getAllDepartments({ page: 1, limit: 10, search: text }).then((res) => setDepartments(res.data)).catch(() => { });
+  }, []);
+
+  const handlePositionSearch = useCallback((text) => {
+    getAllPositions({ page: 1, limit: 10, search: text }).then((res) => setPositions(res.data)).catch(() => { });
+  }, []);
+
+  const handleBranchSearch = useCallback((text) => {
+    getAllBranches({ page: 1, limit: 10, search: text }).then((res) => setBranches(res.data)).catch(() => { });
+  }, []);
 
   // Reset form state when modal opens
   useEffect(() => {
@@ -40,12 +70,12 @@ export default function UserFormModal({
         username: user?.username || "",
         shortname: user?.shortname || "",
         gendername: user?.gendername || "ຊາຍ",
-        departmentid: user?.departmentid || "",
+        departmentid: user?.departmentid ? String(user.departmentid) : "",
         groupappdetailid: user?.groupappdetailid || "",
         positionid: user?.positionid || "",
-        createby: user?.createby || "",
+        createby: user?.createby || authUser?.username || authUser?.usercode || "",
         ipaddress: user?.ipaddress || "",
-        branch: user?.branch || "",
+        branch: user?.branch ? String(user.branch) : "",
       });
       setSubmitDialog({ open: false, status: "confirm" });
       setErrors({});
@@ -57,9 +87,7 @@ export default function UserFormModal({
   const usernameRef = useRef(null);
   const shortnameRef = useRef(null);
   const gendernameRef = useRef(null);
-  const departmentidRef = useRef(null);
   const groupappdetailidRef = useRef(null);
-  const positionidRef = useRef(null);
   const createbyRef = useRef(null);
   const ipaddressRef = useRef(null);
   const branchRef = useRef(null);
@@ -72,9 +100,7 @@ export default function UserFormModal({
     username: usernameRef,
     shortname: shortnameRef,
     gendername: gendernameRef,
-    departmentid: departmentidRef,
     groupappdetailid: groupappdetailidRef,
-    positionid: positionidRef,
     createby: createbyRef,
     ipaddress: ipaddressRef,
     branch: branchRef,
@@ -97,7 +123,7 @@ export default function UserFormModal({
     }
 
     // allow only numbers for ID fields
-    if (["departmentid", "groupappdetailid", "positionid", "branch"].includes(field)) {
+    if (["groupappdetailid", "branch"].includes(field)) {
       value = value.replace(/[^0-9]/g, "");
     }
 
@@ -114,7 +140,7 @@ export default function UserFormModal({
 
     // Basic validation
     const newErrors = {};
-    if (!formData.usercode) newErrors.usercode = "ກະລຸນາປ້ອນລະຫັດ";
+    if (!formData.usercode) newErrors.usercode = "ກະລຸນາປ້ອນລະຫັດພະນັກງານ";
     if (!user && !formData.pwds) newErrors.pwds = "ກະລຸນາປ້ອນລະຫັດຜ່ານ";
     if (!formData.username) newErrors.username = "ກະລຸນາປ້ອນຊື່";
     if (!formData.gendername) newErrors.gendername = "ກະລຸນາເລືອກເພດ";
@@ -182,15 +208,13 @@ export default function UserFormModal({
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm ${
-        isClosing ? "animate-fadeOut" : "animate-fadeIn"
-      }`}
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm ${isClosing ? "animate-fadeOut" : "animate-fadeIn"
+        }`}
       onClick={handleClose}
     >
       <div
-        className={`bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto ${
-          isClosing ? "animate-slideDown" : "animate-slideUp"
-        }`}
+        className={`bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto ${isClosing ? "animate-slideDown" : "animate-slideUp"
+          }`}
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-lg font-semibold text-gray-900 mb-4  text-center border-b border-blue-400 pb-2">
@@ -200,19 +224,19 @@ export default function UserFormModal({
         <form onSubmit={handleSubmit} className="space-y-4">
           {user && (
             <FormInput
-              label="ລະຫັດ User (ID)"
+              label="ລະຫັດພະນັກງານ"
               theme="light"
-              placeholder="ລະຫັດ User"
+              placeholder="ລະຫັດພະນັກງານ"
               value={user.usid}
-              onChange={() => {}}
+              onChange={() => { }}
               disabled={true}
             />
           )}
 
           <FormInput
-            label="ລະຫັດຜູ້ໃຊ້ (User Code)"
+            label="ລະຫັດພະນັກງານ"
             theme="light"
-            placeholder="ກະລຸນາປ້ອນລະຫັດຜູ້ໃຊ້"
+            placeholder="ກະລຸນາປ້ອນລະຫັດພະນັກງານ"
             value={formData.usercode}
             onChange={handleChange("usercode")}
             onKeyDown={handleKeyDown("pwds")}
@@ -224,9 +248,9 @@ export default function UserFormModal({
 
           {!user && (
             <FormInput
-              label="ລະຫັດຜ່ານ (Password)"
+              label="ລະຫັດຜ່ານ"
               theme="light"
-              type="password"
+              type="text"
               placeholder="ກະລຸນາປ້ອນລະຫັດຜ່ານ"
               value={formData.pwds}
               onChange={handleChange("pwds")}
@@ -271,17 +295,20 @@ export default function UserFormModal({
             hasError={!!errors.gendername}
           />
 
-          <FormInput
-            label="ລະຫັດພະແນກ (Department ID)"
+          <Select
+            label="ພະແນກ"
             theme="light"
-            placeholder="ກະລຸນາປ້ອນລະຫັດພະແນກ"
+            placeholder="ກະລຸນາເລືອກພະແນກ"
             value={formData.departmentid}
             onChange={handleChange("departmentid")}
-            onKeyDown={handleKeyDown("groupappdetailid")}
-            inputRef={departmentidRef}
+            options={departments.map((d) => ({
+              value: String(d.dpid),
+              label: d.departmentname,
+            }))}
             error={errors.departmentid}
             hasError={!!errors.departmentid}
-            inputMode="numeric"
+            searchable
+            onSearch={handleDepartmentSearch}
           />
 
           <FormInput
@@ -297,30 +324,36 @@ export default function UserFormModal({
             inputMode="numeric"
           />
 
-          <FormInput
-            label="ລະຫັດຕຳແໜ່ງ (Position ID)"
+          <Select
+            label="ຕຳແໜ່ງ"
             theme="light"
-            placeholder="ກະລຸນາປ້ອນລະຫັດຕຳແໜ່ງ"
+            placeholder="ກະລຸນາເລືອກຕຳແໜ່ງ"
             value={formData.positionid}
             onChange={handleChange("positionid")}
-            onKeyDown={handleKeyDown("createby")}
-            inputRef={positionidRef}
+            options={positions.map((p) => ({
+              value: String(p.pid),
+              label: p.positionname,
+            }))}
             error={errors.positionid}
             hasError={!!errors.positionid}
-            inputMode="numeric"
+            searchable
+            onSearch={handlePositionSearch}
           />
 
-          <FormInput
-            label="ຜູ້ສ້າງ (Created By)"
-            theme="light"
-            placeholder="ກະລຸນາປ້ອນຜູ້ສ້າງ"
-            value={formData.createby}
-            onChange={handleChange("createby")}
-            onKeyDown={handleKeyDown("ipaddress")}
-            inputRef={createbyRef}
-            error={errors.createby}
-            hasError={!!errors.createby}
-          />
+          {user && (
+            <FormInput
+              label="ຜູ້ສ້າງ"
+              theme="light"
+              placeholder="ກະລຸນາປ້ອນຜູ້ສ້າງ"
+              value={formData.createby}
+              onChange={handleChange("createby")}
+              onKeyDown={handleKeyDown("ipaddress")}
+              inputRef={createbyRef}
+              error={errors.createby}
+              hasError={!!errors.createby}
+              disabled={true}
+            />
+          )}
 
           <FormInput
             label="IP Address"
@@ -334,16 +367,21 @@ export default function UserFormModal({
             hasError={!!errors.ipaddress}
           />
 
-          <FormInput
-            label="ລະຫັດສາຂາ (Branch ID)"
+          <Select
+            label="ສາຂາ"
             theme="light"
-            placeholder="ກະລຸນາປ້ອນລະຫັດສາຂາ"
+            placeholder="ກະລຸນາເລືອກສາຂາ"
             value={formData.branch}
             onChange={handleChange("branch")}
+            options={branches.map((b) => ({
+              value: String(b.brid),
+              label: b.branchname,
+            }))}
             inputRef={branchRef}
             error={errors.branch}
             hasError={!!errors.branch}
-            inputMode="numeric"
+            searchable
+            onSearch={handleBranchSearch}
           />
 
           <div className="flex justify-end gap-3 pt-4">

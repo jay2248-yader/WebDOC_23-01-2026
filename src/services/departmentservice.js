@@ -5,16 +5,20 @@ import { ENDPOINTS } from "../api/endpoints";
 export async function getAllDepartments(params = {}) {
     const res = await http.get(ENDPOINTS.DEPARTMENT.GET_ALL, { params });
 
-    console.log("API Response:", res.data);
-    console.log("Success:", res.data?.success);
-    console.log("data_id:", res.data?.data_id);
-    console.log("Final data:", res.data.data_id?.data);
-
     if (!res.data?.success) {
         throw new Error(res.data?.message || "Failed to fetch departments");
     }
 
-    return res.data.data_id?.data || [];
+    const dataId = res.data.data_id || {};
+    const dataArray = dataId.data || [];
+    const total = dataId.total ?? dataArray.length;
+    const limit = Number(params.limit) || 10;
+
+    return {
+        data: dataArray,
+        total,
+        lastPage: dataId.lastPage || dataId.last_page || dataId.totalPages || Math.ceil(total / limit) || 1,
+    };
 }
 
 

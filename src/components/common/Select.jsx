@@ -10,13 +10,21 @@ export default function Select({
   error,
   hasError = false,
   theme = "light",
+  searchable = false,
+  onSearch = null,
+  hasMore = false,
+  onLoadMore = null,
+  isLoadingMore = false,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState("bottom");
+  const [searchText, setSearchText] = useState("");
   const dropdownRef = useRef(null);
   const buttonRef = useRef(null);
+  const searchRef = useRef(null);
+  const debounceRef = useRef(null);
 
   const isLight = theme === "light";
 
@@ -42,6 +50,23 @@ export default function Select({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const handleSearchChange = (e) => {
+    const text = e.target.value;
+    setSearchText(text);
+    if (onSearch) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => onSearch(text), 300);
+    }
+  };
+
+  // client-side filter only when searchable without onSearch
+  const filteredOptions =
+    searchable && !onSearch
+      ? options.filter((opt) =>
+          opt.label.toLowerCase().includes(searchText.toLowerCase())
+        )
+      : options;
+
   const handleToggle = () => {
     const willOpen = !isOpen;
 
@@ -60,8 +85,13 @@ export default function Select({
       }
     }
 
+    if (willOpen) setSearchText("");
     setIsOpen(willOpen);
     setIsFocused(willOpen);
+
+    if (willOpen && searchable) {
+      setTimeout(() => searchRef.current?.focus(), 50);
+    }
   };
 
   const handleSelect = (optionValue) => {
@@ -72,6 +102,7 @@ export default function Select({
     onChange(syntheticEvent);
     setIsOpen(false);
     setIsFocused(false);
+    setSearchText("");
   };
 
   return (
@@ -146,47 +177,75 @@ export default function Select({
             }`}
             style={{ zIndex: 9999 }}
           >
-            <div className="py-1 max-h-60 overflow-y-auto scrollbar-thin">
-              {options.length > 0 ? (
-                options.map((option, index) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => handleSelect(option.value)}
-                    className={`w-full text-left px-4 py-2 text-sm transition-all duration-200
-    cursor-pointer
-    hover:bg-blue-50 hover:text-blue-600 hover:pl-6
-    disabled:cursor-not-allowed
-    ${
-      value === option.value
-        ? "bg-blue-100 text-blue-700 font-medium"
-        : "text-gray-700"
-    }
-    animate-fadeInUp
-  `}
-                    style={{ animationDelay: `${index * 30}ms` }}
-                  >
-                    <div className="flex items-center gap-2">
-                      {value === option.value && (
-                        <svg
-                          className="w-4 h-4 text-blue-600 animate-scaleIn"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      )}
-                      {option.label}
-                    </div>
-                  </button>
-                ))
+            {searchable && (
+              <div className="p-2 border-b border-gray-100">
+                <input
+                  ref={searchRef}
+                  type="text"
+                  value={searchText}
+                  onChange={handleSearchChange}
+                  placeholder="ຄົ້ນຫາ..."
+                  className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
+            )}
+            <div className="py-1 max-h-48 overflow-y-auto scrollbar-thin">
+              {filteredOptions.length > 0 ? (
+                <>
+                  {filteredOptions.map((option, index) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => handleSelect(option.value)}
+                      className={`w-full text-left px-4 py-2 text-sm transition-all duration-200
+      cursor-pointer
+      hover:bg-blue-50 hover:text-blue-600 hover:pl-6
+      disabled:cursor-not-allowed
+      ${
+        value === option.value
+          ? "bg-blue-100 text-blue-700 font-medium"
+          : "text-gray-700"
+      }
+      animate-fadeInUp
+    `}
+                      style={{ animationDelay: `${index * 30}ms` }}
+                    >
+                      <div className="flex items-center gap-2">
+                        {value === option.value && (
+                          <svg
+                            className="w-4 h-4 text-blue-600 animate-scaleIn"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        )}
+                        {option.label}
+                      </div>
+                    </button>
+                  ))}
+                  {hasMore && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onLoadMore) onLoadMore();
+                      }}
+                      disabled={isLoadingMore}
+                      className="w-full text-center px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 font-medium border-t border-gray-100 transition-colors disabled:text-gray-400 disabled:cursor-not-allowed"
+                    >
+                      {isLoadingMore ? "ກຳລັງໂຫຼດ..." : "ສະແດງເພີ່ມເຕີມ..."}
+                    </button>
+                  )}
+                </>
               ) : (
                 <div className="px-4 py-2 text-sm text-gray-400 text-center">
-                  ບໍ່ມີຂໍ້ມູນ
+                  {searchable && searchText ? "ບໍ່ພົບຂໍ້ມູນ" : "ບໍ່ມີຂໍ້ມູນ"}
                 </div>
               )}
             </div>
