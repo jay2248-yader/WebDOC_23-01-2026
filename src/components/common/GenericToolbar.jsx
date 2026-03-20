@@ -1,3 +1,4 @@
+import { memo } from "react";
 import Button from "./Button";
 import FormInput from "./FormInput";
 import search from "../../assets/icon/search.svg";
@@ -12,7 +13,7 @@ import search from "../../assets/icon/search.svg";
  * @param {string} props.createButtonText - Text for create button
  * @param {JSX.Element} props.createButtonIcon - Icon for create button
  */
-export default function GenericToolbar({
+function GenericToolbar({
   searchText,
   onSearchChange,
   onSearch,
@@ -69,3 +70,5 @@ export default function GenericToolbar({
     </div>
   );
 }
+
+export default memo(GenericToolbar);

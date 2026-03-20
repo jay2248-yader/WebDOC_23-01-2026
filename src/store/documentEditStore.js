@@ -1,16 +1,22 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 
+const MAX_EDITS = 50; // เก็บสูงสุด 50 รายการ ป้องกัน unbounded growth
+
 // Helper: update เฉพาะ field ของ rddid ที่เปลี่ยน ไม่ spread edits ทั้ง object ถ้าค่าเดิมเหมือนกัน
 const updateField = (state, rddid, field, value) => {
   const existing = state.edits[rddid];
   if (existing && existing[field] === value) return state; // skip ถ้าค่าเดิม
-  return {
-    edits: {
-      ...state.edits,
-      [rddid]: { ...existing, [field]: value },
-    },
+  const updated = {
+    ...state.edits,
+    [rddid]: { ...existing, [field]: value },
   };
+  // ถ้าเกิน limit ให้ลบ entry เก่าสุดออก
+  const keys = Object.keys(updated);
+  if (keys.length > MAX_EDITS) {
+    delete updated[keys[0]];
+  }
+  return { edits: updated };
 };
 
 export const useDocumentEditStore = create(

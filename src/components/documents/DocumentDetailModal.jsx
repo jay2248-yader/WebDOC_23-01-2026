@@ -1,19 +1,23 @@
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import Button from "../common/Button";
 
 export default function DocumentDetailModal({ isOpen, document, onClose }) {
     const [isClosing, setIsClosing] = useState(false);
+    const closeTimerRef = useRef(null);
 
-    if (!isOpen && !isClosing) return null;
-    if (!document) return null;
+    useEffect(() => () => clearTimeout(closeTimerRef.current), []);
 
-    const handleClose = () => {
+    const handleClose = useCallback(() => {
         setIsClosing(true);
-        setTimeout(() => {
+        clearTimeout(closeTimerRef.current);
+        closeTimerRef.current = setTimeout(() => {
             onClose();
             setIsClosing(false);
         }, 300);
-    };
+    }, [onClose]);
+
+    if (!isOpen && !isClosing) return null;
+    if (!document) return null;
 
     return (
         <div
@@ -60,7 +64,7 @@ export default function DocumentDetailModal({ isOpen, document, onClose }) {
                             ຮຽນ
                         </label>
                         <div className="flex-1">
-                            <div className="w-full rounded-lg border border-blue-300 bg-white px-4 py-2.5 text-sm text-gray-700 min-h-[44px] whitespace-pre-wrap">
+                            <div className="w-full rounded-lg border border-blue-300 bg-white px-4 py-2.5 text-sm text-gray-700 min-h-11 whitespace-pre-wrap">
                                 {document.req_to ?? "-"}
                             </div>
                         </div>
@@ -72,7 +76,7 @@ export default function DocumentDetailModal({ isOpen, document, onClose }) {
                             ເລື່ອງ
                         </label>
                         <div className="flex-1">
-                            <div className="w-full rounded-lg border border-blue-300 bg-white px-4 py-2.5 text-sm text-gray-700 min-h-[44px] whitespace-pre-wrap">
+                            <div className="w-full rounded-lg border border-blue-300 bg-white px-4 py-2.5 text-sm text-gray-700 min-h-11 whitespace-pre-wrap">
                                 {document.req_reason ?? "-"}
                             </div>
                         </div>
@@ -84,7 +88,7 @@ export default function DocumentDetailModal({ isOpen, document, onClose }) {
                             ອີງຕາມ
                         </label>
                         <div className="flex-1">
-                            <div className="w-full rounded-lg border border-blue-300 bg-white px-4 py-2.5 text-sm text-gray-700 min-h-[70px] whitespace-pre-wrap">
+                            <div className="w-full rounded-lg border border-blue-300 bg-white px-4 py-2.5 text-sm text-gray-700 min-h-17.5 whitespace-pre-wrap">
                                 {document.req_shortboard ?? "-"}
                             </div>
                         </div>
@@ -96,7 +100,7 @@ export default function DocumentDetailModal({ isOpen, document, onClose }) {
                             ເນື້ອໃນ
                         </label>
                         <div className="flex-1">
-                            <div className="w-full rounded-lg border border-blue-300 bg-white px-4 py-2.5 text-sm text-gray-700 min-h-[120px] whitespace-pre-wrap">
+                            <div className="w-full rounded-lg border border-blue-300 bg-white px-4 py-2.5 text-sm text-gray-700 min-h-30 whitespace-pre-wrap">
                                 {document.req_reason ?? "-"}
                             </div>
                         </div>

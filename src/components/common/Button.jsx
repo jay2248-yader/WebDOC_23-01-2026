@@ -1,4 +1,6 @@
-export default function Button({
+import { memo } from "react";
+
+function Button({
   children,
   loading = false,
   disabled = false,
@@ -12,7 +14,7 @@ export default function Button({
 }) {
   const isDisabled = loading || disabled;
 
-  const baseClasses = "rounded-xl font-bold transition-all duration-200 ease-in-out";
+  const baseClasses = "rounded-xl font-bold transition-all duration-200 ease-in-out cursor-pointer";
 
   const sizeClasses = {
     sm: "px-3 py-2 text-sm",
@@ -49,3 +51,5 @@ export default function Button({
     </button>
   );
 }
+
+export default memo(Button);

@@ -76,12 +76,9 @@ export default function useLogin() {
       // เก็บข้อมูล user + token ใน Zustand store
       setAuth(userData);
 
-      console.log("LOGIN SUCCESS", userData);
-
       // Return success
       return true;
     } catch (err) {
-      console.error("LOGIN ERROR", err);
       setError(err.message || "ລະຫັດພະນັກງານ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ");
       return false;
     } finally {

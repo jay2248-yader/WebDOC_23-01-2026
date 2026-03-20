@@ -1,7 +1,9 @@
-import { useState, useRef, useEffect } from "react";
+import { useRef, useEffect, useMemo } from "react";
+import useFormModal from "../../hooks/useFormModal";
+import useSelectPagination from "../../hooks/useSelectPagination";
+import FormModalShell from "../common/FormModalShell";
 import FormInput from "../common/FormInput";
 import Button from "../common/Button";
-import ConfirmProgressDialog from "../common/ConfirmProgressDialog";
 import Select from "../common/Select";
 import { getAllBoards } from "../../services/boardservice";
 
@@ -11,273 +13,136 @@ export default function DepartmentFormModal({
   onSubmit,
   department = null,
 }) {
-  const [formData, setFormData] = useState({
-    bdid: department?.bdid || "",
-    departmentname: department?.departmentname || "",
-    moreinfo: department?.moreinfo || "",
-  });
-
-  const [boards, setBoards] = useState([]);
-  const [boardsPage, setBoardsPage] = useState(1);
-  const [hasMoreBoards, setHasMoreBoards] = useState(false);
-  const [isLoadingBoards, setIsLoadingBoards] = useState(false);
-
-  // Reset formData and submitDialog when modal opens or department changes
-  useEffect(() => {
-    if (isOpen) {
-      setFormData({
-        bdid: department?.bdid || "",
-        departmentname: department?.departmentname || "",
-        moreinfo: department?.moreinfo || "",
-      });
-      setSubmitDialog({ open: false, status: "confirm" });
-      setErrors({});
-      setBoardsPage(1);
-      setHasMoreBoards(false);
-
-      // Fetch boards initial page
-      fetchBoards(1);
-    }
-  }, [isOpen, department]);
-
-  const fetchBoards = async (page = 1) => {
-    try {
-      setIsLoadingBoards(true);
-      const res = await getAllBoards({ page, limit: 10 });
-      const options = res.data.map((b) => ({
-        value: String(b.bdid), // Using bdid as value
-        label: b.boardtname || b.boardname || String(b.bdid), // Showing boardname as label, fallback to boardname then ID
-      }));
-
-      if (page === 1) {
-        setBoards(options);
-      } else {
-        setBoards((prev) => [...prev, ...options]);
-      }
-
-      setHasMoreBoards(page < (res.lastPage || 1));
-      setBoardsPage(page);
-    } catch (error) {
-      console.error("Failed to fetch boards:", error);
-    } finally {
-      setIsLoadingBoards(false);
-    }
-  };
-
-  const loadMoreBoards = () => {
-    if (!isLoadingBoards && hasMoreBoards) {
-      fetchBoards(boardsPage + 1);
-    }
-  };
-
-  const [errors, setErrors] = useState({});
-  const [isClosing, setIsClosing] = useState(false);
-  const [submitDialog, setSubmitDialog] = useState({
-    open: false,
-    status: "confirm",
-  });
-
-  // Refs for input fields
-  const bdidRef = useRef(null);
   const departmentnameRef = useRef(null);
   const moreinfoRef = useRef(null);
 
-  if (!isOpen && !isClosing) return null;
+  const {
+    items: boardItems,
+    hasMore: hasMoreBoards,
+    loadingMore: isLoadingBoards,
+    reset: resetBoards,
+    handleSearch: handleBoardSearch,
+    handleLoadMore: handleLoadMoreBoards,
+  } = useSelectPagination(getAllBoards);
 
-  // Refs object for easy access
-  const inputRefs = {
-    bdid: bdidRef,
-    departmentname: departmentnameRef,
-    moreinfo: moreinfoRef,
-  };
+  const boards = useMemo(
+    () => boardItems.map((b) => ({
+      value: String(b.bdid),
+      label: b.boardtname || b.boardname || String(b.bdid),
+    })),
+    [boardItems]
+  );
 
-  // Handle Enter key to move to next input
-  const handleKeyDown = (nextFieldName) => (e) => {
+  useEffect(() => {
+    if (isOpen) resetBoards();
+  }, [isOpen, resetBoards]);
+
+  const {
+    formData,
+    errors,
+    isClosing,
+    submitDialog,
+    shouldRender,
+    handleChange,
+    handleSubmit,
+    handleConfirmSubmit,
+    handleCancelSubmit,
+    handleCloseSubmit,
+    handleClose,
+  } = useFormModal({
+    isOpen,
+    onClose,
+    onSubmit,
+    initialData: {
+      bdid: department?.bdid || "",
+      departmentname: department?.departmentname || "",
+      moreinfo: department?.moreinfo || "",
+    },
+    validate: (data) => {
+      const e = {};
+      if (!data.bdid) e.bdid = "ກະລຸນາປ້ອນລະຫັດຄະນະ";
+      if (!data.departmentname) e.departmentname = "ກະລຸນາປ້ອນຊື່ພະແນກ";
+      return e;
+    },
+  });
+
+  const handleKeyDown = (getRef) => (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      inputRefs[nextFieldName]?.current?.focus();
+      getRef().current?.focus();
     }
-  };
-
-  const handleChange = (field) => (e) => {
-    let value = e.target.value;
-
-    // bdid is numeric
-    if (field === "bdid") {
-      value = value.replace(/[^0-9]/g, "");
-    }
-
-    setFormData({ ...formData, [field]: value });
-
-    if (errors[field]) {
-      setErrors({ ...errors, [field]: "" });
-    }
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    // Basic validation
-    const newErrors = {};
-    if (!formData.bdid) newErrors.bdid = "ກະລຸນາປ້ອນລະຫັດຄະນະ";
-    if (!formData.departmentname) newErrors.departmentname = "ກະລຸນາປ້ອນຊື່ພະແນກ";
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
-    // Show confirm dialog
-    setSubmitDialog({ open: true, status: "confirm" });
-  };
-
-  const handleConfirmSubmit = async () => {
-    try {
-      setSubmitDialog({ open: true, status: "loading" });
-      await onSubmit(formData);
-      setSubmitDialog({ open: true, status: "success" });
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      setSubmitDialog({ open: false, status: "confirm" });
-      // Show error to user
-      alert(error.message || "ເກີດຂໍ້ຜິດພາດໃນການບັນທຶກຂໍ້ມູນ");
-    }
-  };
-
-  const handleCancelSubmit = () => {
-    setSubmitDialog({ open: false, status: "confirm" });
-  };
-
-  const handleCloseSubmit = () => {
-    setSubmitDialog({ open: false, status: "confirm" });
-
-    // Close form modal
-    setIsClosing(true);
-    setTimeout(() => {
-      onClose();
-      setErrors({});
-      setIsClosing(false);
-    }, 300);
-  };
-
-  const handleClose = () => {
-    setIsClosing(true);
-    setTimeout(() => {
-      onClose();
-      setErrors({});
-      setIsClosing(false);
-    }, 300);
-  };
-
-  const handleCancel = () => {
-    handleClose();
   };
 
   return (
-    <div
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm ${isClosing ? "animate-fadeOut" : "animate-fadeIn"
-        }`}
-      onClick={handleClose}
+    <FormModalShell
+      shouldRender={shouldRender}
+      isClosing={isClosing}
+      isEditing={!!department}
+      entityName="ພະແນກ"
+      displayName={formData.departmentname}
+      submitDialog={submitDialog}
+      onClose={handleClose}
+      onConfirm={handleConfirmSubmit}
+      onCancelSubmit={handleCancelSubmit}
+      onCloseSubmit={handleCloseSubmit}
     >
-      <div
-        className={`bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto ${isClosing ? "animate-slideDown" : "animate-slideUp"
-          }`}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center border-b border-blue-400 pb-2">
-          {department ? "ແກ້ໄຂພະແນກ" : "ເພີ່ມພະແນກ"}
-        </h3>
+      <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center border-b border-blue-400 pb-2">
+        {department ? "ແກ້ໄຂພະແນກ" : "ເພີ່ມພະແນກ"}
+      </h3>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {department && (
-            <FormInput
-              label="ລະຫັດພະແນກ"
-              theme="light"
-              placeholder="ລະຫັດພະແນກ"
-              value={department.dpid}
-              onChange={() => { }}
-              disabled={true}
-            />
-          )}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {department && (
+          <FormInput label="ລະຫັດພະແນກ" theme="light" value={department.dpid} disabled />
+        )}
 
-          <Select
-            label="ລະຫັດຄະນະ"
-            theme="light"
-            placeholder="ກະລຸນາເລືອກຄະນະ"
-            value={String(formData.bdid)}
-            onChange={handleChange("bdid")}
-            options={boards}
-            searchable={true}
-            error={errors.bdid}
-            hasError={!!errors.bdid}
-            hasMore={hasMoreBoards}
-            isLoadingMore={isLoadingBoards}
-            onLoadMore={loadMoreBoards}
-          />
+        <Select
+          label="ລະຫັດຄະນະ"
+          theme="light"
+          placeholder="ກະລຸນາເລືອກຄະນະ"
+          value={String(formData.bdid)}
+          onChange={handleChange("bdid")}
+          options={boards}
+          searchable
+          onSearch={handleBoardSearch}
+          error={errors.bdid}
+          hasError={!!errors.bdid}
+          hasMore={hasMoreBoards}
+          isLoadingMore={isLoadingBoards}
+          onLoadMore={handleLoadMoreBoards}
+        />
 
-          <FormInput
-            label="ຊື່ພະແນກ"
-            theme="light"
-            placeholder="ກະລຸນາປ້ອນຊື່ພະແນກ"
-            value={formData.departmentname}
-            onChange={handleChange("departmentname")}
-            onKeyDown={handleKeyDown("moreinfo")}
-            inputRef={departmentnameRef}
-            error={errors.departmentname}
-            hasError={!!errors.departmentname}
-          />
+        <FormInput
+          label="ຊື່ພະແນກ"
+          theme="light"
+          placeholder="ກະລຸນາປ້ອນຊື່ພະແນກ"
+          value={formData.departmentname}
+          onChange={handleChange("departmentname")}
+          onKeyDown={handleKeyDown(() => moreinfoRef)}
+          inputRef={departmentnameRef}
+          error={errors.departmentname}
+          hasError={!!errors.departmentname}
+        />
 
-          <FormInput
-            label="ລາຍລະອຽດເພີ່ມເຕີມ (ທາງເລືອກ)"
-            theme="light"
-            placeholder="ກະລຸນາປ້ອນລາຍລະອຽດ"
-            value={formData.moreinfo}
-            onChange={handleChange("moreinfo")}
-            inputRef={moreinfoRef}
-            error={errors.moreinfo}
-            hasError={!!errors.moreinfo}
-          />
+        <FormInput
+          label="ລາຍລະອຽດເພີ່ມເຕີມ (ທາງເລືອກ)"
+          theme="light"
+          placeholder="ກະລຸນາປ້ອນລາຍລະອຽດ"
+          value={formData.moreinfo}
+          onChange={handleChange("moreinfo")}
+          inputRef={moreinfoRef}
+          error={errors.moreinfo}
+          hasError={!!errors.moreinfo}
+        />
 
-          <div className="flex justify-end gap-3 pt-4">
-            <Button
-              type="button"
-              fullWidth={false}
-              variant="secondary"
-              size="md"
-              onClick={handleCancel}
-            >
-              ຍົກເລີກ
-            </Button>
-            <Button
-              type="submit"
-              fullWidth={false}
-              variant="outline"
-              size="md"
-              className="bg-[#0F75BC] text-white hover:bg-blue-700"
-            >
-              ສຳເລັດ
-            </Button>
-          </div>
-        </form>
-      </div>
-
-      <ConfirmProgressDialog
-        isOpen={submitDialog.open}
-        status={submitDialog.status}
-        title={department ? "ຢືນຢັນການແກ້ໄຂ" : "ຢືນຢັນການເພີ່ມ"}
-        message={
-          department
-            ? `ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການແກ້ໄຂຂໍ້ມູນພະແນກ "${formData.departmentname}"?`
-            : `ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການເພີ່ມພະແນກ "${formData.departmentname}"?`
-        }
-        confirmText={department ? "ແກ້ໄຂ" : "ເພີ່ມ"}
-        cancelText="ຍົກເລີກ"
-        loadingMessage={department ? "ກຳລັງແກ້ໄຂຂໍ້ມູນ..." : "ກຳລັງເພີ່ມພະແນກ..."}
-        successMessage={department ? "ແກ້ໄຂຂໍ້ມູນສຳເລັດແລ້ວ" : "ເພີ່ມພະແນກສຳເລັດແລ້ວ"}
-        onConfirm={handleConfirmSubmit}
-        onCancel={handleCancelSubmit}
-        onClose={handleCloseSubmit}
-      />
-    </div>
+        <div className="flex justify-end gap-3 pt-4">
+          <Button type="button" fullWidth={false} variant="secondary" size="md" onClick={handleClose}>
+            ຍົກເລີກ
+          </Button>
+          <Button type="submit" fullWidth={false} variant="outline" size="md" className="bg-[#0F75BC] text-white hover:bg-blue-700">
+            ສຳເລັດ
+          </Button>
+        </div>
+      </form>
+    </FormModalShell>
   );
 }

@@ -61,6 +61,9 @@ export default function TitleTableModal({ isOpen, onClose, onSave, initialSectio
   const [openPicker, setOpenPicker] = useState(null);
   const tableRefs = useRef({});
   const pickerRefs = useRef({});
+  const closeTimerRef = useRef(null);
+
+  useEffect(() => () => clearTimeout(closeTimerRef.current), []);
 
   useEffect(() => {
     if (isOpen) {
@@ -73,7 +76,7 @@ export default function TitleTableModal({ isOpen, onClose, onSave, initialSectio
       setCtxMenu(null);
       setOpenPicker(null);
     }
-  }, [isOpen]);
+  }, [isOpen, initialSections]);
 
   // Close context menu on scroll/click
   useEffect(() => {
@@ -111,7 +114,8 @@ export default function TitleTableModal({ isOpen, onClose, onSave, initialSectio
 
   const handleClose = useCallback(() => {
     setIsClosing(true);
-    setTimeout(() => {
+    clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = setTimeout(() => {
       onClose();
       setIsClosing(false);
     }, 300);
@@ -603,7 +607,7 @@ export default function TitleTableModal({ isOpen, onClose, onSave, initialSectio
 
         {isOpen && (
           <div
-            className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl p-2 flex gap-1 z-[9999] flex-wrap"
+            className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl p-2 flex gap-1 z-9999 flex-wrap"
             style={{ minWidth: "9rem" }}
             onMouseDown={(e) => e.stopPropagation()}
           >
@@ -907,7 +911,7 @@ export default function TitleTableModal({ isOpen, onClose, onSave, initialSectio
       {/* Context Menu */}
       {ctxMenu && (
         <div
-          className="fixed bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-[9999] min-w-45"
+          className="fixed bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-9999 min-w-45"
           style={{ left: ctxMenu.x, top: ctxMenu.y }}
           onClick={(e) => e.stopPropagation()}
         >

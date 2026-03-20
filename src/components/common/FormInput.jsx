@@ -1,8 +1,9 @@
+import { memo } from "react";
 import FieldError from "./FieldError";
 import EyeIcon from "../../assets/icon/eye-solid.svg";
 import EyeSlashIcon from "../../assets/icon/eye-low-vision-solid.svg";
 
-export default function FormInput({
+function FormInput({
   label,
   type = "text",
   placeholder,
@@ -98,3 +99,5 @@ export default function FormInput({
     </div>
   );
 }
+
+export default memo(FormInput);

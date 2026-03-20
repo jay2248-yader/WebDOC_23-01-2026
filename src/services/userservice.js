@@ -2,13 +2,8 @@ import { http } from "../api/http";
 import { ENDPOINTS } from "../api/endpoints";
 
 //Read
-export async function getAllUsers(params = {}) {
-  const res = await http.get(ENDPOINTS.USERS.GET_ALL, { params });
-
-  console.log("API Response:", res.data);
-  console.log("Success:", res.data?.success);
-  console.log("message:", res.data?.message);
-
+export async function getAllUsers(params = {}, signal) {
+  const res = await http.get(ENDPOINTS.USERS.GET_ALL, { params, signal });
   if (!res.data?.success) {
     throw new Error("Failed to fetch users");
   }

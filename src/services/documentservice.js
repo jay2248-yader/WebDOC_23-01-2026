@@ -2,8 +2,8 @@ import { http } from "../api/http";
 import { ENDPOINTS } from "../api/endpoints";
 
 //Read
-export async function getAllDocuments(params = {}) {
-  const res = await http.get(ENDPOINTS.DOCUMENTS.GET_ALL, { params });
+export async function getAllDocuments(params = {}, signal) {
+  const res = await http.get(ENDPOINTS.DOCUMENTS.GET_ALL, { params, signal });
 
   if (!res.data?.success) {
     throw new Error("Failed to fetch documents");

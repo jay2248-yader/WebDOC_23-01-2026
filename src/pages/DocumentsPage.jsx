@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import GenericToolbar from "../components/common/GenericToolbar";
 import GenericDataTable, { Button } from "../components/common/GenericDataTable";
@@ -29,68 +29,49 @@ export default function DocumentsPage() {
     const [isLoading, setIsLoading] = useState(false);
 
     const tableRef = useRef(null);
+    const mountedRef = useRef(true);
+    useEffect(() => {
+        mountedRef.current = true;
+        return () => { mountedRef.current = false; };
+    }, []);
 
-    const loadDocuments = useCallback(async (silent = false) => {
+    const loadDocuments = useCallback(async (signal, silent = false) => {
         try {
             if (!silent) setIsLoading(true);
-            const result = await getAllDocuments({ page, limit: pageSize, search: searchText });
+            const result = await getAllDocuments({ page, limit: pageSize, search: searchText }, signal);
+            if (!mountedRef.current) return;
             setDocuments(result.data);
             setTotalItems(result.total);
             setTotalPages(result.lastPage || 1);
         } catch (error) {
+            if (error?.code === "ERR_CANCELED" || error?.name === "CanceledError") return;
             console.error("Error loading documents:", error);
         } finally {
-            if (!silent) setIsLoading(false);
+            if (mountedRef.current && !silent) setIsLoading(false);
         }
     }, [page, pageSize, searchText]);
 
     useEffect(() => {
-        loadDocuments();
+        const controller = new AbortController();
+        loadDocuments(controller.signal);
+        return () => controller.abort();
     }, [loadDocuments]);
 
     const safePage = Math.min(Math.max(page, 1), totalPages);
 
-    const handleSearchChange = (v) => setInputText(v);
+    const handleSearchChange = useCallback((v) => setInputText(v), []);
+    const handleSearch = useCallback(() => { setSearchText(inputText); setPage(1); }, [inputText]);
+    const handlePageSizeChange = useCallback((nextSize) => { setPageSize(nextSize); setPage(1); }, []);
+    const handlePageChange = useCallback((nextPage) => { setPage(Math.min(Math.max(nextPage, 1), totalPages)); }, [totalPages]);
+    const handleCreateDocument = useCallback(() => { setEditingDocument(null); setShowFormModal(true); }, []);
+    const handleEditDocument = useCallback((doc) => { setEditingDocument(doc); setShowFormModal(true); }, []);
+    const handlePreviewDocument = useCallback((doc) => { navigate("/document-preview", { state: { document: doc } }); }, [navigate]);
+    const handleCloseDetailModal = useCallback(() => { setShowDetailModal(false); setViewingDocument(null); }, []);
+    const handleCloseDetailFormModal = useCallback(() => { setShowDetailFormModal(false); setDetailFormDocument(null); }, []);
+    const handleCloseModal = useCallback(() => { setShowFormModal(false); setEditingDocument(null); }, []);
+    const handleDeleteDocument = useCallback(async () => { await loadDocuments(undefined, true); }, [loadDocuments]);
 
-    const handleSearch = () => {
-        setSearchText(inputText);
-        setPage(1);
-    };
-
-    const handlePageSizeChange = (nextSize) => {
-        setPageSize(nextSize);
-        setPage(1);
-    };
-
-    const handlePageChange = (nextPage) => {
-        setPage(Math.min(Math.max(nextPage, 1), totalPages));
-    };
-
-    const handleCreateDocument = () => {
-        setEditingDocument(null);
-        setShowFormModal(true);
-    };
-
-    const handleEditDocument = (doc) => {
-        setEditingDocument(doc);
-        setShowFormModal(true);
-    };
-
-const handlePreviewDocument = (doc) => {
-        navigate("/document-preview", { state: { document: doc } });
-    };
-
-    const handleCloseDetailModal = () => {
-        setShowDetailModal(false);
-        setViewingDocument(null);
-    };
-
-const handleCloseDetailFormModal = () => {
-        setShowDetailFormModal(false);
-        setDetailFormDocument(null);
-    };
-
-    const handleSubmitDetail = async (formData) => {
+    const handleSubmitDetail = useCallback(async (formData) => {
         try {
             // 1. สร้างเอกสารใหม่ก่อนโดยดึงข้อมูลจาก store
             const documentPayload = {
@@ -105,49 +86,33 @@ const handleCloseDetailFormModal = () => {
             };
 
             const result = await createNewDocument(documentPayload);
-            console.log("Created document:", result);
 
             // 2. ได้ rqdid จากเอกสารที่สร้างใหม่
             const newDocument = result.data_id?.fn_newrequestdoc || result.data_id || result.data || result;
-            const rqdid = newDocument?.rqdid;
-
-            console.log("New document rqdid:", rqdid);
-            console.log("Detail form data:", formData);
+            const _rqdid = newDocument?.rqdid;
 
             // TODO: 3. เพิ่มรายละเอียดเอกสาร เมื่อมี API แล้ว
             // await createDocumentDetail({ rqdid, ...formData });
 
             // Reload documents
-            await loadDocuments();
+            await loadDocuments(undefined);
         } catch (error) {
             console.error("Error creating document:", error);
-            throw error; // ส่ง error กลับไปให้ modal แสดง
+            throw error;
         }
-    };
+    }, [user, loadDocuments]);
 
-    const handleCloseModal = () => {
-        setShowFormModal(false);
-        setEditingDocument(null);
-    };
-
-    const handleSubmitDocument = async (formData) => {
+    const handleSubmitDocument = useCallback(async (formData) => {
         if (editingDocument) {
-            console.log("update document", editingDocument.rqdid, formData);
             // TODO: await updateDocument({ rqdid: editingDocument.rqdid, ...formData });
         } else {
             await createNewDocument(formData);
         }
-        await loadDocuments(true);
-    };
-
-    const handleDeleteDocument = async (doc) => {
-        console.log("delete document", doc);
-        // TODO: await deleteDocument(doc.rqdid);
-        await loadDocuments(true);
-    };
+        await loadDocuments(undefined, true);
+    }, [editingDocument, loadDocuments]);
 
     // Define columns configuration
-    const columns = [
+    const columns = useMemo(() => [
         {
             key: "index",
             label: "ລຳດັບ", // Order
@@ -245,7 +210,7 @@ const handleCloseDetailFormModal = () => {
                 </div>
             ),
         },
-    ];
+    ], [handlePreviewDocument, handleEditDocument, tableRef]);
 
     return (
         <div className="space-y-6">
@@ -285,6 +250,7 @@ const handleCloseDetailFormModal = () => {
                 onDelete={handleDeleteDocument}
                 onPageChange={handlePageChange}
                 onPageSizeChange={handlePageSizeChange}
+                rowKey="rqdid"
                 entityName="ເອກະສານ"
                 getEntityDisplayName={(doc) => doc.req_no}
                 ref={tableRef}

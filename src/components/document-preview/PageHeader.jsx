@@ -1,4 +1,4 @@
-import cscLogo from "../../assets/Logo/CSC_LOGO_HD.png";
+import cscLogo from "../../assets/Logo/CSC_LOGO_HD.webp";
 
 export default function PageHeader({ scale = 1 }) {
     return (
@@ -7,7 +7,9 @@ export default function PageHeader({ scale = 1 }) {
                 {/* Logo */}
                 <div className="absolute z-10 mt-1"
                     style={{ left: 28, top: -10, width: 92, height: 92 }}>
-                    <img src={cscLogo} alt="CSC Logo" width="400" height="400"
+                    <img src={cscLogo} alt="CSC Logo" width="92" height="92"
+                        decoding="async"
+                        loading="lazy"
                         className="w-full h-full object-contain object-center"
                         style={{ imageRendering: "auto" }} />
                 </div>

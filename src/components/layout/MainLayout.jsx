@@ -1,25 +1,21 @@
-import { Outlet, useLocation } from 'react-router-dom';
-import Sidebar from './Sidebar';
-import Header from './Header';
-import { MENU_ITEMS } from '../../constants/navigation';
+import { useState } from "react";
+import { Outlet, useLocation } from "react-router-dom";
+import Sidebar from "./Sidebar";
+import Header from "./Header";
+import ToastContainer from "../common/ToastContainer";
+import SessionTimeoutDialog from "../common/SessionTimeoutDialog";
+import useInactivityTimeout from "../../hooks/useInactivityTimeout";
+import { MENU_ITEMS } from "../../constants/navigation";
 
-/**
- * MainLayout - Main application layout with Sidebar and Header
- * @param {Object} props
- * @param {string} props.title - Page title for header
- */
 export default function MainLayout({ title }) {
   const location = useLocation();
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const { isWarning, countdown, handleContinue, handleLogout } = useInactivityTimeout();
 
-  /* Helper to find label recursively from MENU_ITEMS */
   const getPageTitle = (path) => {
-    // 1. Exact match search
     const findLabel = (items) => {
       for (const item of items) {
-        // If current item matches path
         if (item.path === path) return item.label;
-        
-        // If has children, search deeper
         if (item.children) {
           const childLabel = findLabel(item.children);
           if (childLabel) return childLabel;
@@ -27,33 +23,48 @@ export default function MainLayout({ title }) {
       }
       return null;
     };
-
-    // 2. Try to find precise label
     let label = findLabel(MENU_ITEMS);
     if (label) return label;
+    if (path.startsWith("/users")) return "ຈັດການຜູ້ໃຊ້";
+    if (path.startsWith("/dashboard")) return "ໜ້າຫຼັກ";
+    return "ໜ້າຫຼັກ";
+  };
 
-    // 3. Fallback logic for nested routes not explicitly in menu
-    if (path.startsWith('/users')) return 'ຈັດການ User';
-    if (path.startsWith('/dashboard')) return 'ໜ້າຫຼັກ';
-    
-    // Default
-    return 'ໜ້າຫຼັກ';
+  const getBreadcrumb = (path) => {
+    for (const item of MENU_ITEMS) {
+      if (item.path === path) return null; // top-level, no breadcrumb needed
+      if (item.children) {
+        const child = item.children.find(
+          (c) => c.path === path || path.startsWith(c.path + "/")
+        );
+        if (child) return { parent: item.label, current: child.label };
+      }
+    }
+    return null;
   };
 
   const resolvedTitle = title || getPageTitle(location.pathname);
+  const breadcrumb = getBreadcrumb(location.pathname);
 
   return (
     <div className="flex h-screen overflow-hidden print:block print:h-auto print:overflow-visible">
       {/* Sidebar */}
       <div className="print:hidden">
-        <Sidebar />
+        <Sidebar
+          isMobileOpen={mobileSidebarOpen}
+          onMobileClose={() => setMobileSidebarOpen(false)}
+        />
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden print:block print:overflow-visible">
+      <div className="flex-1 flex flex-col overflow-hidden print:block print:overflow-visible min-w-0">
         {/* Header */}
         <div className="print:hidden">
-          <Header title={resolvedTitle} />
+          <Header
+            title={resolvedTitle}
+            breadcrumb={breadcrumb}
+            onMenuToggle={() => setMobileSidebarOpen((v) => !v)}
+          />
         </div>
 
         {/* Page Content */}
@@ -61,6 +72,17 @@ export default function MainLayout({ title }) {
           <Outlet />
         </main>
       </div>
+
+      {/* Toast notifications */}
+      <ToastContainer />
+
+      {/* Session timeout warning */}
+      <SessionTimeoutDialog
+        isOpen={isWarning}
+        countdown={countdown}
+        onContinue={handleContinue}
+        onLogout={handleLogout}
+      />
     </div>
   );
 }

@@ -112,10 +112,12 @@ export default function DocumentPreviewPage() {
   // ── Fetch document details ────────────────────────────────────────────────────
   useEffect(() => {
     if (!docData.rqdid) return;
+    let mounted = true;
     getDocumentDetailsByDocumentId(String(docData.rqdid))
-      .then((res) => setDocumentDetails(res.data_id?.data || []))
+      .then((res) => { if (mounted) setDocumentDetails(res.data_id?.data || []); })
       .catch((err) => console.error("Failed to fetch document details:", err))
-      .finally(() => setLoadingDetails(false));
+      .finally(() => { if (mounted) setLoadingDetails(false); });
+    return () => { mounted = false; };
   }, [docData.rqdid]);
 
   // ── Auto-resize textareas ────────────────────────────────────────────────────
@@ -251,7 +253,7 @@ export default function DocumentPreviewPage() {
                   <div className={references.every(r => !r.trim()) ? "print:hidden" : ""}>
                     <ul className="list-none space-y-1">
                       {references.map((item, index) => (
-                        <li key={index} className="relative before:content-['-'] before:absolute before:left-[-16px] flex items-start">
+                        <li key={index} className="relative before:content-['-'] before:absolute before:-left-4 flex items-start">
                           <span className="whitespace-nowrap">ອີງຕາມ :&nbsp;</span>
                           <textarea value={item}
                             onChange={(e) => {

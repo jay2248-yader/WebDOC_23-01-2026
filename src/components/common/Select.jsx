@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo, memo } from "react";
 import FieldError from "./FieldError";
 
-export default function Select({
+function Select({
   label,
   value,
   onChange,
@@ -37,7 +37,7 @@ export default function Select({
     ? "bg-white text-gray-700 border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-300 hover:border-blue-400"
     : "bg-white/20 text-white border border-white/40 focus:ring-white/60 hover:bg-white/30 hover:border-white/70";
 
-  // Close dropdown when clicking outside
+  // Close dropdown when clicking outside + clean up debounce on unmount
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -47,37 +47,41 @@ export default function Select({
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      clearTimeout(debounceRef.current);
+    };
   }, []);
 
-  const handleSearchChange = (e) => {
+  const handleSearchChange = useCallback((e) => {
     const text = e.target.value;
     setSearchText(text);
     if (onSearch) {
       clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(() => onSearch(text), 300);
     }
-  };
+  }, [onSearch]);
 
   // client-side filter only when searchable without onSearch
-  const filteredOptions =
+  const filteredOptions = useMemo(() =>
     searchable && !onSearch
       ? options.filter((opt) =>
           opt.label.toLowerCase().includes(searchText.toLowerCase())
         )
-      : options;
+      : options,
+  [searchable, onSearch, options, searchText]);
 
-  const handleToggle = () => {
+  const handleMouseEnter = useCallback(() => setIsHovered(true), []);
+  const handleMouseLeave = useCallback(() => setIsHovered(false), []);
+
+  const handleToggle = useCallback(() => {
     const willOpen = !isOpen;
 
-    // Calculate position before opening
     if (willOpen && buttonRef.current) {
       const buttonRect = buttonRef.current.getBoundingClientRect();
-      const dropdownHeight = 240; // max-h-60 = 240px
+      const dropdownHeight = 240;
       const spaceBelow = window.innerHeight - buttonRect.bottom;
       const spaceAbove = buttonRect.top;
-
-      // Show dropdown above if not enough space below
       if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
         setDropdownPosition("top");
       } else {
@@ -92,18 +96,19 @@ export default function Select({
     if (willOpen && searchable) {
       setTimeout(() => searchRef.current?.focus(), 50);
     }
-  };
+  }, [isOpen, searchable]);
 
-  const handleSelect = (optionValue) => {
-    // Create synthetic event
-    const syntheticEvent = {
-      target: { value: optionValue },
-    };
-    onChange(syntheticEvent);
+  const handleSelect = useCallback((optionValue) => {
+    onChange({ target: { value: optionValue } });
     setIsOpen(false);
     setIsFocused(false);
     setSearchText("");
-  };
+  }, [onChange]);
+
+  const handleLoadMoreClick = useCallback((e) => {
+    e.stopPropagation();
+    if (onLoadMore) onLoadMore();
+  }, [onLoadMore]);
 
   return (
     <div className="space-y-2" ref={dropdownRef}>
@@ -123,8 +128,8 @@ export default function Select({
           ref={buttonRef}
           type="button"
           onClick={handleToggle}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
           className={`w-full rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 transition-all duration-300 ease-out cursor-pointer text-left flex items-center justify-between
             ${
               hasError
@@ -232,10 +237,7 @@ export default function Select({
                   {hasMore && (
                     <button
                       type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (onLoadMore) onLoadMore();
-                      }}
+                      onClick={handleLoadMoreClick}
                       disabled={isLoadingMore}
                       className="w-full text-center px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 font-medium border-t border-gray-100 transition-colors disabled:text-gray-400 disabled:cursor-not-allowed"
                     >
@@ -257,3 +259,5 @@ export default function Select({
     </div>
   );
 }
+
+export default memo(Select);

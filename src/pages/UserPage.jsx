@@ -1,9 +1,10 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import GenericToolbar from "../components/common/GenericToolbar";
 import GenericDataTable, { Button } from "../components/common/GenericDataTable";
 import UserFormModal from "../components/users/UserFormModal";
 import LoadingDialog from "../components/common/LoadingDialog";
 import { getAllUsers, createNewUser, updatePwds } from "../services/userservice";
+import { toast } from "../store/toastStore";
 
 import userplus from "../assets/icon/userplus.svg";
 
@@ -21,95 +22,87 @@ export default function UserPage() {
   const [pwdModal, setPwdModal] = useState({ open: false, user: null, newPwd: "", isSubmitting: false });
 
   const tableRef = useRef(null);
+  const modalTimerRef = useRef(null);
 
-  const loadUsers = async () => {
+  useEffect(() => () => clearTimeout(modalTimerRef.current), []);
+
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
+
+  const loadUsers = useCallback(async (signal) => {
     try {
       setIsLoading(true);
-      const result = await getAllUsers({ page, limit: pageSize, search: searchText });
+      const result = await getAllUsers({ page, limit: pageSize, search: searchText }, signal);
+      if (!mountedRef.current) return;
       setUsers(result.data);
       setTotalItems(result.total);
       setTotalPages(result.lastPage || 1);
     } catch (error) {
-      alert(error.message || "ເກີດຂໍ້ຜິດພາດໃນການໂຫຼດຂໍ້ມູນ");
+      if (error?.code === "ERR_CANCELED" || error?.name === "CanceledError") return;
+      toast.error(error.message || "ເກີດຂໍ້ຜິດພາດໃນການໂຫຼດຂໍ້ມູນ");
     } finally {
-      setIsLoading(false);
+      if (mountedRef.current) setIsLoading(false);
     }
-  };
+  }, [page, pageSize, searchText]);
 
   useEffect(() => {
-    loadUsers();
-  }, [page, pageSize, searchText]);
+    const controller = new AbortController();
+    loadUsers(controller.signal);
+    return () => controller.abort();
+  }, [loadUsers]);
 
   const safePage = Math.min(Math.max(page, 1), totalPages);
 
-  const handleSearchChange = (v) => setInputText(v);
+  const handleSearchChange = useCallback((v) => setInputText(v), []);
+  const handleSearch = useCallback(() => { setSearchText(inputText); setPage(1); }, [inputText]);
+  const handlePageSizeChange = useCallback((nextSize) => { setPageSize(nextSize); setPage(1); }, []);
+  const handlePageChange = useCallback((nextPage) => { setPage(Math.min(Math.max(nextPage, 1), totalPages)); }, [totalPages]);
 
-  const handleSearch = () => {
-    setSearchText(inputText);
-    setPage(1);
-  };
-
-  const handlePageSizeChange = (nextSize) => {
-    setPageSize(nextSize);
-    setPage(1);
-  };
-
-  const handlePageChange = (nextPage) => {
-    setPage(Math.min(Math.max(nextPage, 1), totalPages));
-  };
-
-  const handleCreateUser = () => {
+  const handleCreateUser = useCallback(() => {
     setIsLoading(true);
     setEditingUser(null);
-    setTimeout(() => { setIsLoading(false); setShowFormModal(true); }, 500);
-  };
+    clearTimeout(modalTimerRef.current);
+    modalTimerRef.current = setTimeout(() => { setIsLoading(false); setShowFormModal(true); }, 500);
+  }, []);
 
-  const handleEditUser = (user) => {
+  const handleEditUser = useCallback((user) => {
     setIsLoading(true);
     setEditingUser(user);
-    setTimeout(() => { setIsLoading(false); setShowFormModal(true); }, 500);
-  };
+    clearTimeout(modalTimerRef.current);
+    modalTimerRef.current = setTimeout(() => { setIsLoading(false); setShowFormModal(true); }, 500);
+  }, []);
 
-  const handleCloseModal = () => {
-    setShowFormModal(false);
-    setEditingUser(null);
-  };
-
-  const handleSubmitUser = async (formData) => {
-    if (editingUser) {
-      console.log("update user", editingUser.usid, formData);
-    } else {
-      await createNewUser(formData);
-    }
+  const handleCloseModal = useCallback(() => { setShowFormModal(false); setEditingUser(null); }, []);
+  const handleSubmitUser = useCallback(async (formData) => {
+    if (!editingUser) await createNewUser(formData);
     await loadUsers();
-  };
-
-  const handleDeleteUser = async (user) => {
-    console.log("delete user", user);
-    await loadUsers();
-  };
+  }, [editingUser, loadUsers]);
+  const handleDeleteUser = useCallback(async () => loadUsers(), [loadUsers]);
 
   // ── Password modal ──────────────────────────────
-  const openPwdModal = (user) =>
-    setPwdModal({ open: true, user, newPwd: "", isSubmitting: false });
+  const openPwdModal = useCallback((user) =>
+    setPwdModal({ open: true, user, newPwd: "", isSubmitting: false }), []);
 
-  const closePwdModal = () =>
-    setPwdModal({ open: false, user: null, newPwd: "", isSubmitting: false });
+  const closePwdModal = useCallback(() =>
+    setPwdModal({ open: false, user: null, newPwd: "", isSubmitting: false }), []);
 
-  const handleUpdatePwd = async () => {
+  const handleUpdatePwd = useCallback(async () => {
     if (!pwdModal.newPwd) return;
     setPwdModal((p) => ({ ...p, isSubmitting: true }));
     try {
       await updatePwds({ usercode: pwdModal.user.usercode, pwds: pwdModal.newPwd });
       closePwdModal();
     } catch (error) {
-      alert(error.message || "ເກີດຂໍ້ຜິດພາດ");
+      toast.error(error.message || "ເກີດຂໍ້ຜິດພາດ");
       setPwdModal((p) => ({ ...p, isSubmitting: false }));
     }
-  };
+  }, [pwdModal.newPwd, pwdModal.user, closePwdModal]);
   // ────────────────────────────────────────────────
 
-  const columns = [
+  const columns = useMemo(() => [
     {
       key: "index",
       label: "ລຳດັບ",
@@ -153,17 +146,11 @@ export default function UserPage() {
             ປ່ຽນລະຫັດ
           </Button>
 
-          <Button
-            fullWidth={false} variant="ghost" size="sm"
-            onClick={() => tableRef.current?.handleDeleteClick?.(user)}
-            className="w-16 inline-flex items-center justify-center rounded-md bg-red-400 px-2 py-1 text-xs text-white hover:bg-red-500 hover:scale-100 hover:shadow-none"
-          >
-            ລົບ
-          </Button>
+          {/* Delete not supported — no API endpoint */}
         </div>
       ),
     },
-  ];
+  ], [handleEditUser, openPwdModal, tableRef]);
 
   return (
     <div className="space-y-6">
@@ -188,6 +175,7 @@ export default function UserPage() {
         onDelete={handleDeleteUser}
         onPageChange={handlePageChange}
         onPageSizeChange={handlePageSizeChange}
+        rowKey="usid"
         entityName="ຜູ້ໃຊ້"
         getEntityDisplayName={(user) => user.username}
         ref={tableRef}

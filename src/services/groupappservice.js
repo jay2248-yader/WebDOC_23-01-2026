@@ -1,65 +1,22 @@
-import { http } from "../api/http";
+import createCrudService from "./createCrudService";
 import { ENDPOINTS } from "../api/endpoints";
 
-//Read
-export async function getAllGroupapps(params = {}) {
-    const res = await http.get(ENDPOINTS.GROUPAPP.GET_ALL, { params });
+const transformPayload = (payload) => ({
+  ...(payload.gid && { gid: payload.gid }),
+  groupName: payload.groupname,
+  groupInfo: payload.groupinfo,
+});
 
-    if (!res.data?.success) {
-        throw new Error(res.data?.message || "Failed to fetch groupapps");
-    }
+const { getAll, create, update, remove } = createCrudService(
+  ENDPOINTS.GROUPAPP, "groupapp", "gid",
+  {
+    parseGetAll: (res) => res.data.message?.data || [],
+    transformCreate: transformPayload,
+    transformUpdate: transformPayload,
+  }
+);
 
-    // Adjusted to match the screenshot structure: res.data.message.data
-    return res.data.message?.data || [];
-}
-
-
-//Delete
-export async function deleteGroupapp(gid) {
-    const res = await http.delete(ENDPOINTS.GROUPAPP.DELETE, {
-        data: { gid: gid.toString() },
-    });
-
-    if (!res.data?.success) {
-        throw new Error(res.data?.message || "Failed to delete groupapp");
-    }
-
-    return res.data;
-}
-
-
-//Create
-export async function createNewGroupapp(payload) {
-    // Map to API expected format (camelCase) based on screenshot
-    const apiPayload = {
-        groupName: payload.groupname,
-        groupInfo: payload.groupinfo
-    };
-
-    const res = await http.post(ENDPOINTS.GROUPAPP.NEW, apiPayload);
-
-    if (!res.data?.success) {
-        throw new Error(res.data?.message || "Failed to create groupapp");
-    }
-
-    return res.data;
-}
-
-
-//Update
-export async function updateGroupapp(payload) {
-    // Map to API expected format (camelCase) based on screenshot
-    const apiPayload = {
-        gid: payload.gid,
-        groupName: payload.groupname,
-        groupInfo: payload.groupinfo
-    };
-
-    const res = await http.put(ENDPOINTS.GROUPAPP.UPDATE, apiPayload);
-
-    if (!res.data?.success) {
-        throw new Error(res.data?.message || "Failed to update groupapp");
-    }
-
-    return res.data;
-}
+export const getAllGroupapps = getAll;
+export const createNewGroupapp = create;
+export const updateGroupapp = update;
+export const deleteGroupapp = remove;

@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { memo, useEffect, useRef, useState, useCallback } from "react";
 import Button from "./Button";
 
-export default function ConfirmProgressDialog({
+function ConfirmProgressDialog({
   isOpen,
   status = "confirm",
   onConfirm,
@@ -21,7 +21,12 @@ export default function ConfirmProgressDialog({
   const [showCheck, setShowCheck] = useState(false);
 
   const timerRef = useRef(null);
+  const finishTimerRef = useRef(null);
   const closedRef = useRef(false);
+
+  useEffect(() => () => {
+    clearTimeout(finishTimerRef.current);
+  }, []);
 
   const clearTimer = useCallback(() => {
     if (timerRef.current) {
@@ -40,7 +45,8 @@ export default function ConfirmProgressDialog({
   const finishClose = useCallback(
     (cb) => {
       setIsClosing(true);
-      setTimeout(() => {
+      clearTimeout(finishTimerRef.current);
+      finishTimerRef.current = setTimeout(() => {
         cb?.();
         setIsClosing(false);
         resetVisualStateAsync();
@@ -215,3 +221,5 @@ export default function ConfirmProgressDialog({
     </div>
   );
 }
+
+export default memo(ConfirmProgressDialog);
