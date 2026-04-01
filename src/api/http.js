@@ -23,13 +23,18 @@ http.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor: จัดการ 401
+// Response interceptor: จัดการ 401 + แปลง AxiosError เป็น Error message ที่อ่านได้
 http.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error?.response?.status;
     if (status === 401) {
       useAuthStore.getState().logout();
+    }
+    // ดึง message จริงจาก API response แทน Axios default "Request failed with status code 4xx"
+    const apiMessage = error?.response?.data?.message;
+    if (apiMessage) {
+      return Promise.reject(new Error(apiMessage));
     }
     return Promise.reject(error);
   }

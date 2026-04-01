@@ -100,7 +100,12 @@ export default function DocumentGroupDetailsFormModal({
           placeholder="ກະລຸນາເລືອກກຸ່ມເອກະສານ"
           value={formData.dcdid}
           onChange={handleChange("dcdid")}
-          options={groups.items.map((g) => ({ value: String(g.dcdid), label: g.docgroupname }))}
+          options={groups.items.map((g) => ({
+            value: String(g.dcdid),
+            label: g.documentcategorymodel?.doccategoryname
+              ? `${g.docgroupname} - ${g.documentcategorymodel.doccategoryname}`
+              : g.docgroupname,
+          }))}
           error={errors.dcdid}
           hasError={!!errors.dcdid}
           searchable

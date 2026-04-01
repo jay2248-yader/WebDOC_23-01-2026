@@ -16,6 +16,7 @@ export default function DocumentDetailFormModal({
 
   const {
     formData,
+    setFormData,
     errors,
     isClosing,
     submitDialog,
@@ -36,6 +37,7 @@ export default function DocumentDetailFormModal({
       req_title: "",
       req_subtitle: "",
       req_moreinfo: "",
+      file: null,
     },
     validate: (data) => {
       const e = {};
@@ -43,6 +45,7 @@ export default function DocumentDetailFormModal({
       if (!data.req_title) e.req_title = "ກະລຸນາປ້ອນຫົວຂໍ້";
       if (!data.req_subtitle) e.req_subtitle = "ກະລຸນາປ້ອນຫົວຂໍ້ຍ່ອຍ";
       if (!data.req_moreinfo) e.req_moreinfo = "ກະລຸນາປ້ອນລາຍລະອຽດເພີ່ມເຕີມ";
+      if (!data.file) e.file = "ກະລຸນາເລືອກໄຟລ໌";
       return e;
     },
   });
@@ -110,6 +113,26 @@ export default function DocumentDetailFormModal({
               className={`${inputCls("req_moreinfo")} min-h-30 resize-none`}
             />
             {errors.req_moreinfo && <p className="mt-1 text-xs text-red-500">{errors.req_moreinfo}</p>}
+          </div>
+        </div>
+
+        <div className="flex items-start gap-4">
+          <label className="w-32 shrink-0 text-sm font-medium text-gray-700 pt-2.5">
+            ໄຟລ໌ <span className="text-red-500">*</span>
+          </label>
+          <div className="flex-1">
+            <input
+              type="file"
+              accept="image/*,.pdf"
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, file: e.target.files[0] || null }))
+              }
+              className={`w-full rounded-lg border ${errors.file ? "border-red-500" : "border-blue-300"} bg-white px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 file:mr-3 file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-1 file:text-sm file:text-blue-700`}
+            />
+            {formData.file && (
+              <p className="mt-1 text-xs text-gray-500">{formData.file.name}</p>
+            )}
+            {errors.file && <p className="mt-1 text-xs text-red-500">{errors.file}</p>}
           </div>
         </div>
 

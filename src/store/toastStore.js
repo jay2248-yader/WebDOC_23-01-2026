@@ -1,3 +1,19 @@
+/**
+ * toastStore.js
+ *
+ * Global Toast notification system — ใช้ Zustand
+ *
+ * การใช้งาน (ใช้ได้ทั้งใน และนอก React component):
+ *   import { toast } from "../store/toastStore"
+ *   toast.success("บันทึกสำเร็จ")
+ *   toast.error("เกิดข้อผิดพลาด")
+ *   toast.info("ข้อมูลทั่วไป")
+ *
+ * Toast จะหายเองอัตโนมัติหลัง 3500ms (แก้ได้โดยส่ง duration เป็น argument ที่ 2)
+ * ถ้าต้องการ dismiss เอง → useToastStore.getState().dismiss(id)
+ *
+ * UI ที่แสดง toast อยู่ใน ToastContainer component (ใน MainLayout)
+ */
 import { create } from "zustand";
 
 let _nextId = 0;

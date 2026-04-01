@@ -1,3 +1,10 @@
+/**
+ * LoginBrand
+ *
+ * ส่วนซ้ายของหน้า Login — แสดงโลโก้และชื่อระบบ
+ * ถ้าต้องการเปลี่ยนโลโก้ → แทนที่ไฟล์ CSC_LOGO_HD.webp ใน assets/Logo/
+ * ถ้าต้องการเปลี่ยนชื่อระบบ → แก้ text ใน h2
+ */
 import logo from "../../assets/Logo/CSC_LOGO_HD.webp";
 
 export default function LoginBrand() {

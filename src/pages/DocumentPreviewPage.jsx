@@ -4,6 +4,8 @@ import { useLocation } from "react-router-dom";
 import TitleTableModal from "../components/documents/TitleTableModal";
 
 import { getDocumentDetailsByDocumentId } from "../services/documentdetailsservice";
+import { getApprovalDetailsByRqid } from "../services/approvaldocumentservice";
+import ApprovalFlowPanel from "../components/document-preview/ApprovalFlowPanel";
 import { useDocumentEditStore } from "../store/documentEditStore";
 
 import PageShell from "../components/document-preview/PageShell";
@@ -25,17 +27,41 @@ export default function DocumentPreviewPage() {
   const location = useLocation();
   const docData = useMemo(() => location.state?.document || {}, [location.state]);
 
+  const rqdid = docData.rqdid;
+
   const [showTitleTableModal, setShowTitleTableModal] = useState(false);
-  const [titleTableSections, setTitleTableSections] = useState([]);
-  const [reqTo, setReqTo] = useState(docData.req_to || "");
-  const [reqReason, setReqReason] = useState(docData.req_reason || "");
-  const [references, setReferences] = useState(docData.references || [""]);
-  const [bodyParagraph, setBodyParagraph] = useState(docData.body_paragraph || "");
-  const [remark, setRemark] = useState(docData.remark || "");
+  const [titleTableSections, setTitleTableSections] = useState(() => {
+    const e = useDocumentEditStore.getState().edits[rqdid];
+    return e?.titleTableSections ?? [];
+  });
+  const [reqTo, setReqTo] = useState(() => {
+    const e = useDocumentEditStore.getState().edits[rqdid];
+    return e?.reqTo ?? docData.req_to ?? "";
+  });
+  const [reqReason, setReqReason] = useState(() => {
+    const e = useDocumentEditStore.getState().edits[rqdid];
+    return e?.reqReason ?? docData.req_reason ?? "";
+  });
+  const [references, setReferences] = useState(() => {
+    const e = useDocumentEditStore.getState().edits[rqdid];
+    return e?.references ?? docData.references ?? [""];
+  });
+  const [bodyParagraph, setBodyParagraph] = useState(() => {
+    const e = useDocumentEditStore.getState().edits[rqdid];
+    return e?.bodyParagraph ?? docData.body_paragraph ?? "";
+  });
+  const [remark, setRemark] = useState(() => {
+    const e = useDocumentEditStore.getState().edits[rqdid];
+    return e?.remark ?? docData.remark ?? "";
+  });
   const [documentDetails, setDocumentDetails] = useState([]);
-  const [_loadingDetails, setLoadingDetails] = useState(!!docData.rqdid);
-  const [selectedDetailId, setSelectedDetailId] = useState(null);
-  const [extraPages, setExtraPages] = useState([]);
+  const [_loadingDetails, setLoadingDetails] = useState(!!rqdid);
+  const [approvalDetails, setApprovalDetails] = useState([]);
+  const [loadingApproval, setLoadingApproval] = useState(!!rqdid);
+  const [extraPages, setExtraPages] = useState(() => {
+    const e = useDocumentEditStore.getState().edits[rqdid];
+    return e?.extraPages ?? [];
+  });
   const [compactLevel, setCompactLevel] = useState(0); // 0-100
   const headerH = HEADER_HEIGHT_PX - (HEADER_HEIGHT_PX - COMPACT_HEADER_HEIGHT_PX) * (compactLevel / 100);
   const footerH = FOOTER_HEIGHT_PX - (FOOTER_HEIGHT_PX - COMPACT_FOOTER_HEIGHT_PX) * (compactLevel / 100);
@@ -75,7 +101,6 @@ export default function DocumentPreviewPage() {
   });
 
   const {
-    edits,
     setReqTo: storeSetReqTo,
     setReqReason: storeSetReqReason,
     setReferences: storeSetReferences,
@@ -85,29 +110,16 @@ export default function DocumentPreviewPage() {
     setExtraPages: storeSetExtraPages,
   } = useDocumentEditStore();
 
-  // ── Detail selection ──────────────────────────────────────────────────────────
-  const _handleSelectDetail = useCallback((detail) => {
-    if (selectedDetailId === detail.rddid) {
-      setSelectedDetailId(null);
-      setReqReason(docData.req_reason || "");
-      setReqTo(docData.req_to || "");
-      setReferences(docData.references || [""]);
-      setBodyParagraph(docData.body_paragraph || "");
-      setRemark(docData.remark || "");
-      setTitleTableSections([]);
-      setExtraPages([]);
-    } else {
-      setSelectedDetailId(detail.rddid);
-      const e = edits[detail.rddid] || {};
-      setReqReason(e.reqReason !== undefined ? e.reqReason : detail.req_title || "");
-      setReqTo(e.reqTo !== undefined ? e.reqTo : detail.req_subtitle || "");
-      setReferences(e.references !== undefined ? e.references : detail.references || docData.references || [""]);
-      setBodyParagraph(e.bodyParagraph !== undefined ? e.bodyParagraph : detail.req_moreinfo || "");
-      setRemark(e.remark !== undefined ? e.remark : "");
-      setTitleTableSections(e.titleTableSections !== undefined ? e.titleTableSections : []);
-      setExtraPages(e.extraPages !== undefined ? e.extraPages : []);
-    }
-  }, [selectedDetailId, docData, edits]);
+  // ── Fetch approval details ────────────────────────────────────────────────────
+  const fetchApprovalDetails = useCallback(() => {
+    if (!docData.rqdid) return;
+    getApprovalDetailsByRqid(docData.rqdid)
+      .then((res) => setApprovalDetails(res.data))
+      .catch((err) => console.error("[ApprovalDetails] error:", err))
+      .finally(() => setLoadingApproval(false));
+  }, [docData.rqdid]);
+
+  useEffect(() => { fetchApprovalDetails(); }, [fetchApprovalDetails]);
 
   // ── Fetch document details ────────────────────────────────────────────────────
   useEffect(() => {
@@ -127,7 +139,7 @@ export default function DocumentPreviewPage() {
       ta.style.height = "auto";
       ta.style.height = ta.scrollHeight + "px";
     });
-  }, [selectedDetailId, bodyChunks, remark]);
+  }, [bodyChunks, remark]);
 
   // (Print handlers removed — textareas keep their on-screen heights during print)
 
@@ -151,8 +163,8 @@ export default function DocumentPreviewPage() {
     setBodyChunks(newChunks);
     const newFull = newChunks.join("");
     setBodyParagraph(newFull);
-    if (selectedDetailId) storeSetBodyParagraph(selectedDetailId, newFull);
-  }, [bodyChunks, selectedDetailId, storeSetBodyParagraph, setBodyChunks]);
+    if (rqdid) storeSetBodyParagraph(rqdid, newFull);
+  }, [bodyChunks, rqdid, storeSetBodyParagraph, setBodyChunks]);
 
   const handleBodyKeyDown = useCallback((e, chunkIdx) => {
     if (e.key !== "Tab") return;
@@ -173,13 +185,15 @@ export default function DocumentPreviewPage() {
   // page1 + overflow pages + table continuation pages (slice(1) ไม่รวม chunk[0] ที่อยู่ใน body page สุดท้าย)
   const remarkOverflowCount = remarkChunks ? Math.max(0, remarkChunks.length - 1) : 0;
   const renderedPageCount = bodyChunks.length + Math.max(0, tablePageChunks.length - 1) + remarkOverflowCount;
-  const closingProps = useMemo(() => ({ remark, setRemark, selectedDetailId, storeSetRemark }),
-    [remark, selectedDetailId, storeSetRemark]);
+  const creatorName = docData.createBy?.username || "";
+  const closingProps = useMemo(() => ({ remark, setRemark, storeKey: rqdid, storeSetRemark, creatorName }),
+    [remark, rqdid, storeSetRemark, creatorName]);
   const belowBodyProps = useMemo(() => ({
     titleTableSections, remark, setRemark,
-    selectedDetailId, storeSetRemark,
+    storeKey: rqdid, storeSetRemark,
     onOpenTitleTable: openTitleTableModal,
-  }), [titleTableSections, remark, selectedDetailId, storeSetRemark, openTitleTableModal]);
+    creatorName,
+  }), [titleTableSections, remark, rqdid, storeSetRemark, openTitleTableModal, creatorName]);
 
   // Props เพิ่มเติมสำหรับ remark split (ถ้า remarkChunks !== null)
   const remarkSplitProps = remarkChunks ? {
@@ -209,12 +223,36 @@ export default function DocumentPreviewPage() {
         <ClosingContent {...closingProps} interactive={false} />
       </div>
 
-      <DocumentActionBar compactLevel={compactLevel} onCompactLevelChange={setCompactLevel} />
+      <DocumentActionBar
+        compactLevel={compactLevel}
+        onCompactLevelChange={setCompactLevel}
+        reqFile={docData.req_file}
+        rqdid={rqdid}
+      />
 
       <div className="flex items-start gap-6 px-6 print:block print:px-0">
 
-        {/* ══════════════════ LEFT: Pages ══════════════════ */}
+        {/* ══════════════════ LEFT: ApprovalFlowPanel ══════════════════ */}
+        <div className="print:hidden w-72 shrink-0 sticky top-6 self-start max-h-[calc(100vh-5rem)] overflow-y-auto">
+          <ApprovalFlowPanel
+            docData={docData}
+            approvalItems={approvalDetails}
+            loading={loadingApproval}
+            onApproved={fetchApprovalDetails}
+          />
+        </div>
+
+        {/* ══════════════════ CENTER: Pages / PDF ══════════════════ */}
         <div className="flex-1 flex flex-col gap-6 print:gap-0">
+          {docData.req_file && (
+            <iframe
+              src={`http://30.30.1.222:65533/${docData.req_file}`}
+              className="w-full rounded-lg shadow-lg bg-white"
+              style={{ height: "calc(100vh - 80px)", minHeight: 500 }}
+              title={docData.req_file}
+            />
+          )}
+          {!docData.req_file && (<>
 
           {/* ════ PAGE 1 ════ */}
           <div className="relative max-w-[210mm] mx-auto w-full bg-white shadow-lg print:shadow-none print:mx-0 print:max-w-none print:p-0"
@@ -233,7 +271,7 @@ export default function DocumentPreviewPage() {
                   <div className="flex">
                     <span className="font-bold text-black whitespace-nowrap">ຮຽນ :&nbsp;</span>
                     <textarea value={reqTo}
-                      onChange={(e) => { setReqTo(e.target.value); if (selectedDetailId) storeSetReqTo(selectedDetailId, e.target.value); }}
+                      onChange={(e) => { setReqTo(e.target.value); if (rqdid) storeSetReqTo(rqdid, e.target.value); }}
                       placeholder="ພິມຊື່ຜູ້ຮັບ..." rows={1}
                       onInput={(e) => { e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }}
                       className="flex-1 border-none outline-none bg-transparent text-gray-800 resize-none overflow-hidden break-all print:p-0" />
@@ -243,7 +281,7 @@ export default function DocumentPreviewPage() {
                   <div className="flex">
                     <span className="font-bold text-black whitespace-nowrap">ເລື່ອງ :&nbsp;</span>
                     <textarea value={reqReason}
-                      onChange={(e) => { setReqReason(e.target.value); if (selectedDetailId) storeSetReqReason(selectedDetailId, e.target.value); }}
+                      onChange={(e) => { setReqReason(e.target.value); if (rqdid) storeSetReqReason(rqdid, e.target.value); }}
                       placeholder="ພິມເລື່ອງ..." rows={1}
                       onInput={(e) => { e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }}
                       className="flex-1 border-none outline-none bg-transparent text-gray-800 resize-none overflow-hidden break-all print:p-0" />
@@ -258,7 +296,7 @@ export default function DocumentPreviewPage() {
                           <textarea value={item}
                             onChange={(e) => {
                               const updated = [...references]; updated[index] = e.target.value;
-                              setReferences(updated); if (selectedDetailId) storeSetReferences(selectedDetailId, updated);
+                              setReferences(updated); if (rqdid) storeSetReferences(rqdid, updated);
                             }}
                             placeholder="ພິມອີງຕາມ..." rows={1}
                             onInput={(e) => { e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }}
@@ -266,7 +304,7 @@ export default function DocumentPreviewPage() {
                           {references.length > 1 && (
                             <button onClick={() => {
                               const updated = references.filter((_, i) => i !== index);
-                              setReferences(updated); if (selectedDetailId) storeSetReferences(selectedDetailId, updated);
+                              setReferences(updated); if (rqdid) storeSetReferences(rqdid, updated);
                             }} className="text-red-400 hover:text-red-600 ml-1 print:hidden">✕</button>
                           )}
                         </li>
@@ -274,7 +312,7 @@ export default function DocumentPreviewPage() {
                     </ul>
                     <button onClick={() => {
                       const updated = [...references, ""];
-                      setReferences(updated); if (selectedDetailId) storeSetReferences(selectedDetailId, updated);
+                      setReferences(updated); if (rqdid) storeSetReferences(rqdid, updated);
                     }} className="text-blue-500 hover:text-blue-700 text-xs mt-1 print:hidden">
                       + ເພີ່ມອີງຕາມ
                     </button>
@@ -404,7 +442,7 @@ export default function DocumentPreviewPage() {
             <button
               onClick={() => {
                 const updated = [...extraPages, { id: Date.now(), body: "" }];
-                setExtraPages(updated); if (selectedDetailId) storeSetExtraPages(selectedDetailId, updated);
+                setExtraPages(updated); if (rqdid) storeSetExtraPages(rqdid, updated);
               }}
               className="flex items-center gap-2 text-[#0F75BC] border-2 border-dashed border-[#0F75BC] px-4 py-2 rounded-lg text-sm hover:bg-blue-50 transition-colors"
             >
@@ -427,7 +465,7 @@ export default function DocumentPreviewPage() {
                     <button
                       onClick={() => {
                         const updated = extraPages.filter((_, i) => i !== idx);
-                        setExtraPages(updated); if (selectedDetailId) storeSetExtraPages(selectedDetailId, updated);
+                        setExtraPages(updated); if (rqdid) storeSetExtraPages(rqdid, updated);
                       }}
                       className="text-red-400 hover:text-red-600 text-sm print:hidden">
                       ລົບໜ້ານີ້
@@ -438,7 +476,7 @@ export default function DocumentPreviewPage() {
                       value={page.body}
                       onChange={(e) => {
                         const updated = extraPages.map((p, i) => i === idx ? { ...p, body: e.target.value } : p);
-                        setExtraPages(updated); if (selectedDetailId) storeSetExtraPages(selectedDetailId, updated);
+                        setExtraPages(updated); if (rqdid) storeSetExtraPages(rqdid, updated);
                       }}
                       placeholder="ພິມເນື້ອໃນ..." rows={10}
                       onInput={(e) => { e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }}
@@ -449,7 +487,7 @@ export default function DocumentPreviewPage() {
                         const spaces = "        ";
                         const newValue = page.body.substring(0, start) + spaces + page.body.substring(end);
                         const updated = extraPages.map((p, i) => i === idx ? { ...p, body: newValue } : p);
-                        setExtraPages(updated); if (selectedDetailId) storeSetExtraPages(selectedDetailId, updated);
+                        setExtraPages(updated); if (rqdid) storeSetExtraPages(rqdid, updated);
                         requestAnimationFrame(() => { e.target.selectionStart = e.target.selectionEnd = start + spaces.length; });
                       }}
                       style={{ textIndent: "1.6rem" }}
@@ -459,11 +497,12 @@ export default function DocumentPreviewPage() {
               </PageShell>
             </div>
           ))}
+          </>)}
 
         </div>
 
         {/* ══════════════════ RIGHT: Details panel ══════════════════ */}
-        <div className="print:hidden w-75 shrink-0 sticky top-6 self-start">
+        <div className="print:hidden w-75 shrink-0 sticky top-6 self-start flex flex-col gap-3">
           <DocumentInfoPanel
             document={docData}
             approvalLevels={documentDetails.map((d, i) => ({
@@ -484,7 +523,7 @@ export default function DocumentPreviewPage() {
         onClose={() => setShowTitleTableModal(false)}
         onSave={(sections) => {
           setTitleTableSections(sections);
-          if (selectedDetailId) storeSetTitleTableSections(selectedDetailId, sections);
+          if (rqdid) storeSetTitleTableSections(rqdid, sections);
         }}
         initialSections={titleTableSections}
       />

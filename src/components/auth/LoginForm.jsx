@@ -1,3 +1,19 @@
+/**
+ * LoginForm
+ *
+ * ฟอร์ม Login — รับ Employee ID และ Password
+ * Logic ทั้งหมด (validation, API call, state) อยู่ใน useLogin hook
+ * Component นี้รับผิดชอบแค่ UI + navigation หลัง login สำเร็จ
+ *
+ * Flow:
+ *   1. user กรอก employeeId + password
+ *   2. กด submit → e.preventDefault() → เรียก handleFormSubmit()
+ *   3. สำเร็จ → navigate('/dashboard')
+ *   4. ไม่สำเร็จ → แสดง error ใต้ฟอร์ม
+ *
+ * ถ้าต้องการเพิ่ม field ใหม่ → เพิ่มใน useLogin ด้วย (state + validation)
+ * ถ้าต้องการเปลี่ยนหน้า redirect หลัง login → แก้ navigate('/dashboard')
+ */
 import useLogin from "../../hooks/useLogin";
 import { useNavigate } from "react-router-dom";
 import FormInput from "../common/FormInput";
@@ -24,7 +40,7 @@ export default function LoginForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const success = await handleFormSubmit(e);
+    const success = await handleFormSubmit();
 
     if (success) {
       // Navigate to dashboard (auth already handled in useLogin)

@@ -6,12 +6,12 @@ import DocumentFormModal from "../components/documents/DocumentFormModal";
 import DocumentDetailModal from "../components/documents/DocumentDetailModal";
 import DocumentDetailFormModal from "../components/documents/DocumentDetailFormModal";
 import LoadingDialog from "../components/common/LoadingDialog";
-import { getAllDocuments, createNewDocument } from "../services/documentservice";
-import { useAuthStore } from "../store/authstore";
+import { getAllDocuments, createNewDocument, successFinishedDocument, uploadDocumentFile } from "../services/documentservice";
+import { createDocumentDetails, getDocumentDetailsByDocumentId } from "../services/documentdetailsservice";
+
 
 export default function DocumentsPage() {
     const navigate = useNavigate();
-    const user = useAuthStore((state) => state.user);
 
     const [documents, setDocuments] = useState([]);
     const [totalItems, setTotalItems] = useState(0);
@@ -71,42 +71,39 @@ export default function DocumentsPage() {
     const handleCloseModal = useCallback(() => { setShowFormModal(false); setEditingDocument(null); }, []);
     const handleDeleteDocument = useCallback(async () => { await loadDocuments(undefined, true); }, [loadDocuments]);
 
+    const handleOpenUpload = useCallback((doc) => {
+        setDetailFormDocument(doc);
+        setShowDetailFormModal(true);
+    }, []);
+
     const handleSubmitDetail = useCallback(async (formData) => {
-        try {
-            // 1. สร้างเอกสารใหม่ก่อนโดยดึงข้อมูลจาก store
-            const documentPayload = {
-                doccategoryid: 1, // ค่าคงที่ไปก่อน เพราะยังไม่มี api
-                req_user: user?.usid || 1,
-                req_to: formData.req_to, // จาก form input
-                req_reason: "Request", // ต้องมีค่า
-                branchid: user?.brid || 1,
-                departmentid: 1,
-                boardId: 1, // ใช้ boardId ไม่ใช่ boardid
-                totalmoney: 0,
-            };
+        const { file, rqdid, ...detailData } = formData;
 
-            const result = await createNewDocument(documentPayload);
+        // 1. สร้าง document details
+        await createDocumentDetails({ rqdid: parseInt(rqdid), ...detailData });
 
-            // 2. ได้ rqdid จากเอกสารที่สร้างใหม่
-            const newDocument = result.data_id?.fn_newrequestdoc || result.data_id || result.data || result;
-            const _rqdid = newDocument?.rqdid;
+        // 2. API ไม่ return rddid → fetch details แล้วดึง rddid ล่าสุด
+        const detailsResult = await getDocumentDetailsByDocumentId(String(rqdid));
+        const details = detailsResult.data_id?.data || [];
+        const rddid = details[details.length - 1]?.rddid;
 
-            // TODO: 3. เพิ่มรายละเอียดเอกสาร เมื่อมี API แล้ว
-            // await createDocumentDetail({ rqdid, ...formData });
-
-            // Reload documents
-            await loadDocuments(undefined);
-        } catch (error) {
-            console.error("Error creating document:", error);
-            throw error;
+        // 3. Upload file ด้วยชื่อ rddid_rqdid.ext
+        if (file && rddid) {
+            await uploadDocumentFile(file, rddid, rqdid);
         }
-    }, [user, loadDocuments]);
+
+        await loadDocuments(undefined, true);
+    }, [loadDocuments]);
 
     const handleSubmitDocument = useCallback(async (formData) => {
         if (editingDocument) {
             // TODO: await updateDocument({ rqdid: editingDocument.rqdid, ...formData });
         } else {
-            await createNewDocument(formData);
+            const result = await createNewDocument(formData);
+            const rqdid = result.data_id?.fn_newrequestdoc?.rqdid;
+            if (rqdid) {
+                await successFinishedDocument(rqdid);
+            }
         }
         await loadDocuments(undefined, true);
     }, [editingDocument, loadDocuments]);
@@ -182,6 +179,16 @@ export default function DocumentsPage() {
                         fullWidth={false}
                         variant="ghost"
                         size="sm"
+                        onClick={() => handleOpenUpload(doc)}
+                        className="w-16 inline-flex items-center justify-center rounded-md bg-green-200 px-2 py-1 text-xs text-green-700 hover:bg-green-50 hover:scale-100 hover:shadow-none"
+                    >
+                        ອັບໂຫຼດ
+                    </Button>
+
+                    <Button
+                        fullWidth={false}
+                        variant="ghost"
+                        size="sm"
                         onClick={() => handlePreviewDocument(doc)}
                         className="w-16 inline-flex items-center justify-center rounded-md bg-orange-200 px-2 py-1 text-xs text-orange-700 hover:bg-orange-50 hover:scale-100 hover:shadow-none"
                     >
@@ -210,7 +217,7 @@ export default function DocumentsPage() {
                 </div>
             ),
         },
-    ], [handlePreviewDocument, handleEditDocument, tableRef]);
+    ], [handlePreviewDocument, handleEditDocument, handleOpenUpload, tableRef]);
 
     return (
         <div className="space-y-6">

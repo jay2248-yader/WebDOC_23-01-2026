@@ -61,11 +61,14 @@ export const ENDPOINTS = {
 
   DOCUMENTS: {
     GET_ALL: "/api/requestdocument/getrequestdocumentAll",
-    NEW: "/api/requestdocument/newrequestdocument"
+    NEW: "/api/requestdocument/newrequestdocument",
+    SUCCESS_FINISHED: "/api/requestdocument/successfinishedrequestdocument",
+    UPLOAD: "/api/requestdocument/upload"
   },
 
   DOCUMENT_GROUP: {
     GET_ALL: "/api/documentgroup/getAllDocumentGroup",
+    GET_BY_CATEGORY: "/api/documentgroup/getDocumentGroupByGroupCategoryID",
     NEW: "/api/documentgroup/newDocumentGroup",
     DELETE: "/api/documentgroup/deleteDocumentGroup",
     UPDATE: "/api/documentgroup/updateDocumentGroup"
@@ -74,6 +77,7 @@ export const ENDPOINTS = {
 
   DOCUMENT_GROUP_DETAILS: {
     GET_ALL: "/api/documentgroupdetails/getAllDocumentGroupDetails",
+    GET_BY_DOCGROUP: "/api/documentgroupdetails/getDoumentGroupDetailsByDocgroupID",
     NEW: "/api/documentgroupdetails/newDocumentGroupDetails",
     DELETE: "/api/documentgroupdetails/deleteDocumentGroupDetails",
     UPDATE: "/api/documentgroupdetails/updateDocumentGroupDetails"
@@ -82,6 +86,13 @@ export const ENDPOINTS = {
   DOCUMENT_DETAILS: {
     GET_ALL: "/api/requestdocumentdetails/getrequestdocumentdetailsByDocumentId",
     NEW: "/api/requestdocumentdetails/newrequestdocumentdetails"
+  },
+
+  APPROVAL_DOCUMENT: {
+    GET_BY_RQID: "/api/approvaldocument/displayapprovealdetailsrequestbyRqid",
+    APPROVE: "/api/approvaldocument/approverequestdocument",
+    REJECT: "/api/approvaldocument/rejectrequestdocument",
+    EDIT_REQUEST_DETAILS: "/api/approvaldocument/editrequestdocumentdetails",
   }
 };
 

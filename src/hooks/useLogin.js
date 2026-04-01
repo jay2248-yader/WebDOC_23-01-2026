@@ -1,4 +1,23 @@
-import { useState, useRef } from "react";
+/**
+ * useLogin
+ *
+ * Hook สำหรับ Login form — จัดการ state และ logic ทั้งหมด
+ *
+ * Returns:
+ *   employeeId, password          — ค่าใน input
+ *   showPassword                  — toggle แสดง/ซ่อน password
+ *   loading                       — true ขณะ call API
+ *   error                         — error message จาก API
+ *   fieldErrors                   — validation error แยกต่อ field
+ *   passwordInputRef              — ref สำหรับ focus password input เมื่อกด Enter ที่ employeeId
+ *   handleEmployeeIdChange        — onChange handler (กรอง alphanumeric + จำกัด 20 ตัว)
+ *   handlePasswordChange          — onChange handler (กรอง alphanumeric + จำกัด 20 ตัว)
+ *   handleEmployeeIdKeyDown       — กด Enter ที่ employeeId → focus ไปที่ password
+ *   handleSubmit                  — validate + call API + setAuth ถ้าสำเร็จ, return true/false
+ *
+ * หมายเหตุ: handleSubmit ไม่รับ DOM event — component รับผิดชอบเรียก e.preventDefault() เอง
+ */
+import { useState, useRef, useMemo } from "react";
 import { createInputHandler } from "../utils/validation";
 import { loginUser } from "../services/authservice";
 import { useAuthStore } from "../store/authstore";
@@ -22,15 +41,13 @@ export default function useLogin() {
   const setAuth = useAuthStore((state) => state.setAuth);
 
   // ใช้ createInputHandler utility แทนการเขียน validation ซ้ำ
-  const handleEmployeeIdChange = createInputHandler(setEmployeeId, {
-    maxLength: 20,
-    alphanumericOnly: true,
-  });
+  const handleEmployeeIdChange = useMemo(() =>
+    createInputHandler(setEmployeeId, { maxLength: 20, alphanumericOnly: true }),
+  []);
 
-  const handlePasswordChange = createInputHandler(setPassword, {
-    maxLength: 20,
-    alphanumericOnly: true,
-  });
+  const handlePasswordChange = useMemo(() =>
+    createInputHandler(setPassword, { maxLength: 20, alphanumericOnly: true }),
+  []);
 
   // ฟังก์ชันจัดการเมื่อกด Enter ที่ช่อง Employee ID
   const handleEmployeeIdKeyDown = (e) => {
@@ -40,8 +57,7 @@ export default function useLogin() {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setError("");
     setFieldErrors({ employeeId: "", password: "" });
 
@@ -78,8 +94,8 @@ export default function useLogin() {
 
       // Return success
       return true;
-    } catch (err) {
-      setError(err.message || "ລະຫັດພະນັກງານ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ");
+    } catch {
+      setError("ລະຫັດພະນັກງານ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ");
       return false;
     } finally {
       setLoading(false);

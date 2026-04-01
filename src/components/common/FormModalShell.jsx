@@ -2,8 +2,24 @@ import { memo } from "react";
 import ConfirmProgressDialog from "./ConfirmProgressDialog";
 
 /**
- * FormModalShell — shared overlay + animated container + ConfirmProgressDialog
- * for every FormModal in the app.
+ * FormModalShell
+ *
+ * กรอบ Modal มาตรฐานที่ทุก FormModal ในระบบใช้ร่วมกัน ประกอบด้วย:
+ *   1. Overlay (backdrop blur) — คลิกนอก modal เพื่อปิด
+ *   2. Card container — มี animation slideUp/slideDown
+ *   3. ConfirmProgressDialog — dialog ยืนยัน/loading/success ก่อน submit
+ *
+ * Props:
+ *   shouldRender   — render modal ไว้ใน DOM (true ขณะ open หรือ closing animation)
+ *   isClosing      — true = เล่น animation ปิด (slideDown + fadeOut)
+ *   isEditing      — true = mode แก้ไข, false = mode สร้าง (กำหนดข้อความ dialog)
+ *   entityName     — ชื่อ entity ภาษาลาว เช่น "ຜູ້ໃຊ້", "ສາຂາ"
+ *   displayName    — ชื่อ item ที่แสดงใน confirm dialog เช่น username
+ *   submitDialog   — { open, status } จาก useFormModal
+ *   maxWidth       — ความกว้าง card (default: "max-w-md")
+ *   children       — เนื้อหา form ด้านใน
+ *
+ * ถ้าต้องการเปลี่ยนขนาด modal → ส่ง maxWidth prop เช่น maxWidth="max-w-lg"
  */
 function FormModalShell({
   shouldRender,

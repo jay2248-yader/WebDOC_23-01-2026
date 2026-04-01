@@ -1,3 +1,13 @@
+/**
+ * AuthLayout
+ *
+ * Layout สำหรับหน้า Authentication (Login, ฯลฯ)
+ * แสดง background image เต็มหน้าจอ + card กลางหน้า (glass-morphism)
+ * card แบ่งเป็น 2 คอลัมน์บน md ขึ้นไป (Brand | Form)
+ *
+ * ถ้าต้องการเปลี่ยน background → แก้ไฟล์ bg.svg ใน assets/blackguard/
+ * ถ้าต้องการเปลี่ยน layout card → แก้ className ใน div ด้านใน
+ */
 import bg from "../../assets/blackguard/bg.svg";
 
 export default function AuthLayout({ children }) {

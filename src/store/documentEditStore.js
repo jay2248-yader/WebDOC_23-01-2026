@@ -4,12 +4,12 @@ import { devtools, persist } from "zustand/middleware";
 const MAX_EDITS = 50; // เก็บสูงสุด 50 รายการ ป้องกัน unbounded growth
 
 // Helper: update เฉพาะ field ของ rddid ที่เปลี่ยน ไม่ spread edits ทั้ง object ถ้าค่าเดิมเหมือนกัน
-const updateField = (state, rddid, field, value) => {
-  const existing = state.edits[rddid];
+const updateField = (state, rqdid, field, value) => {
+  const existing = state.edits[rqdid];
   if (existing && existing[field] === value) return state; // skip ถ้าค่าเดิม
   const updated = {
     ...state.edits,
-    [rddid]: { ...existing, [field]: value },
+    [rqdid]: { ...existing, [field]: value },
   };
   // ถ้าเกิน limit ให้ลบ entry เก่าสุดออก
   const keys = Object.keys(updated);
@@ -25,38 +25,38 @@ export const useDocumentEditStore = create(
       (set, get) => ({
         edits: {},
 
-        setReqTo: (rddid, value) =>
-          set((state) => updateField(state, rddid, "reqTo", value)),
+        setReqTo: (rqdid, value) =>
+          set((state) => updateField(state, rqdid, "reqTo", value)),
 
-        setReqReason: (rddid, value) =>
-          set((state) => updateField(state, rddid, "reqReason", value)),
+        setReqReason: (rqdid, value) =>
+          set((state) => updateField(state, rqdid, "reqReason", value)),
 
-        setReferences: (rddid, value) =>
-          set((state) => updateField(state, rddid, "references", value)),
+        setReferences: (rqdid, value) =>
+          set((state) => updateField(state, rqdid, "references", value)),
 
-        setBodyParagraph: (rddid, value) =>
-          set((state) => updateField(state, rddid, "bodyParagraph", value)),
+        setBodyParagraph: (rqdid, value) =>
+          set((state) => updateField(state, rqdid, "bodyParagraph", value)),
 
-        setRemark: (rddid, value) =>
-          set((state) => updateField(state, rddid, "remark", value)),
+        setRemark: (rqdid, value) =>
+          set((state) => updateField(state, rqdid, "remark", value)),
 
-        setTitleTableSections: (rddid, value) =>
-          set((state) => updateField(state, rddid, "titleTableSections", value)),
+        setTitleTableSections: (rqdid, value) =>
+          set((state) => updateField(state, rqdid, "titleTableSections", value)),
 
-        setExtraPages: (rddid, value) =>
-          set((state) => updateField(state, rddid, "extraPages", value)),
+        setExtraPages: (rqdid, value) =>
+          set((state) => updateField(state, rqdid, "extraPages", value)),
 
-        getReqTo: (rddid) => get().edits[rddid]?.reqTo,
-        getReqReason: (rddid) => get().edits[rddid]?.reqReason,
-        getReferences: (rddid) => get().edits[rddid]?.references,
-        getBodyParagraph: (rddid) => get().edits[rddid]?.bodyParagraph,
-        getRemark: (rddid) => get().edits[rddid]?.remark,
-        getTitleTableSections: (rddid) => get().edits[rddid]?.titleTableSections,
-        getExtraPages: (rddid) => get().edits[rddid]?.extraPages,
+        getReqTo: (rqdid) => get().edits[rqdid]?.reqTo,
+        getReqReason: (rqdid) => get().edits[rqdid]?.reqReason,
+        getReferences: (rqdid) => get().edits[rqdid]?.references,
+        getBodyParagraph: (rqdid) => get().edits[rqdid]?.bodyParagraph,
+        getRemark: (rqdid) => get().edits[rqdid]?.remark,
+        getTitleTableSections: (rqdid) => get().edits[rqdid]?.titleTableSections,
+        getExtraPages: (rqdid) => get().edits[rqdid]?.extraPages,
 
-        clearEdit: (rddid) =>
+        clearEdit: (rqdid) =>
           set((state) => {
-            const { [rddid]: _, ...rest } = state.edits;
+            const { [rqdid]: _, ...rest } = state.edits;
             return { edits: rest };
           }),
       }),

@@ -1,3 +1,20 @@
+/**
+ * UserFormModal
+ *
+ * Modal สร้าง / แก้ไข User — ใช้ร่วมกันทั้ง 2 mode โดย prop `user`
+ *   - user = null  → mode สร้าง (แสดง field pwds)
+ *   - user = {...} → mode แก้ไข (ซ่อน field pwds, แสดง createby แบบ disabled)
+ *
+ * Dropdown ที่ใช้ useSelectPagination (search + load more):
+ *   - Department  (departmentid) → getAllDepartments
+ *   - Position    (positionid)   → getAllPositions
+ *   - Branch      (branch)       → getAllBranches
+ *
+ * กด Enter ที่ field ไหน → focus ย้ายไป field ถัดไปอัตโนมัติ (handleKeyDown)
+ *
+ * หมายเหตุ: createby ถูก auto-fill จาก authStore (username ของผู้ login อยู่)
+ * ถ้าต้องการเพิ่ม field ใหม่ → เพิ่มใน initialData + validate + JSX
+ */
 import { useRef, useEffect } from "react";
 import useFormModal from "../../hooks/useFormModal";
 import useSelectPagination from "../../hooks/useSelectPagination";

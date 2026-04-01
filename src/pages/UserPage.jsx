@@ -1,3 +1,21 @@
+/**
+ * UserPage
+ *
+ * หน้าจัดการผู้ใช้งาน — สร้าง / แก้ไข / เปลี่ยนรหัสผ่าน
+ * ไม่รองรับการลบ User เนื่องจากไม่มี API endpoint
+ *
+ * หมายเหตุ: หน้านี้ไม่ใช้ useCrudPage เนื่องจาก:
+ *   1. Search เป็น manual (ต้องกดปุ่มค้นหา ไม่ใช่ auto)
+ *   2. มี Password Modal พิเศษที่ไม่มีใน useCrudPage
+ *
+ * Flow หลัก:
+ *   - โหลดข้อมูล: loadUsers() ถูกเรียกเมื่อ page/pageSize/searchText เปลี่ยน
+ *   - สร้าง: handleCreateUser() → UserFormModal → createNewUser()
+ *   - แก้ไข: handleEditUser() → UserFormModal (ไม่มี API update — แสดงข้อมูลเดิมเท่านั้น)
+ *   - เปลี่ยนรหัสผ่าน: openPwdModal() → inline modal → updatePwds()
+ *
+ * ถ้าต้องการเพิ่ม API update user → แก้ handleSubmitUser() เพิ่ม else branch
+ */
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import GenericToolbar from "../components/common/GenericToolbar";
 import GenericDataTable, { Button } from "../components/common/GenericDataTable";

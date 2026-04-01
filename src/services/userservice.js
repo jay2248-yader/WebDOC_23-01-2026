@@ -1,3 +1,18 @@
+/**
+ * userservice.js
+ *
+ * API calls สำหรับ User
+ *
+ * Functions:
+ *   getAllUsers(params, signal)       — GET  /api/users/getAllUser        (server-side pagination)
+ *   createNewUser(payload)            — POST /api/users/newUsers
+ *   updatePwds({ usercode, pwds })    — POST /api/users/updatePwds
+ *
+ * ไม่มี: updateUser, deleteUser (ไม่มี API endpoint)
+ *
+ * หมายเหตุ: getAllUsers คืนข้อมูลจาก response.data.message (ไม่ใช่ data_id)
+ * ต่างจาก service อื่นที่ใช้ data_id
+ */
 import { http } from "../api/http";
 import { ENDPOINTS } from "../api/endpoints";
 

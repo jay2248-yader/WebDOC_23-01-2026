@@ -6,7 +6,7 @@ export async function createDocumentDetails(payload) {
   const res = await http.post(ENDPOINTS.DOCUMENT_DETAILS.NEW, payload);
 
   if (!res.data?.success) {
-    throw new Error(res.data?.statuscode || "Failed to create document details");
+    throw new Error(res.data?.message || "Failed to create document details");
   }
 
   return res.data;
@@ -17,7 +17,7 @@ export async function getDocumentDetailsByDocumentId(documentId) {
   const res = await http.post(ENDPOINTS.DOCUMENT_DETAILS.GET_ALL, { documentId });
 
   if (!res.data?.success) {
-    throw new Error(res.data?.statuscode || "Failed to get document details");
+    throw new Error(res.data?.message || "Failed to get document details");
   }
 
   return res.data;

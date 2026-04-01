@@ -5,7 +5,7 @@ import ClosingContent from "./ClosingContent";
 export default function BelowBody({
     titleTableSections,
     remark, setRemark,
-    selectedDetailId, storeSetRemark,
+    storeKey, storeSetRemark,
     onOpenTitleTable,
     interactive = true,
     partialSections = null,
@@ -13,6 +13,7 @@ export default function BelowBody({
     remarkOverride,
     showSignature = true,
     showLabel = true,
+    creatorName,
 }) {
     const sectionsToRender = partialSections !== null ? partialSections : titleTableSections;
     const showPlaceholder = titleTableSections.length === 0;
@@ -29,12 +30,13 @@ export default function BelowBody({
                 <ClosingContent
                     remark={remark}
                     setRemark={setRemark}
-                    selectedDetailId={selectedDetailId}
+                    storeKey={storeKey}
                     storeSetRemark={storeSetRemark}
                     interactive={interactive}
                     remarkOverride={remarkOverride}
                     showSignature={showSignature}
                     showLabel={showLabel}
+                    creatorName={creatorName}
                 />
             )}
         </>

@@ -1,3 +1,15 @@
+/**
+ * branchservice.js
+ *
+ * API calls สำหรับ Branch — สร้างจาก createCrudService factory
+ * idKey: "brid"
+ *
+ * Endpoints (ดูค่าจริงใน api/endpoints.js → BRANCH):
+ *   getAllBranches  — GET_ALL
+ *   createBranch   — NEW
+ *   updateBranch   — UPDATE
+ *   deleteBranch   — DELETE
+ */
 import createCrudService from "./createCrudService";
 import { ENDPOINTS } from "../api/endpoints";
 

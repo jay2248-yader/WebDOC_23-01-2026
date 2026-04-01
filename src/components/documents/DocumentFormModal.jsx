@@ -9,6 +9,7 @@ import { getAllDocumentCategories } from "../../services/documentcategoryservice
 import { getAllUsers } from "../../services/userservice";
 import { getAllBranches } from "../../services/branchservice";
 import { getAllDepartments } from "../../services/departmentservice";
+import { getAllBoards } from "../../services/boardservice";
 
 export default function DocumentFormModal({
   isOpen,
@@ -24,6 +25,7 @@ export default function DocumentFormModal({
   const users = useSelectPagination(getAllUsers);
   const branches = useSelectPagination(getAllBranches);
   const departments = useSelectPagination(getAllDepartments);
+  const boards = useSelectPagination(getAllBoards);
 
   useEffect(() => {
     if (isOpen) {
@@ -31,6 +33,7 @@ export default function DocumentFormModal({
       users.reset();
       branches.reset();
       departments.reset();
+      boards.reset();
     }
   }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -57,6 +60,7 @@ export default function DocumentFormModal({
       req_reason: document?.req_reason || "",
       branchid: document?.branchid ? String(document.branchid) : "",
       departmentid: document?.departmentid ? String(document.departmentid) : "",
+      boardId: document?.boardId ? String(document.boardId) : "",
       totalmoney: document?.totalmoney || "",
     },
     validate: (data) => {
@@ -67,6 +71,7 @@ export default function DocumentFormModal({
       if (!data.req_reason) e.req_reason = "ກະລຸນາປ້ອນເຫດຜົນ";
       if (!data.branchid) e.branchid = "ກະລຸນາເລືອກສາຂາ";
       if (!data.departmentid) e.departmentid = "ກະລຸນາເລືອກພະແນກ";
+      if (!data.boardId) e.boardId = "ກະລຸນາເລືອກພາກສ່ວນ";
       return e;
     },
     transformData: (data) => ({
@@ -76,6 +81,7 @@ export default function DocumentFormModal({
       req_reason: data.req_reason,
       branchid: parseInt(data.branchid),
       departmentid: parseInt(data.departmentid),
+      boardId: parseInt(data.boardId),
       totalmoney: data.totalmoney ? parseInt(data.totalmoney) : 0,
     }),
   });
@@ -194,6 +200,22 @@ export default function DocumentFormModal({
           hasMore={departments.hasMore}
           onLoadMore={departments.handleLoadMore}
           isLoadingMore={departments.loadingMore}
+        />
+
+        <Select
+          label="ພາກສ່ວນ"
+          theme="light"
+          placeholder="ກະລຸນາເລືອກພາກສ່ວນ"
+          value={formData.boardId}
+          onChange={handleChange("boardId")}
+          options={boards.items.map((b) => ({ value: String(b.bdid), label: b.boardtname }))}
+          error={errors.boardId}
+          hasError={!!errors.boardId}
+          searchable
+          onSearch={boards.handleSearch}
+          hasMore={boards.hasMore}
+          onLoadMore={boards.handleLoadMore}
+          isLoadingMore={boards.loadingMore}
         />
 
         <FormInput

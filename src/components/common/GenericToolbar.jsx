@@ -4,14 +4,18 @@ import FormInput from "./FormInput";
 import search from "../../assets/icon/search.svg";
 
 /**
- * Generic Toolbar component for search and create actions
- * @param {Object} props
- * @param {string} props.searchText - Current search text
- * @param {Function} props.onSearchChange - Search change handler
- * @param {Function} props.onCreate - Create button click handler
- * @param {string} props.searchPlaceholder - Placeholder text for search input
- * @param {string} props.createButtonText - Text for create button
- * @param {JSX.Element} props.createButtonIcon - Icon for create button
+ * GenericToolbar
+ *
+ * Toolbar มาตรฐานที่ทุกหน้า CRUD ใช้ร่วมกัน ประกอบด้วย:
+ *   - Search input (ซ้าย) — กด Enter หรือคลิก icon แว่นขยายเพื่อค้นหา
+ *   - ปุ่มสร้าง (ขวา) — เรียก onCreate
+ *   - extraButtons (optional) — ปุ่มเพิ่มเติมระหว่าง search กับปุ่มสร้าง
+ *
+ * Search mode:
+ *   - ถ้าส่ง onSearch → search แบบ manual (กด Enter หรือคลิก icon)
+ *   - ถ้าไม่ส่ง onSearch → search อัตโนมัติทุกครั้งที่พิมพ์ (ผ่าน onSearchChange)
+ *
+ * ถ้าต้องการเพิ่มปุ่มพิเศษ → ส่งผ่าน extraButtons prop
  */
 function GenericToolbar({
   searchText,

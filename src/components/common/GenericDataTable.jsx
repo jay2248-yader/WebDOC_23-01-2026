@@ -1,4 +1,4 @@
-import { memo, useState, forwardRef, useImperativeHandle } from "react";
+import { memo, useState, useTransition, forwardRef, useImperativeHandle } from "react";
 import DataTable from "./DataTable";
 import Button from "./Button";
 import ConfirmProgressDialog from "./ConfirmProgressDialog";
@@ -26,30 +26,37 @@ const GenericDataTable = memo(forwardRef(function GenericDataTable(
   },
   ref
 ) {
-  const [deleteDialog, setDeleteDialog] = useState({
-    open: false,
-    status: "confirm",
-    item: null,
-  });
+  const [deleteDialog, setDeleteDialog] = useState({ open: false, item: null });
+  const [deleteSucceeded, setDeleteSucceeded] = useState(false);
+
+  // useTransition: tracks async delete — replaces manual status:"loading" state
+  const [isDeletePending, startDeleteTransition] = useTransition();
+
+  // Derive status from atomic states + isPending (no manual state machine)
+  const deleteStatus = isDeletePending ? "loading" : deleteSucceeded ? "success" : "confirm";
 
   const handleDeleteClick = (item) => {
-    setDeleteDialog({ open: true, status: "confirm", item });
+    setDeleteDialog({ open: true, item });
+    setDeleteSucceeded(false);
   };
 
   useImperativeHandle(ref, () => ({ handleDeleteClick }));
 
-  const handleConfirmDelete = async () => {
-    setDeleteDialog((prev) => ({ ...prev, status: "loading" }));
-    await onDelete(deleteDialog.item);
-    setDeleteDialog((prev) => ({ ...prev, status: "success" }));
+  const handleConfirmDelete = () => {
+    startDeleteTransition(async () => {
+      await onDelete(deleteDialog.item);
+      setDeleteSucceeded(true);
+    });
   };
 
   const handleCancelDelete = () => {
-    setDeleteDialog({ open: false, status: "confirm", item: null });
+    setDeleteDialog({ open: false, item: null });
+    setDeleteSucceeded(false);
   };
 
   const handleCloseDelete = () => {
-    setDeleteDialog({ open: false, status: "confirm", item: null });
+    setDeleteDialog({ open: false, item: null });
+    setDeleteSucceeded(false);
   };
 
   const renderBody = () => {
@@ -166,7 +173,7 @@ const GenericDataTable = memo(forwardRef(function GenericDataTable(
 
       <ConfirmProgressDialog
         isOpen={deleteDialog.open}
-        status={deleteDialog.status}
+        status={deleteStatus}
         title="ຢືນຢັນການລົບ"
         message={
           <>

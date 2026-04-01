@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useTransition } from "react";
 import { toast } from "../store/toastStore";
 
 /**
@@ -23,10 +23,17 @@ export default function useFormModal({
   const [formData, setFormData] = useState(initialData);
   const [errors, setErrors] = useState({});
   const [isClosing, setIsClosing] = useState(false);
-  const [submitDialog, setSubmitDialog] = useState({
-    open: false,
-    status: "confirm",
-  });
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [succeeded, setSucceeded] = useState(false);
+
+  // useTransition: tracks async submission — replaces manual status:"loading" state
+  const [isPending, startTransition] = useTransition();
+
+  // Derive submitDialog from atomic states + isPending (no manual state machine)
+  const submitDialog = {
+    open: dialogOpen,
+    status: isPending ? "loading" : succeeded ? "success" : "confirm",
+  };
 
   // Clean up close animation timer on unmount
   const closeTimerRef = useRef(null);
@@ -40,7 +47,8 @@ export default function useFormModal({
         typeof initialData === "function" ? initialData() : initialData
       );
       setErrors({});
-      setSubmitDialog({ open: false, status: "confirm" });
+      setDialogOpen(false);
+      setSucceeded(false);
     }
     prevOpenRef.current = isOpen;
   }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -63,26 +71,31 @@ export default function useFormModal({
         setErrors(newErrors);
         return;
       }
-      setSubmitDialog({ open: true, status: "confirm" });
+      setDialogOpen(true);
+      setSucceeded(false);
     },
     [formData, validate]
   );
 
-  const handleConfirmSubmit = useCallback(async () => {
-    try {
-      setSubmitDialog({ open: true, status: "loading" });
-      const payload = transformData ? transformData(formData) : formData;
-      await onSubmit(payload);
-      setSubmitDialog({ open: true, status: "success" });
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      setSubmitDialog({ open: false, status: "confirm" });
-      toast.error(error.message || "ເກີດຂໍ້ຜິດພາດໃນການບັນທຶກຂໍ້ມູນ");
-    }
+  // startTransition wraps the async work → isPending auto-tracks loading state
+  const handleConfirmSubmit = useCallback(() => {
+    startTransition(async () => {
+      try {
+        const payload = transformData ? transformData(formData) : formData;
+        await onSubmit(payload);
+        setSucceeded(true);
+      } catch (error) {
+        console.error("Error submitting form:", error);
+        setDialogOpen(false);
+        setSucceeded(false);
+        toast.error(error.message || "ເກີດຂໍ້ຜິດພາດໃນການບັນທຶກຂໍ້ມູນ");
+      }
+    });
   }, [formData, onSubmit, transformData]);
 
   const handleCancelSubmit = useCallback(() => {
-    setSubmitDialog({ open: false, status: "confirm" });
+    setDialogOpen(false);
+    setSucceeded(false);
   }, []);
 
   const handleClose = useCallback(() => {
@@ -95,7 +108,8 @@ export default function useFormModal({
   }, [onClose]);
 
   const handleCloseSubmit = useCallback(() => {
-    setSubmitDialog({ open: false, status: "confirm" });
+    setDialogOpen(false);
+    setSucceeded(false);
     handleClose();
   }, [handleClose]);
 

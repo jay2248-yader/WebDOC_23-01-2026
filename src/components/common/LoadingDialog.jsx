@@ -1,3 +1,13 @@
+/**
+ * LoadingDialog
+ *
+ * Dialog แสดง spinner + ข้อความขณะรอ — ใช้ block UI ชั่วคราว
+ * ใช้ตอนเปิด modal (500ms delay) เพื่อไม่ให้ UI กระตุก
+ *
+ * Props:
+ *   isOpen  — true = แสดง, false = ซ่อน (return null ทันที)
+ *   message — ข้อความใต้ spinner (default: "ກຳລັງດຳເນີນການ...")
+ */
 export default function LoadingDialog({ isOpen, message = "ກຳລັງດຳເນີນການ..." }) {
   if (!isOpen) return null;
 
