@@ -3,6 +3,8 @@
  */
 import HomeIcon from "../assets/icon/house-solid.svg";
 import UsersIcon from "../assets/icon/Users.svg";
+import FileIcon from "../assets/icon/file-solid-full.svg";
+import FolderIcon from "../assets/icon/folder-solid-full.svg";
 
 
 export const MENU_ITEMS = [
@@ -15,7 +17,7 @@ export const MENU_ITEMS = [
   {
     id: "basic-info",
     label: "ຈັດການຂໍ້ມູນພື້ນຖານ",
-    icon: "🗂️",
+    icon: FolderIcon,
     path: "/basic-info", // Parent path (optional depending on sidebar implementation)
     children: [
       {
@@ -37,18 +39,6 @@ export const MENU_ITEMS = [
         path: "/department",
       },
       {
-        id: "groupapp",
-        label: "Groupapp",
-        icon: "👥",
-        path: "/groupapp",
-      },
-      {
-        id: "allapp",
-        label: "AllApp",
-        icon: "📱",
-        path: "/allapp",
-      },
-      {
         id: "position",
         label: "ຕຳແໜ່ງ",
         icon: "💼",
@@ -66,7 +56,7 @@ export const MENU_ITEMS = [
   {
     id: "doc-management",
     label: "ເອກະສານ",
-    icon: "📄",
+    icon: FileIcon,
     path: "/documents",
     children: [
       {

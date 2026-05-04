@@ -13,16 +13,18 @@ export default function DocumentGroupDetailsFormModal({
   onClose,
   onSubmit,
   detail = null,
+  lockedDcdid = null,
 }) {
   const detailsinfoRef = useRef(null);
   const maxsignmoneyRef = useRef(null);
 
   const groups = useSelectPagination(getAllDocumentGroup);
   const users = useSelectPagination(getAllUsers);
+  const hideGroup = lockedDcdid != null && !detail;
 
   useEffect(() => {
     if (isOpen) {
-      groups.reset();
+      if (!hideGroup) groups.reset();
       users.reset();
     }
   }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -44,7 +46,7 @@ export default function DocumentGroupDetailsFormModal({
     onClose,
     onSubmit,
     initialData: {
-      dcdid: detail?.dcdid ? String(detail.dcdid) : "",
+      dcdid: detail?.dcdid ? String(detail.dcdid) : (lockedDcdid != null ? String(lockedDcdid) : ""),
       userid: detail?.userid ? String(detail.userid) : "",
       detailsinfo: detail?.detailsinfo || "",
       maxsignmoney: detail?.maxsignmoney || "",
@@ -94,6 +96,7 @@ export default function DocumentGroupDetailsFormModal({
           <FormInput label="ລະຫັດ (dcgid)" theme="light" value={detail.dcgid} disabled />
         )}
 
+        {!hideGroup && (
         <Select
           label="ກຸ່ມເອກະສານ"
           theme="light"
@@ -114,6 +117,7 @@ export default function DocumentGroupDetailsFormModal({
           onLoadMore={groups.handleLoadMore}
           isLoadingMore={groups.loadingMore}
         />
+        )}
 
         <Select
           label="ຜູ້ໃຊ້"

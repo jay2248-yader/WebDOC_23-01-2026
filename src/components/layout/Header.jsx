@@ -25,7 +25,10 @@ export default function Header({ title = "ໜ້າຫຼັກ", breadcrumb = n
 
   return (
     <>
-    <header className="bg-white border-b border-gray-100 px-4 md:px-6 h-20 flex items-center justify-between shadow-sm">
+    <header
+      style={{ boxShadow: "0 4px 12px rgba(15, 117, 188, 0.08), 0 2px 4px rgba(0, 10, 31, 0.06)" }}
+      className="relative z-10 bg-white border-b border-gray-100 px-4 md:px-6 h-22 flex items-center justify-between"
+    >
       {/* Left */}
       <div className="flex items-center gap-3 min-w-0">
         {/* Hamburger (mobile only) */}
@@ -39,20 +42,20 @@ export default function Header({ title = "ໜ້າຫຼັກ", breadcrumb = n
           </svg>
         </button>
 
-        <div className="w-1.5 h-7 rounded-full bg-[#0F75BC] shrink-0 hidden md:block" />
+        <div className="w-1.5 h-12 rounded-full bg-[#0F75BC] shrink-0 hidden md:block" />
 
         <div className="min-w-0">
           {breadcrumb ? (
             <div className="flex flex-col">
-              <span className="text-xs text-gray-400 leading-none mb-0.5 truncate">
+              <span className="text-base text-gray-400 leading-tight -mb-1 truncate py-0.5">
                 {breadcrumb.parent}
               </span>
-              <h1 className="text-lg font-bold text-gray-800 tracking-wide truncate leading-tight">
+              <h1 className="text-2xl font-bold text-gray-800 tracking-wide truncate leading-normal py-0.5">
                 {breadcrumb.current}
               </h1>
             </div>
           ) : (
-            <h1 className="text-xl font-bold text-gray-800 tracking-wide truncate">{title}</h1>
+            <h1 className="text-xl font-bold text-gray-800 tracking-wide truncate leading-normal py-0.5">{title}</h1>
           )}
         </div>
       </div>

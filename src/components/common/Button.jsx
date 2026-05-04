@@ -10,8 +10,16 @@ function Button({
   size = "lg",
   fullWidth = true,
   className = "",
+  elevated = false,
+  ringColor = "#0F75BC",
+  style,
   ...rest
 }) {
+  const elevatedStyle = elevated
+    ? {
+        boxShadow: `0 0 0 3px ${ringColor}, 0 6px 12px rgba(0, 10, 31, 0.45)`,
+      }
+    : {};
   const isDisabled = loading || disabled;
 
   const baseClasses = "rounded-xl font-bold transition-all duration-200 ease-in-out cursor-pointer";
@@ -42,6 +50,7 @@ function Button({
       type={type}
       disabled={isDisabled}
       onClick={onClick}
+      style={{ ...elevatedStyle, ...style }}
       className={`${fullWidth ? "w-full" : ""} ${baseClasses} ${
         sizeClasses[size] || sizeClasses.lg
       } ${variantClasses[variant] || variantClasses.primary} ${className}`}

@@ -2,7 +2,7 @@ import useFormModal from "../../hooks/useFormModal";
 import FormModalShell from "../common/FormModalShell";
 import { rejectRequestDocument } from "../../services/approvaldocumentservice";
 
-export default function RejectModal({ isOpen, onClose, onRejected, docData = {} }) {
+export default function RejectModal({ isOpen, onClose, onRejected, docData = {}, levelapprove = null }) {
   const {
     formData,
     errors,
@@ -30,11 +30,14 @@ export default function RejectModal({ isOpen, onClose, onRejected, docData = {} 
       if (!data.descriptions) e.descriptions = "ກະລຸນາປ້ອນເຫດຜົນການປະຕິເສດ";
       return e;
     },
-    transformData: (data) => ({
-      rqdid: docData.rqdid,
-      reqno: docData.req_no,
-      descriptions: data.descriptions,
-    }),
+    transformData: (data) => {
+      const lv = parseInt(levelapprove);
+      return {
+        rqdid: docData.rqdid,
+        reqno: docData.req_no,
+        descriptions: !isNaN(lv) ? `lv${lv} ${data.descriptions}` : data.descriptions,
+      };
+    },
   });
 
   return (

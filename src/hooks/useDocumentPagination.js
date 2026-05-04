@@ -8,8 +8,9 @@ export function useDocumentPagination({
     bodyParagraph, titleTableSections, reqTo, reqReason, references, remark,
     headerHeight = HEADER_HEIGHT_PX,
     footerHeight = FOOTER_HEIGHT_PX,
+    visible = true,
 }) {
-    const [bodyChunks, setBodyChunks] = useState([""]);
+    const [bodyChunks, setBodyChunks] = useState(() => [bodyParagraph || ""]);
     const [tablePageChunks, setTablePageChunks] = useState([]);
     const [remarkChunks, setRemarkChunks] = useState(null); // null = ไม่ split, ใช้ remark เต็ม
 
@@ -369,8 +370,9 @@ export function useDocumentPagination({
         }
     }, []);
 
-    // ResizeObserver ตั้งครั้งเดียว + debounce
+    // ResizeObserver — re-setup เมื่อ visible เปลี่ยน (เช่น กด Edit ครั้งแรก)
     useEffect(() => {
+        if (!visible) return;
         const page1El = page1Ref.current;
         if (!page1El) return;
         let debounceId = null;
@@ -382,7 +384,14 @@ export function useDocumentPagination({
         observer.observe(page1El);
         if (body1Ref.current) observer.observe(body1Ref.current);
         return () => { observer.disconnect(); clearTimeout(debounceId); };
-    }, [recalcChunks]);
+    }, [recalcChunks, visible]);
+
+    // Trigger recalcChunks ครั้งแรกเมื่อ pages เริ่ม render (visible: false → true)
+    useEffect(() => {
+        if (!visible) return;
+        const id = setTimeout(recalcChunks, 50);
+        return () => clearTimeout(id);
+    }, [visible, recalcChunks]);
 
     // Trigger recalc เมื่อ content เปลี่ยน (รอ font โหลดก่อน ป้องกันวัดผิด)
     useEffect(() => {

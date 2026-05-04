@@ -25,6 +25,13 @@ function GenericToolbar({
   searchPlaceholder = "ຄົ້ນຫາ",
   createButtonText = "ສ້າງ",
   createButtonIcon = null,
+  createButtonClassName = "bg-[#0F75BC] text-white hover:bg-blue-700 hover:scale-100 hover:shadow-none",
+  createButtonStyle = undefined,
+  createButtonElevated = true,
+  createButtonRingColor = "#0F75BC",
+  searchElevated = false,
+  searchRingColor = "#bfdbfe",
+  searchAddon = null,
   extraButtons = null,
 }) {
   const handleKeyDown = (e) => {
@@ -33,19 +40,23 @@ function GenericToolbar({
 
   return (
     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-      <div className="w-full md:max-w-md">
+      <div className="flex items-center gap-2 w-full md:max-w-2xl">
+        <div className="flex-1 min-w-0">
         <FormInput
           label=""
+           size="md"
           theme="light"
           placeholder={searchPlaceholder}
           value={searchText}
           onChange={(e) => onSearchChange(e.target.value)}
           onKeyDown={handleKeyDown}
+          elevated={searchElevated}
+          ringColor={searchRingColor}
           rightIcon={
             <img
               src={search}
               alt="search"
-              className="h-4 w-4 cursor-pointer"
+              className="h-5 w-5 cursor-pointer"
               onClick={onSearch}
               style={{
                 filter:
@@ -54,6 +65,8 @@ function GenericToolbar({
             />
           }
         />
+        </div>
+        {searchAddon}
       </div>
 
       <div className="flex items-center gap-2">
@@ -61,9 +74,12 @@ function GenericToolbar({
         <Button
           fullWidth={false}
           variant="ghost"
-          size="sm"
+          size="md"
           onClick={onCreate}
-          className="bg-[#0F75BC] text-white hover:bg-blue-700 hover:scale-100 hover:shadow-none"
+          className={createButtonClassName}
+          style={createButtonStyle}
+          elevated={createButtonElevated}
+          ringColor={createButtonRingColor}
         >
           <span className="flex items-center gap-2">
             {createButtonIcon}

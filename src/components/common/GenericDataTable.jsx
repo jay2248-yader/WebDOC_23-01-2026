@@ -23,6 +23,7 @@ const GenericDataTable = memo(forwardRef(function GenericDataTable(
     onPageSizeChange,
     entityName = "ລາຍການ",
     getEntityDisplayName = (item) => item.name || item.id,
+    elevated = true,
   },
   ref
 ) {
@@ -135,6 +136,7 @@ const GenericDataTable = memo(forwardRef(function GenericDataTable(
 
   return (
     <DataTable
+      elevated={elevated}
       footer={
         <PaginationBar
           page={page}
@@ -146,8 +148,8 @@ const GenericDataTable = memo(forwardRef(function GenericDataTable(
         />
       }
     >
-      <table className="min-w-full text-sm">
-        <thead className="bg-[#0F75BC] text-white rounded-t-xl">
+      <table className="min-w-full">
+        <thead className="bg-[#0F75BC] text-white text-base rounded-t-xl">
           <tr>
             {columns.map((column, index) => (
               <th
@@ -168,7 +170,7 @@ const GenericDataTable = memo(forwardRef(function GenericDataTable(
           </tr>
         </thead>
 
-        <tbody className="text-gray-700">{renderBody()}</tbody>
+        <tbody className="text-gray-700 text-sm">{renderBody()}</tbody>
       </table>
 
       <ConfirmProgressDialog

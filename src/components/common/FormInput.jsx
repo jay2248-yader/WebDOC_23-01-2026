@@ -21,7 +21,14 @@ function FormInput({
   rounded = "full",   // ✅ "none" | "sm" | "md" | "lg" | "xl" | "2xl" | "full"
   size = "md",        // ✅ "sm" | "md" | "lg"
   disabled = false,
+  elevated = false,
+  ringColor = "#0F75BC",
 }) {
+  const elevatedStyle = elevated
+    ? {
+        boxShadow: `0 0 0 3px ${ringColor}, 0 6px 12px rgba(0, 10, 31, 0.45)`,
+      }
+    : undefined;
   const isPasswordField = type === "password";
   const actualType = isPasswordField && showPassword ? "text" : type;
 
@@ -62,6 +69,7 @@ function FormInput({
           onKeyDown={onKeyDown}
           maxLength={maxLength}
           disabled={disabled}
+          style={elevatedStyle}
           className={`w-full ${roundedClass} ${sizeClass} focus:outline-none focus:ring-2 transition-all duration-200
             ${(isPasswordField || rightIcon) ? "pr-10" : ""}
             ${hasError ? "border-2 border-red-500 focus:ring-red-200" : ""}

@@ -12,15 +12,17 @@ export default function DocumentGroupFormModal({
   onClose,
   onSubmit,
   documentGroup = null,
+  lockedDctid = null,
 }) {
   const docgroupnameRef = useRef(null);
   const levelapproveRef = useRef(null);
   const comparingRef = useRef(null);
 
   const categories = useSelectPagination(getAllDocumentCategories);
+  const hideCategory = lockedDctid != null && !documentGroup;
 
   useEffect(() => {
-    if (isOpen) categories.reset();
+    if (isOpen && !hideCategory) categories.reset();
   }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const {
@@ -43,7 +45,7 @@ export default function DocumentGroupFormModal({
       docgroupname: documentGroup?.docgroupname || "",
       levelapprove: documentGroup?.levelapprove || "",
       comparing: documentGroup?.comparing || "N",
-      dctid: documentGroup?.dctid ? String(documentGroup.dctid) : "",
+      dctid: documentGroup?.dctid ? String(documentGroup.dctid) : (lockedDctid != null ? String(lockedDctid) : ""),
     },
     validate: (data) => {
       const e = {};
@@ -89,6 +91,7 @@ export default function DocumentGroupFormModal({
           <FormInput label="ລະຫັດ (dcdid)" theme="light" value={documentGroup.dcdid} disabled />
         )}
 
+        {!hideCategory && (
         <Select
           label="ປະເພດເອກະສານ"
           theme="light"
@@ -104,6 +107,7 @@ export default function DocumentGroupFormModal({
           onLoadMore={categories.handleLoadMore}
           isLoadingMore={categories.loadingMore}
         />
+        )}
 
         <FormInput
           label="ຊື່ກຸ່ມເອກະສານ (docgroupname)"

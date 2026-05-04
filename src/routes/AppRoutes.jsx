@@ -12,6 +12,7 @@ const BoardPage                = lazy(() => import('../pages/BoardPage'));
 const DepartmentPage           = lazy(() => import('../pages/DepartmentPage'));
 const PositionPage             = lazy(() => import('../pages/PositionPage'));
 const DocumentCategoryPage     = lazy(() => import('../pages/DocumentCategoryPage'));
+const DocumentCategoryDetailPage = lazy(() => import('../pages/DocumentCategoryDetailPage'));
 const DocumentsPage            = lazy(() => import('../pages/DocumentsPage'));
 const GroupappPage             = lazy(() => import('../pages/GroupappPage'));
 const AllAppPage               = lazy(() => import('../pages/AllAppPage'));
@@ -70,6 +71,7 @@ const AppRoutes = () => {
         <Route path="department"             element={<PageWrapper><DepartmentPage /></PageWrapper>} />
         <Route path="position"               element={<PageWrapper><PositionPage /></PageWrapper>} />
         <Route path="document-category"      element={<PageWrapper><DocumentCategoryPage /></PageWrapper>} />
+        <Route path="document-category/detail" element={<PageWrapper><DocumentCategoryDetailPage /></PageWrapper>} />
         <Route path="documents"              element={<PageWrapper><DocumentsPage /></PageWrapper>} />
         <Route path="users"                  element={<PageWrapper><UserPage /></PageWrapper>} />
         <Route path="groupapp"               element={<PageWrapper><GroupappPage /></PageWrapper>} />

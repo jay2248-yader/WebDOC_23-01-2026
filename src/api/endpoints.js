@@ -1,4 +1,4 @@
-// รวม path ของ API ทั้งหมดไว้ที่เดียว ป้องกันพิมพ์ผิด
+
 
 export const ENDPOINTS = {
   AUTH: {
@@ -85,7 +85,8 @@ export const ENDPOINTS = {
 
   DOCUMENT_DETAILS: {
     GET_ALL: "/api/requestdocumentdetails/getrequestdocumentdetailsByDocumentId",
-    NEW: "/api/requestdocumentdetails/newrequestdocumentdetails"
+    NEW: "/api/requestdocumentdetails/newrequestdocumentdetails",
+    UPLOAD_IMAGE: "/api/requestdocumentdetails/uploadRequestImageDetails",
   },
 
   APPROVAL_DOCUMENT: {
@@ -93,6 +94,11 @@ export const ENDPOINTS = {
     APPROVE: "/api/approvaldocument/approverequestdocument",
     REJECT: "/api/approvaldocument/rejectrequestdocument",
     EDIT_REQUEST_DETAILS: "/api/approvaldocument/editrequestdocumentdetails",
+  },
+
+  DASHBOARD: {
+    PERCENT_BY_YEAR: "/api/documentdashboard/getdocumentrequestdashboardpercentbyyear",
+    FLOWCHART_PERCENT_BY_YEAR: "/api/documentdashboard/getdocumentrequestdashboardflowchartpercentbyyear",
   }
 };
 

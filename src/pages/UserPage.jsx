@@ -24,7 +24,6 @@ import LoadingDialog from "../components/common/LoadingDialog";
 import { getAllUsers, createNewUser, updatePwds } from "../services/userservice";
 import { toast } from "../store/toastStore";
 
-import userplus from "../assets/icon/userplus.svg";
 
 export default function UserPage() {
   const [users, setUsers] = useState([]);
@@ -36,7 +35,8 @@ export default function UserPage() {
   const [pageSize, setPageSize] = useState(10);
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [tableLoading, setTableLoading] = useState(false);
+  const [modalLoading, setModalLoading] = useState(false);
   const [pwdModal, setPwdModal] = useState({ open: false, user: null, newPwd: "", isSubmitting: false });
 
   const tableRef = useRef(null);
@@ -51,18 +51,18 @@ export default function UserPage() {
   }, []);
 
   const loadUsers = useCallback(async (signal) => {
+    setTableLoading(true);
     try {
-      setIsLoading(true);
       const result = await getAllUsers({ page, limit: pageSize, search: searchText }, signal);
-      if (!mountedRef.current) return;
+      if (!mountedRef.current || signal?.aborted) return;
       setUsers(result.data);
       setTotalItems(result.total);
       setTotalPages(result.lastPage || 1);
     } catch (error) {
       if (error?.code === "ERR_CANCELED" || error?.name === "CanceledError") return;
-      toast.error(error.message || "ເກີດຂໍ້ຜິດພາດໃນການໂຫຼດຂໍ້ມູນ");
+      if (mountedRef.current) toast.error(error.message || "ເກີດຂໍ້ຜິດພາດໃນການໂຫຼດຂໍ້ມູນ");
     } finally {
-      if (mountedRef.current) setIsLoading(false);
+      if (mountedRef.current && !signal?.aborted) setTableLoading(false);
     }
   }, [page, pageSize, searchText]);
 
@@ -80,17 +80,17 @@ export default function UserPage() {
   const handlePageChange = useCallback((nextPage) => { setPage(Math.min(Math.max(nextPage, 1), totalPages)); }, [totalPages]);
 
   const handleCreateUser = useCallback(() => {
-    setIsLoading(true);
+    setModalLoading(true);
     setEditingUser(null);
     clearTimeout(modalTimerRef.current);
-    modalTimerRef.current = setTimeout(() => { setIsLoading(false); setShowFormModal(true); }, 500);
+    modalTimerRef.current = setTimeout(() => { setModalLoading(false); setShowFormModal(true); }, 500);
   }, []);
 
   const handleEditUser = useCallback((user) => {
-    setIsLoading(true);
+    setModalLoading(true);
     setEditingUser(user);
     clearTimeout(modalTimerRef.current);
-    modalTimerRef.current = setTimeout(() => { setIsLoading(false); setShowFormModal(true); }, 500);
+    modalTimerRef.current = setTimeout(() => { setModalLoading(false); setShowFormModal(true); }, 500);
   }, []);
 
   const handleCloseModal = useCallback(() => { setShowFormModal(false); setEditingUser(null); }, []);
@@ -143,28 +143,33 @@ export default function UserPage() {
       render: (user) => user.departmentmodel?.boardmodel?.boardtname || "-",
     },
     {
+      key: "position",
+      label: "ຕຳແໜ່ງ",
+      align: "left",
+      render: (user) => user.positionmodel?.positionname || "-",
+    },
+    {
+      key: "branch",
+      label: "ສາຂາ",
+      align: "left",
+      render: (user) => user.branchmodel?.branchname || "-",
+    },
+    {
       key: "actions",
       label: "ຈັດການ",
       align: "left",
       render: (user) => (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center">
           <Button
             fullWidth={false} variant="ghost" size="sm"
             onClick={() => handleEditUser(user)}
-            className="w-16 inline-flex items-center justify-center rounded-md bg-blue-200 px-2 py-1 text-xs text-blue-700 hover:bg-blue-50 hover:scale-100 hover:shadow-none"
+            className="w-34 inline-flex items-center justify-center gap-1.5 rounded-md bg-blue-200 px-2 py-1 text-xs text-blue-700 hover:bg-blue-50 hover:scale-100 hover:shadow-none"
           >
+            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+            </svg>
             ແກ້ໄຂ
           </Button>
-
-          <Button
-            fullWidth={false} variant="ghost" size="sm"
-            onClick={() => openPwdModal(user)}
-            className="w-20 inline-flex items-center justify-center rounded-md bg-yellow-100 px-2 py-1 text-xs text-yellow-700 hover:bg-yellow-200 hover:scale-100 hover:shadow-none"
-          >
-            ປ່ຽນລະຫັດ
-          </Button>
-
-          {/* Delete not supported — no API endpoint */}
         </div>
       ),
     },
@@ -178,8 +183,12 @@ export default function UserPage() {
         onSearch={handleSearch}
         onCreate={handleCreateUser}
         searchPlaceholder="ຄົ້ນຫາ"
-        createButtonText="ສ້າງ User"
-        createButtonIcon={<img src={userplus} alt="Add user" className="h-7 w-7 brightness-0 invert" />}
+        createButtonText="ສ້າງຜູ້ໃຊ້"
+        createButtonIcon={
+          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+        }
       />
 
       <GenericDataTable
@@ -189,6 +198,7 @@ export default function UserPage() {
         pageSize={pageSize}
         totalPages={totalPages}
         totalItems={totalItems}
+        loading={tableLoading}
         onEdit={handleEditUser}
         onDelete={handleDeleteUser}
         onPageChange={handlePageChange}
@@ -205,54 +215,84 @@ export default function UserPage() {
         user={editingUser}
         onClose={handleCloseModal}
         onSubmit={handleSubmitUser}
+        onChangePwd={openPwdModal}
       />
 
-      <LoadingDialog isOpen={isLoading} message="ກຳລັງໂຫຼດ..." />
+      <LoadingDialog isOpen={modalLoading} message="ກຳລັງໂຫຼດ..." />
 
       {/* Password Modal */}
       {pwdModal.open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fadeIn"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fadeIn"
           onClick={closePwdModal}
         >
           <div
-            className="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm mx-4 animate-slideUp"
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden animate-slideUp"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-semibold text-gray-900 mb-1 text-center border-b border-blue-400 pb-2">
-              ປ່ຽນລະຫັດຜ່ານ
-            </h3>
-            <p className="text-sm text-gray-500 text-center mb-4">{pwdModal.user?.username} ({pwdModal.user?.usercode})</p>
-
-            <div className="space-y-2 mb-6">
-              <label className="block text-sm font-medium text-gray-700">ລະຫັດຜ່ານໃໝ່</label>
-              <input
-                type="text"
-                autoFocus
-                value={pwdModal.newPwd}
-                onChange={(e) => setPwdModal((p) => ({ ...p, newPwd: e.target.value }))}
-                onKeyDown={(e) => e.key === "Enter" && handleUpdatePwd()}
-                placeholder="ກະລຸນາປ້ອນລະຫັດຜ່ານໃໝ່"
-                className="w-full rounded-lg px-4 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-500"
-              />
+            {/* Header */}
+            <div className="bg-linear-to-r from-[#0c5fa0] to-[#1a8fd1] px-6 py-5 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white">ປ່ຽນລະຫັດຜ່ານ</h3>
+                <p className="text-xs text-blue-100 mt-0.5">{pwdModal.user?.username} · {pwdModal.user?.usercode}</p>
+              </div>
             </div>
 
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={closePwdModal}
-                className="px-4 py-2 text-sm rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                ຍົກເລີກ
-              </button>
-              <button
-                type="button"
-                onClick={handleUpdatePwd}
-                disabled={!pwdModal.newPwd || pwdModal.isSubmitting}
-                className="px-4 py-2 text-sm rounded-lg bg-[#0F75BC] text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {pwdModal.isSubmitting ? "ກຳລັງບັນທຶກ..." : "ຢືນຢັນ"}
-              </button>
+            {/* Body */}
+            <div className="px-6 py-5 space-y-4">
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-gray-700">ລະຫັດຜ່ານໃໝ່</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    autoFocus
+                    value={pwdModal.newPwd}
+                    onChange={(e) => setPwdModal((p) => ({ ...p, newPwd: e.target.value }))}
+                    onKeyDown={(e) => e.key === "Enter" && handleUpdatePwd()}
+                    placeholder="ກະລຸນາປ້ອນລະຫັດຜ່ານໃໝ່"
+                    className="w-full pl-9 pr-4 py-2.5 text-sm rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 focus:bg-white transition-colors"
+                  />
+                </div>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={closePwdModal}
+                  className="flex-1 px-4 py-2.5 text-sm font-medium rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+                >
+                  ຍົກເລີກ
+                </button>
+                <button
+                  type="button"
+                  onClick={handleUpdatePwd}
+                  disabled={!pwdModal.newPwd || pwdModal.isSubmitting}
+                  className="flex-1 px-4 py-2.5 text-sm font-medium rounded-xl bg-[#0F75BC] text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {pwdModal.isSubmitting ? (
+                    <>
+                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                      </svg>
+                      ກຳລັງບັນທຶກ...
+                    </>
+                  ) : "ຢືນຢັນ"}
+                </button>
+              </div>
             </div>
           </div>
         </div>

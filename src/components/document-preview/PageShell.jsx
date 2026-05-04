@@ -9,7 +9,7 @@ export default function PageShell({ children, pageRef, extraClass = "", isFirstP
     return (
         <div
             ref={pageRef}
-            className={`doc-print-page relative overflow-hidden ${isFirstPage ? "" : "print:break-before-page"} ${extraClass}`}
+            className={`doc-print-page relative overflow-hidden ${isFirstPage ? "" : "print:break-before-page mt-6 print:mt-0"} ${extraClass}`}
             style={{ width: "210mm", height: "297mm" }}
         >
             <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: headerH, overflow: "hidden", zIndex: 10 }}>
@@ -29,7 +29,11 @@ export default function PageShell({ children, pageRef, extraClass = "", isFirstP
                 {children}
             </div>
 
-            <PageFooter scale={footerScale} />
+            <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: footerH, overflow: "hidden" }}>
+                <div style={{ position: "absolute", bottom: 0, left: 0, right: 0 }}>
+                    <PageFooter scale={footerScale} />
+                </div>
+            </div>
         </div>
     );
 }

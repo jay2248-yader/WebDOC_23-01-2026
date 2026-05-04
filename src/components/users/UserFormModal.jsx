@@ -31,6 +31,7 @@ export default function UserFormModal({
   isOpen,
   onClose,
   onSubmit,
+  onChangePwd,
   user = null,
 }) {
   const authUser = useAuthStore((state) => state.user);
@@ -39,7 +40,6 @@ export default function UserFormModal({
   const usernameRef = useRef(null);
   const shortnameRef = useRef(null);
   const gendernameRef = useRef(null);
-  const groupappdetailidRef = useRef(null);
   const createbyRef = useRef(null);
   const ipaddressRef = useRef(null);
   const branchRef = useRef(null);
@@ -90,7 +90,7 @@ export default function UserFormModal({
       shortname: user?.shortname || "",
       gendername: user?.gendername || "ຊາຍ",
       departmentid: user?.departmentid ? String(user.departmentid) : "",
-      groupappdetailid: user?.groupappdetailid || "",
+      groupappdetailid: user?.groupappdetailid ?? 0,
       positionid: user?.positionid || "",
       createby: user?.createby || authUser?.username || authUser?.usercode || "",
       ipaddress: user?.ipaddress || "",
@@ -103,7 +103,6 @@ export default function UserFormModal({
       if (!data.username) e.username = "ກະລຸນາປ້ອນຊື່";
       if (!data.gendername) e.gendername = "ກະລຸນາເລືອກເພດ";
       if (!data.departmentid) e.departmentid = "ກະລຸນາປ້ອນລະຫັດພະແນກ";
-      if (!data.groupappdetailid) e.groupappdetailid = "ກະລຸນາປ້ອນລະຫັດກຸ່ມ";
       if (!data.positionid) e.positionid = "ກະລຸນາປ້ອນລະຫັດຕຳແໜ່ງ";
       if (!data.createby) e.createby = "ກະລຸນາປ້ອນຜູ້ສ້າງ";
       if (!data.ipaddress) e.ipaddress = "ກະລຸນາປ້ອນ IP Address";
@@ -120,7 +119,6 @@ export default function UserFormModal({
   };
 
   const alphanumFilter = (v) => v.replace(/[^a-zA-Z0-9]/g, "");
-  const numFilter = (v) => v.replace(/[^0-9]/g, "");
 
   const genderOptions = [
     { value: "ຊາຍ", label: "ຊາຍ" },
@@ -140,9 +138,24 @@ export default function UserFormModal({
       onCancelSubmit={handleCancelSubmit}
       onCloseSubmit={handleCloseSubmit}
     >
-      <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center border-b border-blue-400 pb-2">
-        {user ? "ແກ້ໄຂຜູ້ໃຊ້" : "ສ້າງຜູ້ໃຊ້"}
-      </h3>
+      <div className="flex items-center justify-between mb-4 border-b border-blue-400 pb-2">
+        <h3 className="text-lg font-semibold text-gray-900">
+          {user ? "ແກ້ໄຂຜູ້ໃຊ້" : "ສ້າງຜູ້ໃຊ້"}
+        </h3>
+        {user && (
+          <button
+            type="button"
+            onClick={() => onChangePwd?.(user)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors bg-gray-100 text-gray-600 hover:bg-blue-50 hover:text-blue-600"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+            </svg>
+            ປ່ຽນລະຫັດຜ່ານ
+          </button>
+        )}
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {user && (
@@ -177,6 +190,7 @@ export default function UserFormModal({
             autoComplete="new-password"
           />
         )}
+
 
         <FormInput
           label="ຊື່"
@@ -225,19 +239,6 @@ export default function UserFormModal({
           hasMore={deptsHasMore}
           onLoadMore={handleDeptLoadMore}
           isLoadingMore={deptsLoadingMore}
-        />
-
-        <FormInput
-          label="ລະຫັດກຸ່ມ (Group App Detail ID)"
-          theme="light"
-          placeholder="ກະລຸນາປ້ອນລະຫັດກຸ່ມ"
-          value={formData.groupappdetailid}
-          onChange={handleChange("groupappdetailid", numFilter)}
-          onKeyDown={handleKeyDown(() => createbyRef)}
-          inputRef={groupappdetailidRef}
-          error={errors.groupappdetailid}
-          hasError={!!errors.groupappdetailid}
-          inputMode="numeric"
         />
 
         <Select

@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 
 const MAX_EDITS = 50; // เก็บสูงสุด 50 รายการ ป้องกัน unbounded growth
+const TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 วัน
 
 // Helper: update เฉพาะ field ของ rddid ที่เปลี่ยน ไม่ spread edits ทั้ง object ถ้าค่าเดิมเหมือนกัน
 const updateField = (state, rqdid, field, value) => {
@@ -9,7 +10,7 @@ const updateField = (state, rqdid, field, value) => {
   if (existing && existing[field] === value) return state; // skip ถ้าค่าเดิม
   const updated = {
     ...state.edits,
-    [rqdid]: { ...existing, [field]: value },
+    [rqdid]: { ...existing, [field]: value, savedAt: Date.now() },
   };
   // ถ้าเกิน limit ให้ลบ entry เก่าสุดออก
   const keys = Object.keys(updated);
@@ -59,10 +60,22 @@ export const useDocumentEditStore = create(
             const { [rqdid]: _, ...rest } = state.edits;
             return { edits: rest };
           }),
+
+        cleanupExpired: () =>
+          set((state) => ({
+            edits: Object.fromEntries(
+              Object.entries(state.edits).filter(
+                ([, v]) => v.savedAt && Date.now() - v.savedAt < TTL_MS
+              )
+            ),
+          })),
       }),
       {
         name: "document-edit-storage",
         partialize: (state) => ({ edits: state.edits }),
+        onRehydrateStorage: () => (state) => {
+          if (state) Promise.resolve().then(() => state.cleanupExpired());
+        },
       }
     ),
     { name: "DocumentEditStore" }

@@ -1,8 +1,18 @@
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
+import {
+  createDocumentDetails,
+  getDocumentDetailsByDocumentId,
+  uploadRequestImageDetails,
+} from "../../services/documentdetailsservice";
+
+const FILE_BASE_URL = "http://30.30.1.222:65533";
+const IMAGE_EXTS = ["png", "jpg", "jpeg", "gif", "webp"];
+
+// ── Icons ──────────────────────────────────────────────────────────────────────
 
 function PdfIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7 shrink-0">
+    <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 shrink-0">
       <rect x="3" y="2" width="14" height="18" rx="1.5" fill="#e5e7eb" stroke="#9ca3af" strokeWidth="0.5" />
       <path d="M13 2v5h5" fill="none" stroke="#9ca3af" strokeWidth="0.5" />
       <path d="M13 2l4 5H13V2z" fill="#d1d5db" />
@@ -11,41 +21,176 @@ function PdfIcon() {
   );
 }
 
-function LvIcon({ status }) {
-  if (status === "current") {
-    return (
-      <svg viewBox="0 0 22 22" className="w-6 h-6 shrink-0" fill="none">
-        <circle cx="11" cy="11" r="10" fill="#dcfce7" />
-        <path d="M6 11.5l3.5 3.5 6.5-7" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    );
-  }
+function ImageIcon() {
   return (
-    <svg viewBox="0 0 22 22" className="w-6 h-6 shrink-0" fill="none">
-      <circle cx="11" cy="11" r="10" fill="#dbeafe" />
-      <path d="M11 7v4l2.5 2.5" stroke="#2563eb" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M6.5 15.5A6.5 6.5 0 1 1 11 17.5" stroke="#2563eb" strokeWidth="1.6" strokeLinecap="round" fill="none" />
+    <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 shrink-0">
+      <rect x="3" y="3" width="18" height="18" rx="2" fill="#dbeafe" stroke="#93c5fd" strokeWidth="0.8" />
+      <circle cx="8.5" cy="8.5" r="1.5" fill="#60a5fa" />
+      <path d="M3 15l5-5 4 4 3-3 6 5" stroke="#60a5fa" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
 
+function UploadIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7 text-gray-400" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+        d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+    </svg>
+  );
+}
+
+// ── Helper components ──────────────────────────────────────────────────────────
+
 function InfoRow({ label, value }) {
   return (
-    <div className="flex items-start gap-1 text-sm py-0.5">
-      <span className="text-gray-500 shrink-0 w-24">{label}</span>
-      <span className="text-gray-800 min-w-0">: {value || "-"}</span>
+    <div className="flex items-start gap-2 py-0.5 text-sm">
+      <span className="text-gray-500 shrink-0 w-24 leading-snug">{label}</span>
+      <span className="text-gray-400 shrink-0">:</span>
+      <span className="text-gray-800 leading-snug min-w-0 break-all">{value || "-"}</span>
     </div>
   );
 }
 
+function ExistingFileRow({ filename, status, onReplace }) {
+  const ext = filename.split(".").pop().toLowerCase();
+  const isImage = IMAGE_EXTS.includes(ext);
+  const shortName = filename.length > 20 ? filename.substring(0, 13) + "…." + ext : filename;
+  const url = `${FILE_BASE_URL}/${filename}`;
+  return (
+    <div className="flex items-center gap-2 py-1">
+      {isImage ? <ImageIcon /> : <PdfIcon />}
+      <div className="flex-1 min-w-0">
+        <a href={url} target="_blank" rel="noreferrer"
+          className="text-xs text-[#0F75BC] hover:underline truncate block">
+          {shortName}
+        </a>
+        {status === "uploading"
+          ? <p className="text-xs text-blue-500">ກຳລັງອັບໂຫລດ...</p>
+          : status === "done"
+          ? <p className="text-xs text-green-600">ອັບໂຫລດແລ້ວ ✓</p>
+          : status === "error"
+          ? <p className="text-xs text-red-500">ຜິດພາດ</p>
+          : <p className="text-xs text-green-600">ອັບໂຫລດແລ້ວ</p>
+        }
+      </div>
+      <button onClick={onReplace}
+        disabled={status === "uploading"}
+        className="text-xs text-gray-400 hover:text-[#0F75BC] shrink-0 disabled:opacity-40">
+        ແກ້ໄຂ
+      </button>
+    </div>
+  );
+}
+
+function NewFileRow({ file, status, error, onRemove }) {
+  const ext = file.name.split(".").pop().toLowerCase();
+  const isImage = IMAGE_EXTS.includes(ext);
+  const shortName = file.name.length > 20 ? file.name.substring(0, 13) + "…." + ext : file.name;
+  return (
+    <div className="flex items-center gap-2 py-1">
+      {isImage ? <ImageIcon /> : <PdfIcon />}
+      <div className="flex-1 min-w-0">
+        <p className="text-xs text-gray-700 truncate">{shortName}</p>
+        {status === "creating" && <p className="text-xs text-gray-400">ກຳລັງສ້າງ...</p>}
+        {status === "uploading" && <p className="text-xs text-blue-500">ກຳລັງອັບໂຫລດ...</p>}
+        {status === "done" && <p className="text-xs text-green-600">ສຳເລັດ</p>}
+        {status === "error" && <p className="text-xs text-red-500 truncate">{error || "ຜິດພາດ"}</p>}
+      </div>
+      {(status === "done" || status === "error") && (
+        <button onClick={onRemove} className="text-gray-300 hover:text-red-400 shrink-0 text-sm leading-none">✕</button>
+      )}
+    </div>
+  );
+}
+
+function formatCreateDate(dateStr) {
+  if (!dateStr) return "-";
+  return dateStr.replace("T", " ").split(".")[0];
+}
+
+// ── Main component ─────────────────────────────────────────────────────────────
+
 export default function DocumentInfoPanel({
   document = {},
-  approvalLevels = [],
-  attachments = [],
+  rqdid,
   onCancel,
-  onEdit,
 }) {
   const fileInputRef = useRef(null);
+  const replaceInputRef = useRef(null);
+  const replacingRddidRef = useRef(null);
+  const [items, setItems] = useState([]);
+  const [dragging, setDragging] = useState(false);
+  const [existingFiles, setExistingFiles] = useState([]);
+  const [replaceStatus, setReplaceStatus] = useState({});
+
+  const fetchExistingFiles = () => {
+    if (!rqdid) return;
+    getDocumentDetailsByDocumentId(String(rqdid))
+      .then((res) => {
+        const details = res.data_id?.data || [];
+        setExistingFiles(
+          details.filter((d) => d.req_attachfile).map((d) => ({
+            filename: d.req_attachfile,
+            rddid: d.rddid,
+          }))
+        );
+      })
+      .catch(() => {});
+  };
+
+  useEffect(() => { fetchExistingFiles(); }, [rqdid]);
+
+  const uploadSingleFile = async (file) => {
+    const id = `${Date.now()}-${Math.random()}`;
+    setItems((prev) => [...prev, { id, file, status: "creating", error: null }]);
+    try {
+      const ext = file.name.split(".").pop();
+      const nameWithoutExt = file.name.replace(/\.[^.]+$/, "");
+      const { rddid } = await createDocumentDetails({
+        rqdid: String(rqdid),
+        req_title: nameWithoutExt,
+        req_subtitle: ext.toUpperCase(),
+        req_moreinfo: "",
+      });
+      if (!rddid) throw new Error("ບໍ່ສາມາດຊອກຫາ rddid ຂອງ record ໃໝ່ໄດ້");
+      setItems((prev) => prev.map((it) => it.id === id ? { ...it, status: "uploading" } : it));
+      await uploadRequestImageDetails(rddid, file);
+      setItems((prev) => prev.map((it) => it.id === id ? { ...it, status: "done" } : it));
+    } catch (err) {
+      setItems((prev) => prev.map((it) => it.id === id ? { ...it, status: "error", error: err.message } : it));
+    }
+  };
+
+  const replaceFile = async (file, existingRddid) => {
+    setReplaceStatus((prev) => ({ ...prev, [existingRddid]: "uploading" }));
+    try {
+      await uploadRequestImageDetails(existingRddid, file);
+      setReplaceStatus((prev) => ({ ...prev, [existingRddid]: "done" }));
+      fetchExistingFiles();
+    } catch {
+      setReplaceStatus((prev) => ({ ...prev, [existingRddid]: "error" }));
+    }
+  };
+
+  const handleReplaceClick = (existingRddid) => {
+    replacingRddidRef.current = existingRddid;
+    replaceInputRef.current?.click();
+  };
+
+  const handleReplaceInputChange = (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (file && replacingRddidRef.current) {
+      replaceFile(file, replacingRddidRef.current);
+    }
+  };
+
+  const handleFiles = (files) => {
+    [...files].forEach(uploadSingleFile);
+  };
+  const handleInputChange = (e) => { if (e.target.files?.length) handleFiles(e.target.files); e.target.value = ""; };
+  const handleDrop = (e) => { e.preventDefault(); setDragging(false); if (e.dataTransfer.files?.length) handleFiles(e.dataTransfer.files); };
 
   return (
     <div className="flex flex-col gap-3">
@@ -65,85 +210,81 @@ export default function DocumentInfoPanel({
           <div className="border-b-2 border-[#0F75BC]" />
         </div>
 
-        {/* Body */}
-        <div className="px-4 py-3 space-y-1">
-          {/* Info rows */}
-          <InfoRow label="ເລກທີ່ຝ່າຍ" value={document.req_no ? `${document.req_no}/ອກ` : "-"} />
-          <InfoRow label="ວ/ດ/ປ ສ້າງ" value={document.createdate} />
-          <InfoRow label="ປະເພດ" value={document.doc_category_name || "ໃບສະເໜີ"} />
-          <InfoRow label="ຫົວເລື່ອງ" value={document.req_reason} />
-          <InfoRow label="ໝາຍເຫດ" value={document.remark} />
+        {/* Info rows */}
+        <div className="px-4 pt-3 pb-1 space-y-0.5">
+          <InfoRow label="ເລກທີຝ່າຍ" value={document.req_no ? `${document.req_no}` : null} />
+          <InfoRow label="ວັນທີສ້າງ" value={formatCreateDate(document.createdate)} />
+          <InfoRow label="ປະເພດ" value={document.documentcategorymodel?.doccategoryname || document.doc_category_name || null} />
+          <InfoRow label="ຫົວເລື່ອງ" value={document.req_reason || null} />
+          <InfoRow
+            label="ຈຳນວນເງິນ"
+            value={
+              document.totalmoney != null && document.totalmoney !== ""
+                ? `${Number(document.totalmoney).toLocaleString("en-US")} ກີບ`
+                : null
+            }
+          />
 
-          {/* ເອກະສານແນບ */}
-          {attachments.length > 0 && (
-            <div className="flex items-start gap-1 text-sm py-0.5">
-              <span className="text-gray-500 shrink-0 w-24">ເອກະສານແນບ</span>
-              <div className="flex flex-col gap-1.5 min-w-0">
-                {attachments.map((file, i) => {
-                  const name = typeof file === "string" ? file : file.name;
-                  const short = name.length > 18
-                    ? name.substring(0, 12) + "...." + name.split(".").pop()
-                    : name;
-                  return (
-                    <div key={i} className="flex items-center gap-1.5">
-                      <PdfIcon />
-                      <span className="text-gray-700 text-xs">{short}</span>
-                    </div>
-                  );
-                })}
-                <button onClick={() => fileInputRef.current?.click()}
-                  className="text-[#0F75BC] text-xs hover:underline self-start mt-0.5">
-                  + ເພີ່ມໄຟລ໌
-                </button>
-                <input ref={fileInputRef} type="file" multiple accept=".pdf,.doc,.docx,.png,.jpg"
-                  className="hidden" />
-              </div>
-            </div>
-          )}
+        </div>
 
-          {attachments.length === 0 && (
-            <div className="flex items-center gap-1 text-sm py-0.5">
-              <span className="text-gray-500 shrink-0 w-24">ເອກະສານແນບ</span>
-              <button onClick={() => fileInputRef.current?.click()}
-                className="text-[#0F75BC] text-xs hover:underline">
-                + ເພີ່ມໄຟລ໌
-              </button>
-              <input ref={fileInputRef} type="file" multiple accept=".pdf,.doc,.docx,.png,.jpg"
-                className="hidden" />
-            </div>
-          )}
 
-          {/* Approval levels */}
-          {approvalLevels.length > 0 && (
-            <div className="pt-1 space-y-1.5">
-              {approvalLevels.map((lv) => (
-                <div key={lv.level} className="flex items-center gap-2 text-sm">
-                  <span className="text-gray-500 w-10 shrink-0">Lv {lv.level}</span>
-                  <LvIcon status={lv.status} />
-                  <span className="text-gray-800">{lv.name}</span>
-                </div>
+        {/* Divider */}
+        <div className="mx-4 border-t border-gray-100 mt-2" />
+
+        {/* ເອກະສານແນບ section */}
+        <div className="px-4 pt-3 pb-4">
+          <p className="text-sm font-semibold text-gray-700 mb-2">ເອກະສານແນບ</p>
+
+          {/* Drop zone — always visible */}
+          <div
+            onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+            className={`flex flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed cursor-pointer py-4 transition-colors
+              ${dragging ? "border-[#0F75BC] bg-blue-50" : "border-gray-300 hover:border-[#0F75BC] hover:bg-blue-50"}`}
+          >
+            <UploadIcon />
+            <p className="text-xs text-gray-500 text-center">
+              ລາກໄຟລ໌ ຫຼື <span className="text-[#0F75BC] font-medium">ຄລິກເລືອກ</span>
+            </p>
+            <p className="text-xs text-gray-400">PDF, PNG, JPG</p>
+          </div>
+          <input ref={fileInputRef} type="file" multiple accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+            className="hidden" onChange={handleInputChange} />
+          <input ref={replaceInputRef} type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+            className="hidden" onChange={handleReplaceInputChange} />
+
+          {/* Existing files */}
+          {existingFiles.length > 0 && (
+            <div className="mt-2 divide-y divide-gray-100">
+              {existingFiles.map((f) => (
+                <ExistingFileRow
+                  key={f.filename}
+                  filename={f.filename}
+                  status={replaceStatus[f.rddid]}
+                  onReplace={() => handleReplaceClick(f.rddid)}
+                />
               ))}
             </div>
           )}
 
-          {/* ຄຳອະທິບາຍ */}
-          {document.description && (
-            <InfoRow label="ຄຳອະທິບາຍ" value={document.description} />
+          {/* New uploads */}
+          {items.length > 0 && (
+            <div className="mt-2 divide-y divide-gray-100">
+              {items.map((it) => (
+                <NewFileRow key={it.id} file={it.file} status={it.status} error={it.error}
+                  onRemove={() => setItems((prev) => prev.filter((x) => x.id !== it.id))} />
+              ))}
+            </div>
+          )}
+
+          {existingFiles.length === 0 && items.length === 0 && (
+            <p className="text-xs text-gray-400 text-center mt-2">ຍັງບໍ່ມີໄຟລ໌ແນບ</p>
           )}
         </div>
       </div>
 
-      {/* Buttons — outside the card */}
-      <div className="flex gap-3">
-        <button onClick={onCancel}
-          className="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-xl text-sm hover:bg-gray-50">
-          ຍົກເລີກ
-        </button>
-        <button onClick={onEdit}
-          className="flex-1 bg-[#0F75BC] text-white py-2.5 rounded-xl text-sm hover:bg-blue-700">
-          ແກ້ໄຂ
-        </button>
-      </div>
     </div>
   );
 }

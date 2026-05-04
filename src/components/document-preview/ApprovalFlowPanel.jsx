@@ -24,7 +24,7 @@ function StepIcon({ status, isMe }) {
       </div>
     );
   }
-  if (status === "REJECTED") {
+  if (status === "REJECT") {
     return (
       <div className="w-11 h-11 rounded-full bg-red-500 flex items-center justify-center shadow-lg ring-4 ring-white">
         <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -110,7 +110,7 @@ export default function ApprovalFlowPanel({ docData = {}, approvalItems = [], lo
 
   // When REJECTED: identify which lv rejected (the highest lv with a record = the rejector)
   const rejectorLv = useMemo(() => {
-    if (docStatus !== "REJECTED") return null;
+    if (docStatus !== "REJECT") return null;
     return approvalItems.reduce((maxLv, item) => {
       const m = String(item.get_descriptions ?? "").match(/^lv(\d+)/i);
       const lv = m ? parseInt(m[1]) : 0;
@@ -141,7 +141,7 @@ export default function ApprovalFlowPanel({ docData = {}, approvalItems = [], lo
       let isApproved = false;
       let isRejected = false;
       if (approvalRecord) {
-        if (docStatus === "REJECTED") {
+        if (docStatus === "REJECT") {
           // Highest lv with a record = the rejector; lower levels = already approved
           if (levelapprove === rejectorLv) {
             isRejected = true;
@@ -202,25 +202,41 @@ export default function ApprovalFlowPanel({ docData = {}, approvalItems = [], lo
 
         {/* ── Stepper ── */}
         <div className="px-4 py-4">
-          {sortedGroups === null ? (
+          {docData.statustype === "ADD-DATA" ? (
+            <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
+              <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mb-3">
+                <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <p className="text-sm font-bold text-gray-700 mb-1">ຍັງບໍ່ສາມາດອະນຸມັດໄດ້</p>
+              <p className="text-xs text-gray-500 leading-relaxed">
+                ເອກະສານຍັງບໍ່ມີເນື້ອຫາ ກະລຸນາເພີ່ມເນື້ອຫາກ່ອນ
+              </p>
+            </div>
+          ) : sortedGroups === null ? (
             /* Loading skeleton */
-            <div className="flex gap-6">
+            <div className="flex flex-col gap-6">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="flex-1 min-w-36 flex flex-col items-center gap-3">
-                  <div className="w-11 h-11 rounded-full bg-gray-100 animate-pulse" />
-                  <div className="h-3 bg-gray-100 rounded-full animate-pulse w-3/4" />
-                  <div className="h-20 bg-gray-100 rounded-2xl animate-pulse w-full" />
+                <div key={i} className="flex items-start gap-4">
+                  <div className="w-11 h-11 rounded-full bg-gray-100 animate-pulse shrink-0" />
+                  <div className="flex-1 flex flex-col gap-3">
+                    <div className="h-3 bg-gray-100 rounded-full animate-pulse w-1/2" />
+                    <div className="h-14 bg-gray-100 rounded-2xl animate-pulse w-full" />
+                  </div>
                 </div>
               ))}
             </div>
           ) : sortedGroups.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-6">ບໍ່ມີ Document Group</p>
+            <p className="text-sm text-gray-400 text-center py-6">ບໍ່ມີຜູ້ມີສິດອະນຸມັດເອກະສານປະເພດນີ້</p>
           ) : (
             <div className="flex flex-col">
               {stepData.map(({ g, groupUsers, approvalRecord, isApproved, isRejected, levelapprove, myEntry }, i) => {
                 const dcdid = g.dcdid;
                 const isMyGroup = !!myEntry;
                 const isFirst = i === 0;
+                const prevAllApproved = stepData.slice(0, i).every((s) => s.isApproved);
                 const isLast = i === stepData.length - 1;
 
                 const ownTrack = isApproved ? "bg-green-400" : isRejected ? "bg-red-400" : "bg-gray-200";
@@ -242,7 +258,7 @@ export default function ApprovalFlowPanel({ docData = {}, approvalItems = [], lo
                       {/* Icon */}
                       <div className="relative z-10 shrink-0">
                         <StepIcon
-                          status={isApproved ? "APPROVED" : isRejected ? "REJECTED" : null}
+                          status={isApproved ? "APPROVED" : isRejected ? "REJECT" : null}
                           isMe={isMyGroup && !approvalRecord}
                         />
                       </div>
@@ -320,7 +336,7 @@ export default function ApprovalFlowPanel({ docData = {}, approvalItems = [], lo
                         </div>
 
                       /* ── Case 2: Current user's turn ── */
-                      ) : isMyGroup ? (
+                      ) : isMyGroup && prevAllApproved ? (
                         <div className="rounded-xl border border-blue-200 overflow-hidden shadow-sm">
                           <div className="h-1 bg-linear-to-r from-[#0F75BC] to-[#1a8fd1]" />
                           <div className="bg-blue-50 px-3 py-2">
@@ -369,16 +385,23 @@ export default function ApprovalFlowPanel({ docData = {}, approvalItems = [], lo
                             {groupUsers.length === 0 ? (
                               <p className="text-[10px] text-gray-400 text-center">ບໍ່ມີຂໍ້ມູນ</p>
                             ) : (
-                              groupUsers.map((d, j) => (
-                                <div key={j} className="flex items-center gap-1.5 text-[11px] text-gray-500">
-                                  <div className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center shrink-0">
-                                    <svg className="w-2.5 h-2.5 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                                      <path d="M12 12c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5zm0 2c-3.33 0-10 1.674-10 5v2h20v-2c0-3.326-6.67-5-10-5z"/>
-                                    </svg>
+                              groupUsers.map((d, j) => {
+                                const docMoney = docData.totalmoney != null && docData.totalmoney !== ""
+                                  ? Number(docData.totalmoney) : null;
+                                const userMax = d.maxsignmoney != null ? Number(d.maxsignmoney) : null;
+                                const ineligible = docMoney != null && userMax != null && userMax < docMoney;
+                                if (ineligible) return null;
+                                return (
+                                  <div key={j} className="flex items-center gap-1.5 text-[11px] text-gray-500">
+                                    <div className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center shrink-0">
+                                      <svg className="w-2.5 h-2.5 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 12c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5zm0 2c-3.33 0-10 1.674-10 5v2h20v-2c0-3.326-6.67-5-10-5z"/>
+                                      </svg>
+                                    </div>
+                                    <span className="truncate flex-1 min-w-0">{d.usersmodel?.username ?? d.userid ?? "-"}</span>
                                   </div>
-                                  <span className="truncate">{d.usersmodel?.username ?? d.userid ?? "-"}</span>
-                                </div>
-                              ))
+                                );
+                              })
                             )}
                           </div>
                         </div>
@@ -406,6 +429,7 @@ export default function ApprovalFlowPanel({ docData = {}, approvalItems = [], lo
             onClose={() => setShowRejectModal(false)}
             onRejected={() => { setShowRejectModal(false); onApproved?.(); }}
             docData={docData}
+            levelapprove={myLevelApprove}
           />
         </>,
         document.body

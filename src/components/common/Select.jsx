@@ -15,7 +15,24 @@ function Select({
   hasMore = false,
   onLoadMore = null,
   isLoadingMore = false,
+  elevated = false,
+  ringColor = "#bfdbfe",
+  rounded = "full",
 }) {
+  const roundedClass = {
+    none: "rounded-none",
+    sm: "rounded-sm",
+    md: "rounded-md",
+    lg: "rounded-lg",
+    xl: "rounded-xl",
+    "2xl": "rounded-2xl",
+    full: "rounded-full",
+  }[rounded] || "rounded-full";
+  const elevatedStyle = elevated
+    ? {
+        boxShadow: `0 0 0 3px ${ringColor}, 0 6px 12px rgba(0, 10, 31, 0.45)`,
+      }
+    : undefined;
   const [isOpen, setIsOpen] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -130,7 +147,8 @@ function Select({
           onClick={handleToggle}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
-          className={`w-full rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 transition-all duration-300 ease-out cursor-pointer text-left flex items-center justify-between
+          style={elevatedStyle}
+          className={`w-full ${roundedClass} px-4 py-2 text-sm focus:outline-none focus:ring-2 transition-all duration-300 ease-out cursor-pointer text-left flex items-center justify-between
             ${
               hasError
                 ? "border-2 border-red-500 focus:ring-red-200 animate-shake"
@@ -165,13 +183,6 @@ function Select({
           </svg>
         </button>
 
-        {/* Animated indicator line */}
-        <div
-          className={`absolute bottom-0 left-0 h-0.5 bg-linear-to-r from-blue-400 to-blue-600 transition-all duration-300 ease-out ${
-            isFocused ? "w-full opacity-100" : "w-0 opacity-0"
-          }`}
-        />
-
         {/* Animated Dropdown */}
         {isOpen && (
           <div
@@ -183,14 +194,14 @@ function Select({
             style={{ zIndex: 9999 }}
           >
             {searchable && (
-              <div className="p-2 border-b border-gray-100">
+              <div className="p-3 border-b border-gray-100">
                 <input
                   ref={searchRef}
                   type="text"
                   value={searchText}
                   onChange={handleSearchChange}
                   placeholder="ຄົ້ນຫາ..."
-                  className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"
+                  className="w-full px-4 py-2 text-sm bg-white text-gray-700 placeholder-gray-400 border border-blue-200 shadow-sm rounded-full focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-200 hover:border-blue-300 transition-all duration-200"
                   onClick={(e) => e.stopPropagation()}
                 />
               </div>

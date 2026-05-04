@@ -26,13 +26,17 @@ export default function MainLayout({ title }) {
     let label = findLabel(MENU_ITEMS);
     if (label) return label;
     if (path.startsWith("/users")) return "ຈັດການຜູ້ໃຊ້";
+    if (path.startsWith("/document-preview")) return "ເບິ່ງເອກະສານ";
+    if (path.startsWith("/document-category/detail")) return "ແຜນຜັງປະເພດເອກະສານ";
     if (path.startsWith("/dashboard")) return "ໜ້າຫຼັກ";
     return "ໜ້າຫຼັກ";
   };
 
   const getBreadcrumb = (path) => {
+    if (path.startsWith("/document-category/detail"))
+      return { parent: "ເອກະສານ", current: "ແຜນຜັງປະເພດເອກະສານ" };
     for (const item of MENU_ITEMS) {
-      if (item.path === path) return null; // top-level, no breadcrumb needed
+      if (item.path === path) return null;
       if (item.children) {
         const child = item.children.find(
           (c) => c.path === path || path.startsWith(c.path + "/")

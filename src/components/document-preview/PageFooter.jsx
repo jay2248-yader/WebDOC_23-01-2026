@@ -5,8 +5,7 @@ import museumIcon from "../../assets/icon/MuseumExhibition.svg";
 
 export default function PageFooter({ scale = 1 }) {
     return (
-        <div className="doc-footer w-full"
-            style={{ position: "absolute", bottom: 0, left: 0, right: 0, transformOrigin: "bottom center", transform: `scaleY(${scale})` }}>
+        <div className="doc-footer w-full" style={{ transformOrigin: "bottom center", transform: `scaleY(${scale})` }}>
             <div className="h-30 w-full relative">
                 <div className="absolute bottom-0 left-0 w-full h-full z-0 pointer-events-none">
                     <svg width="100%" height="100%" viewBox="0 0 800 120"

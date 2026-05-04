@@ -138,11 +138,8 @@ export default function Sidebar({ isMobileOpen = false, onMobileClose = () => {}
 
       {/* Bottom */}
       <div className="px-4 pb-5">
-        <div className="h-px mb-4" style={{ background: "rgba(255,255,255,0.15)" }} />
         <div className="flex items-center gap-2 px-2">
-          <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold text-white">A</div>
           <div className="flex-1 min-w-0">
-            <p className="text-white text-xs font-medium truncate">Admin</p>
             <p className="text-blue-300 text-xs opacity-75 truncate">v1.0.0</p>
           </div>
         </div>

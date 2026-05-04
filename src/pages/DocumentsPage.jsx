@@ -3,11 +3,8 @@ import { useNavigate } from "react-router-dom";
 import GenericToolbar from "../components/common/GenericToolbar";
 import GenericDataTable, { Button } from "../components/common/GenericDataTable";
 import DocumentFormModal from "../components/documents/DocumentFormModal";
-import DocumentDetailModal from "../components/documents/DocumentDetailModal";
-import DocumentDetailFormModal from "../components/documents/DocumentDetailFormModal";
 import LoadingDialog from "../components/common/LoadingDialog";
-import { getAllDocuments, createNewDocument, successFinishedDocument, uploadDocumentFile } from "../services/documentservice";
-import { createDocumentDetails, getDocumentDetailsByDocumentId } from "../services/documentdetailsservice";
+import { getAllDocuments, createNewDocument } from "../services/documentservice";
 
 
 export default function DocumentsPage() {
@@ -22,11 +19,7 @@ export default function DocumentsPage() {
     const [pageSize, setPageSize] = useState(10);
     const [showFormModal, setShowFormModal] = useState(false);
     const [editingDocument, setEditingDocument] = useState(null);
-    const [showDetailModal, setShowDetailModal] = useState(false);
-    const [viewingDocument, setViewingDocument] = useState(null);
-    const [showDetailFormModal, setShowDetailFormModal] = useState(false);
-    const [detailFormDocument, setDetailFormDocument] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const [tableLoading, setTableLoading] = useState(false);
 
     const tableRef = useRef(null);
     const mountedRef = useRef(true);
@@ -36,10 +29,10 @@ export default function DocumentsPage() {
     }, []);
 
     const loadDocuments = useCallback(async (signal, silent = false) => {
+        if (!silent) setTableLoading(true);
         try {
-            if (!silent) setIsLoading(true);
             const result = await getAllDocuments({ page, limit: pageSize, search: searchText }, signal);
-            if (!mountedRef.current) return;
+            if (!mountedRef.current || signal?.aborted) return;
             setDocuments(result.data);
             setTotalItems(result.total);
             setTotalPages(result.lastPage || 1);
@@ -47,7 +40,7 @@ export default function DocumentsPage() {
             if (error?.code === "ERR_CANCELED" || error?.name === "CanceledError") return;
             console.error("Error loading documents:", error);
         } finally {
-            if (mountedRef.current && !silent) setIsLoading(false);
+            if (mountedRef.current && !silent && !signal?.aborted) setTableLoading(false);
         }
     }, [page, pageSize, searchText]);
 
@@ -66,84 +59,75 @@ export default function DocumentsPage() {
     const handleCreateDocument = useCallback(() => { setEditingDocument(null); setShowFormModal(true); }, []);
     const handleEditDocument = useCallback((doc) => { setEditingDocument(doc); setShowFormModal(true); }, []);
     const handlePreviewDocument = useCallback((doc) => { navigate("/document-preview", { state: { document: doc } }); }, [navigate]);
-    const handleCloseDetailModal = useCallback(() => { setShowDetailModal(false); setViewingDocument(null); }, []);
-    const handleCloseDetailFormModal = useCallback(() => { setShowDetailFormModal(false); setDetailFormDocument(null); }, []);
     const handleCloseModal = useCallback(() => { setShowFormModal(false); setEditingDocument(null); }, []);
     const handleDeleteDocument = useCallback(async () => { await loadDocuments(undefined, true); }, [loadDocuments]);
-
-    const handleOpenUpload = useCallback((doc) => {
-        setDetailFormDocument(doc);
-        setShowDetailFormModal(true);
-    }, []);
-
-    const handleSubmitDetail = useCallback(async (formData) => {
-        const { file, rqdid, ...detailData } = formData;
-
-        // 1. สร้าง document details
-        await createDocumentDetails({ rqdid: parseInt(rqdid), ...detailData });
-
-        // 2. API ไม่ return rddid → fetch details แล้วดึง rddid ล่าสุด
-        const detailsResult = await getDocumentDetailsByDocumentId(String(rqdid));
-        const details = detailsResult.data_id?.data || [];
-        const rddid = details[details.length - 1]?.rddid;
-
-        // 3. Upload file ด้วยชื่อ rddid_rqdid.ext
-        if (file && rddid) {
-            await uploadDocumentFile(file, rddid, rqdid);
-        }
-
-        await loadDocuments(undefined, true);
-    }, [loadDocuments]);
 
     const handleSubmitDocument = useCallback(async (formData) => {
         if (editingDocument) {
             // TODO: await updateDocument({ rqdid: editingDocument.rqdid, ...formData });
+            await loadDocuments(undefined, true);
         } else {
-            const result = await createNewDocument(formData);
-            const rqdid = result.data_id?.fn_newrequestdoc?.rqdid;
-            if (rqdid) {
-                await successFinishedDocument(rqdid);
+            const res = await createNewDocument(formData);
+            const created = res?.data_id || res?.message || null;
+            let newDoc = created && typeof created === "object" && created.rqdid ? created : null;
+            if (!newDoc) {
+                try {
+                    const list = await getAllDocuments({ page: 1, limit: 1, search: "" });
+                    newDoc = list.data?.[0] || null;
+                } catch { /* ignore */ }
+            }
+            await loadDocuments(undefined, true);
+            if (newDoc?.rqdid) {
+                navigate("/document-preview", { state: { document: newDoc } });
             }
         }
-        await loadDocuments(undefined, true);
-    }, [editingDocument, loadDocuments]);
+    }, [editingDocument, loadDocuments, navigate]);
 
     // Define columns configuration
     const columns = useMemo(() => [
         {
             key: "index",
-            label: "ລຳດັບ", // Order
+            label: "ລຳດັບ",
             align: "center",
             render: (_item, index, page, pageSize) => (page - 1) * pageSize + index + 1,
         },
         {
             key: "req_no",
-            label: "ເລກທີ", // No.
+            label: "ເລກທີ",
             align: "left",
         },
         {
             key: "req_reason",
-            label: "ເນື້ອໃນ", // Content/Reason
+            label: "ເນື້ອໃນ",
             align: "left",
         },
         {
             key: "req_shortboard",
-            label: "ພາກສ່ວນ", // Section
+            label: "ພາກສ່ວນ",
             align: "left",
         },
         {
             key: "req_to",
-            label: "ຮຽນ", // To
+            label: "ຮຽນ",
             align: "left",
         },
         {
+            key: "totalmoney",
+            label: "ຈຳນວນເງິນ",
+            align: "right",
+            render: (doc) =>
+                doc.totalmoney != null && doc.totalmoney !== ""
+                    ? Number(doc.totalmoney).toLocaleString()
+                    : "-",
+        },
+        {
             key: "createdate",
-            label: "ວັນທີ", // Date
+            label: "ວັນທີ",
             align: "left",
         },
         {
             key: "createBy",
-            label: "ຜູ້ສ້າງ", // Created By
+            label: "ຜູ້ສ້າງ",
             align: "left",
             render: (doc) => doc.createBy?.username || "-",
         },
@@ -152,26 +136,32 @@ export default function DocumentsPage() {
             label: "ສະຖານະ",
             align: "center",
             render: (doc) => {
-                const colorMap = {
-                    "ADD":      "bg-emerald-100 text-emerald-700 border-emerald-300",
-                    "ADD-DATA": "bg-blue-100    text-blue-700    border-blue-300",
-                    "EDIT":     "bg-amber-100   text-amber-700   border-amber-300",
-                    "APPROVE":  "bg-teal-100    text-teal-700    border-teal-300",
-                    "REJECT":   "bg-red-100     text-red-700     border-red-300",
-                    "PENDING":  "bg-orange-100  text-orange-700  border-orange-300",
-                    "DELETE":   "bg-rose-100    text-rose-700    border-rose-300",
+                const styleMap = {
+                    "ADD":      { bg: "bg-emerald-100", text: "text-emerald-800", dot: "bg-emerald-500" },
+                    "ADD-DATA": { bg: "bg-gray-100",    text: "text-gray-700",    dot: "bg-gray-500"    },
+                    "SUCCESS":  { bg: "bg-green-100",   text: "text-green-800",   dot: "bg-green-600"   },
+                    "EDIT":     { bg: "bg-amber-100",   text: "text-amber-800",   dot: "bg-amber-500"   },
+                    "APPROVE":  { bg: "bg-teal-100",    text: "text-teal-800",    dot: "bg-teal-600"    },
+                    "REJECT":   { bg: "bg-rose-100",    text: "text-rose-800",    dot: "bg-rose-600"    },
+                    "PENDING":  { bg: "bg-orange-100",  text: "text-orange-800",  dot: "bg-orange-500"  },
+                    "DELETE":   { bg: "bg-red-100",     text: "text-red-800",     dot: "bg-red-600"     },
                 };
-                const cls = colorMap[doc.statustype] ?? "bg-gray-100 text-gray-600 border-gray-300";
+                const labelMap = {
+                    "ADD-DATA": "ເອກະສານສະບັບຮ່າງ",
+                    "SUCCESS":  "ເອກະສານສຳເລັດແລ້ວ",
+                };
+                const s = styleMap[doc.statustype] ?? { bg: "bg-gray-100", text: "text-gray-600", dot: "bg-gray-400" };
                 return (
-                    <span className={`inline-flex items-center whitespace-nowrap px-2.5 py-1 rounded-full text-xs font-semibold border ${cls}`}>
-                        {doc.statustype}
+                    <span className={`inline-flex items-center gap-1.5 whitespace-nowrap px-2.5 py-1 rounded-full text-xs font-semibold ${s.bg} ${s.text}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
+                        {labelMap[doc.statustype] ?? doc.statustype}
                     </span>
                 );
             },
         },
         {
             key: "actions",
-            label: "ຈັດການ", // Actions
+            label: "ຈັດການ",
             align: "center",
             render: (doc) => (
                 <div className="flex items-center justify-center gap-2">
@@ -179,45 +169,19 @@ export default function DocumentsPage() {
                         fullWidth={false}
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleOpenUpload(doc)}
-                        className="w-16 inline-flex items-center justify-center rounded-md bg-green-200 px-2 py-1 text-xs text-green-700 hover:bg-green-50 hover:scale-100 hover:shadow-none"
-                    >
-                        ອັບໂຫຼດ
-                    </Button>
-
-                    <Button
-                        fullWidth={false}
-                        variant="ghost"
-                        size="sm"
                         onClick={() => handlePreviewDocument(doc)}
-                        className="w-16 inline-flex items-center justify-center rounded-md bg-orange-200 px-2 py-1 text-xs text-orange-700 hover:bg-orange-50 hover:scale-100 hover:shadow-none"
+                        className="w-24 inline-flex items-center justify-center gap-1.5 rounded-md bg-blue-200 px-2 py-1 text-xs text-blue-700 hover:bg-blue-50 hover:scale-100 hover:shadow-none"
                     >
-                        ພິມ
-                    </Button>
-
-                    <Button
-                        fullWidth={false}
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEditDocument(doc)}
-                        className="w-16 inline-flex items-center justify-center rounded-md bg-blue-200 px-2 py-1 text-xs text-blue-700 hover:bg-blue-50 hover:scale-100 hover:shadow-none"
-                    >
-                        ແກ້ໄຂ
-                    </Button>
-
-                    <Button
-                        fullWidth={false}
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => tableRef.current?.handleDeleteClick?.(doc)}
-                        className="w-16 inline-flex items-center justify-center rounded-md bg-red-400 px-2 py-1 text-xs text-white hover:bg-red-500 hover:scale-100 hover:shadow-none"
-                    >
-                        ລົບ
+                        <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        ເບິ່ງ
                     </Button>
                 </div>
             ),
         },
-    ], [handlePreviewDocument, handleEditDocument, handleOpenUpload, tableRef]);
+    ], [handlePreviewDocument]);
 
     return (
         <div className="space-y-6">
@@ -243,7 +207,6 @@ export default function DocumentsPage() {
                         />
                     </svg>
                 }
-
             />
 
             <GenericDataTable
@@ -260,6 +223,7 @@ export default function DocumentsPage() {
                 rowKey="rqdid"
                 entityName="ເອກະສານ"
                 getEntityDisplayName={(doc) => doc.req_no}
+                loading={tableLoading}
                 ref={tableRef}
             />
 
@@ -270,22 +234,6 @@ export default function DocumentsPage() {
                 onClose={handleCloseModal}
                 onSubmit={handleSubmitDocument}
             />
-
-            <DocumentDetailModal
-                isOpen={showDetailModal}
-                document={viewingDocument}
-                onClose={handleCloseDetailModal}
-            />
-
-            <DocumentDetailFormModal
-                key={detailFormDocument?.rqdid || "new-detail"}
-                isOpen={showDetailFormModal}
-                document={detailFormDocument}
-                onClose={handleCloseDetailFormModal}
-                onSubmit={handleSubmitDetail}
-            />
-
-            <LoadingDialog isOpen={isLoading} message="ກຳລັງໂຫຼດ..." />
         </div>
     );
 }

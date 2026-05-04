@@ -16,6 +16,7 @@ export default function ClosingContent({
     showSignature = true, // false → ซ่อนส่วนลายเซ็น (ยังไม่ใช่ chunk สุดท้าย)
     showLabel = true, // false → ซ่อน "ໝາຍເຫດ:" label (overflow chunk)
     creatorName,      // ชื่อผู้สร้าง — แสดงใต้ "ຜູ້ສະເໜີ"
+    signatureGroups = [], // docgroupname[] เรียงตาม levelapprove
 }) {
     const displayRemark = remarkOverride !== undefined ? remarkOverride : remark;
     const taRef = useRef(null);
@@ -56,13 +57,37 @@ export default function ClosingContent({
                 <>
                     <p className="indent-20">ດັ່ງນັ້ນ, ຂ້ານະເຈົ້າຈຶ່ງຂໍສະເໜີມາຍັງທ່ານ ເພື່ອພິຈາລະນາອະນຸມັດຕາມທີ່ເຫັນສົມຄວນດ້ວຍ.</p>
                     <p className="text-right text-sm mt-1">ຮຽນມາດ້ວຍຄວາມນັບຖື,</p>
-
-                    {/* ── Signature row 1 ── */}
-                    <div className="grid grid-cols-3 mt-2 text-center text-sm gap-40">
-                        <SignatureBox label="ຫົວໜ້າຝ່າຍໄອທີ" />
-                        <SignatureBox label="ຜູ້ຈັດການສາຂາ" />
-                        <SignatureBox label="ຜູ້ສະເໜີ" name={creatorName} />
-                    </div>
+                    {/* ── Signature rows ── */}
+                    {(() => {
+                        const groups = signatureGroups.length > 0
+                            ? signatureGroups
+                            : [{ label: "ຫົວໜ້າຝ່າຍໄອທີ", approverName: "" }, { label: "ຜູ້ຈັດການສາຂາ", approverName: "" }];
+                        // แถว 1: groups[0], groups[1], ຜູ້ສະເໜີ
+                        const firstRow = [
+                            ...groups.slice(0, 2),
+                            { label: "ຜູ້ສະເໜີ", approverName: creatorName },
+                        ];
+                        // แถวถัดไป: groups[2..] แถวละ 3
+                        const rest = groups.slice(2);
+                        const extraRows = [];
+                        for (let i = 0; i < rest.length; i += 3) extraRows.push(rest.slice(i, i + 3));
+                        return (
+                            <>
+                                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8rem", marginTop: "1rem", fontSize: "0.875rem", textAlign: "center" }}>
+                                    {firstRow.map((box, i) => (
+                                        <SignatureBox key={i} label={box.label} name={box.approverName} />
+                                    ))}
+                                </div>
+                                {extraRows.map((row, ri) => (
+                                    <div key={ri} style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8rem", marginTop: "1rem", fontSize: "0.875rem", textAlign: "center" }}>
+                                        {row.map((box, bi) => (
+                                            <SignatureBox key={bi} label={box.label} name={box.approverName} />
+                                        ))}
+                                    </div>
+                                ))}
+                            </>
+                        );
+                    })()}
                 </>
             )}
         </>

@@ -29,6 +29,7 @@ export default function useCrudPage({
   const [items, setItems] = useState([]);
   const [serverMeta, setServerMeta] = useState(null); // { total, lastPage } or null
   const [loadingData, setLoadingData] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -54,15 +55,24 @@ export default function useCrudPage({
     }
   }, []);
 
+  const lastFetchedKeyRef = useRef(null);
+  const currentFetchKey = `${page}|${pageSize}|${searchText}`;
+
   const refreshData = useCallback(async (signal) => {
     try {
       setLoadingData(true);
+      setLoadError(null);
       const result = await fetchAll({ page, limit: pageSize, search: searchText }, signal);
       if (!mountedRef.current) return;
+      lastFetchedKeyRef.current = `${page}|${pageSize}|${searchText}`;
       applyResult(result);
     } catch (error) {
       if (error?.code === "ERR_CANCELED" || error?.name === "CanceledError") return;
       console.error("Failed to fetch data:", error);
+      if (mountedRef.current) {
+        lastFetchedKeyRef.current = `${page}|${pageSize}|${searchText}`;
+        setLoadError(error?.message || "ບໍ່ສາມາດໂຫຼດຂໍ້ມູນໄດ້");
+      }
     } finally {
       if (mountedRef.current) setLoadingData(false);
     }
@@ -73,6 +83,11 @@ export default function useCrudPage({
     refreshData(controller.signal);
     return () => controller.abort();
   }, [refreshData]);
+
+  // Treat the period after deps change (before useEffect fires) as loading,
+  // so UI doesn't flash an empty state between renders.
+  const isDepsStale = lastFetchedKeyRef.current !== currentFetchKey;
+  const effectiveLoading = loadingData || isDepsStale;
 
   // Client-side filtering (only when NOT server-paginated)
   const filtered = useMemo(() => {
@@ -176,7 +191,8 @@ export default function useCrudPage({
     totalPages,
     totalItems,
     pageItems,
-    loadingData,
+    loadingData: effectiveLoading,
+    loadError,
     isLoading,
     showFormModal,
     editingItem,

@@ -1,7 +1,7 @@
-export default function DocNumberRow({ reqNo = "", date = "" }) {
+export default function DocNumberRow({ reqNo = "", date = "", shortboard = "" }) {
     return (
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", fontSize: "13px", color: "#000", paddingLeft: 16, paddingRight: 8 }}>
-            <span style={{ marginLeft: 145 }}>ຝ່າຍໃດໜຶ່ງ</span>
+            <span style={{ marginLeft: 145 }}>{shortboard || "ຝ່າຍໃດໜຶ່ງ"}</span>
             <div style={{ textAlign: "right", marginRight: 50 }}>
                 <p>ເລກທີ:{reqNo || "ອກ"}</p>
                 <p>ນະຄອນຫຼວງວຽງຈັນ, ວັນທີ:{date}</p>

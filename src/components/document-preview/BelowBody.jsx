@@ -14,6 +14,7 @@ export default function BelowBody({
     showSignature = true,
     showLabel = true,
     creatorName,
+    signatureGroups = [],
 }) {
     const sectionsToRender = partialSections !== null ? partialSections : titleTableSections;
     const showPlaceholder = titleTableSections.length === 0;
@@ -37,6 +38,7 @@ export default function BelowBody({
                     showSignature={showSignature}
                     showLabel={showLabel}
                     creatorName={creatorName}
+                    signatureGroups={signatureGroups}
                 />
             )}
         </>
