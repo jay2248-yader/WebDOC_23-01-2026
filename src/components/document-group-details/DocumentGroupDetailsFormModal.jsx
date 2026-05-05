@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useMemo } from "react";
 import useFormModal from "../../hooks/useFormModal";
 import useSelectPagination from "../../hooks/useSelectPagination";
 import FormModalShell from "../common/FormModalShell";
@@ -74,6 +74,40 @@ export default function DocumentGroupDetailsFormModal({
     }
   };
 
+  const groupOptions = useMemo(() => {
+    const opts = groups.items.map((g) => ({
+      value: String(g.dcdid),
+      label: g.documentcategorymodel?.doccategoryname
+        ? `${g.docgroupname} - ${g.documentcategorymodel.doccategoryname}`
+        : g.docgroupname,
+    }));
+    if (detail?.dcdid && !opts.some((o) => o.value === String(detail.dcdid))) {
+      const g = detail.documentgroupmodel;
+      const label = g?.docgroupname
+        ? (g.documentcategorymodel?.doccategoryname
+            ? `${g.docgroupname} - ${g.documentcategorymodel.doccategoryname}`
+            : g.docgroupname)
+        : `ລະຫັດ: ${detail.dcdid}`;
+      opts.unshift({ value: String(detail.dcdid), label });
+    }
+    return opts;
+  }, [groups.items, detail]);
+
+  const userOptions = useMemo(() => {
+    const opts = users.items.map((u) => ({
+      value: String(u.usid),
+      label: `${u.username} (${u.usercode})`,
+    }));
+    if (detail?.userid && !opts.some((o) => o.value === String(detail.userid))) {
+      const u = detail.usersmodel;
+      const label = u?.username
+        ? `${u.username} (${u.usercode})`
+        : `ລະຫັດ: ${detail.userid}`;
+      opts.unshift({ value: String(detail.userid), label });
+    }
+    return opts;
+  }, [users.items, detail]);
+
   return (
     <FormModalShell
       shouldRender={shouldRender}
@@ -97,26 +131,21 @@ export default function DocumentGroupDetailsFormModal({
         )}
 
         {!hideGroup && (
-        <Select
-          label="ກຸ່ມເອກະສານ"
-          theme="light"
-          placeholder="ກະລຸນາເລືອກກຸ່ມເອກະສານ"
-          value={formData.dcdid}
-          onChange={handleChange("dcdid")}
-          options={groups.items.map((g) => ({
-            value: String(g.dcdid),
-            label: g.documentcategorymodel?.doccategoryname
-              ? `${g.docgroupname} - ${g.documentcategorymodel.doccategoryname}`
-              : g.docgroupname,
-          }))}
-          error={errors.dcdid}
-          hasError={!!errors.dcdid}
-          searchable
-          onSearch={groups.handleSearch}
-          hasMore={groups.hasMore}
-          onLoadMore={groups.handleLoadMore}
-          isLoadingMore={groups.loadingMore}
-        />
+          <Select
+            label="ກຸ່ມເອກະສານ"
+            theme="light"
+            placeholder="ກະລຸນາເລືອກກຸ່ມເອກະສານ"
+            value={formData.dcdid}
+            onChange={handleChange("dcdid")}
+            options={groupOptions}
+            error={errors.dcdid}
+            hasError={!!errors.dcdid}
+            searchable
+            onSearch={groups.handleSearch}
+            hasMore={groups.hasMore}
+            onLoadMore={groups.handleLoadMore}
+            isLoadingMore={groups.loadingMore}
+          />
         )}
 
         <Select
@@ -125,7 +154,7 @@ export default function DocumentGroupDetailsFormModal({
           placeholder="ກະລຸນາເລືອກຜູ້ໃຊ້"
           value={formData.userid}
           onChange={handleChange("userid")}
-          options={users.items.map((u) => ({ value: String(u.usid), label: `${u.username} (${u.usercode})` }))}
+          options={userOptions}
           error={errors.userid}
           hasError={!!errors.userid}
           searchable

@@ -223,7 +223,7 @@ export default function DocumentPreviewPage() {
           <button
             onClick={() => navigate(-1)}
             style={{ boxShadow: "0 0 0 2px #bfdbfe, 0 4px 10px rgba(0, 10, 31, 0.15)" }}
-            className="group inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white text-[#0F75BC] text-sm font-semibold transition-all duration-200 hover:bg-[#0F75BC] hover:text-white hover:gap-3 w-fit"
+            className="ml-1 mt-1 group inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white text-[#0F75BC] text-sm font-semibold transition-all duration-200 hover:bg-[#0F75BC] hover:text-white hover:gap-3 w-fit"
           >
             <svg className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
