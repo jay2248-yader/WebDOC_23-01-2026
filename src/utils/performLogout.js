@@ -10,11 +10,11 @@ import { useDocumentEditStore } from "../store/documentEditStore";
 export function performLogout() {
   // Clear document edits (in-memory + localStorage)
   useDocumentEditStore.setState({ edits: {} });
-  try { localStorage.removeItem("document-edit-storage"); } catch {}
+  try { localStorage.removeItem("document-edit-storage"); } catch { /* ignore */ }
 
   // Clear auth (in-memory + localStorage)
   useAuthStore.getState().logout();
-  try { localStorage.removeItem("auth-storage"); } catch {}
+  try { localStorage.removeItem("auth-storage"); } catch { /* ignore */ }
 
   // Hard reload to /login → fully releases JS heap
   window.location.replace("/login");

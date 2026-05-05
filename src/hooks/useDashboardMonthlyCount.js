@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useReducer } from "react";
 import { getDocumentRequestDashboardFlowchartPercentByYear } from "../services/dashboardservice";
 
 const MONTH_LABELS_LO = [
@@ -6,16 +6,28 @@ const MONTH_LABELS_LO = [
   "ກໍລະກົດ", "ສິງຫາ", "ກັນຍາ", "ຕຸລາ", "ພະຈິກ", "ທັນວາ",
 ];
 
+const initialState = { data: [], loading: false, error: null };
+
+function reducer(state, action) {
+  switch (action.type) {
+    case "fetch":
+      return { data: [], loading: true, error: null };
+    case "success":
+      return { data: action.payload, loading: false, error: null };
+    case "error":
+      return { ...state, loading: false, error: action.payload };
+    default:
+      return state;
+  }
+}
+
 export function useDashboardMonthlyCount(year) {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [state, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
     if (!year) return;
     const controller = new AbortController();
-    setLoading(true);
-    setError(null);
+    dispatch({ type: "fetch" });
     getDocumentRequestDashboardFlowchartPercentByYear(year, controller.signal)
       .then((rows) => {
         const normalized = rows
@@ -26,14 +38,14 @@ export function useDashboardMonthlyCount(year) {
             percent: Number(String(r.percent_of_total_year ?? "0").replace("%", "")),
           }))
           .sort((a, b) => a.month_num - b.month_num);
-        setData(normalized);
+        dispatch({ type: "success", payload: normalized });
       })
       .catch((err) => {
-        if (err.name !== "CanceledError" && err.name !== "AbortError") setError(err);
-      })
-      .finally(() => setLoading(false));
+        if (err.name !== "CanceledError" && err.name !== "AbortError")
+          dispatch({ type: "error", payload: err });
+      });
     return () => controller.abort();
   }, [year]);
 
-  return { data, loading, error };
+  return state;
 }

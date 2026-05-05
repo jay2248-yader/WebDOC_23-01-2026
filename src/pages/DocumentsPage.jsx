@@ -137,22 +137,22 @@ export default function DocumentsPage() {
             align: "center",
             render: (doc) => {
                 const styleMap = {
-                    "ADD":      { bg: "bg-emerald-100", text: "text-emerald-800", dot: "bg-emerald-500" },
-                    "ADD-DATA": { bg: "bg-gray-100",    text: "text-gray-700",    dot: "bg-gray-500"    },
-                    "SUCCESS":  { bg: "bg-green-100",   text: "text-green-800",   dot: "bg-green-600"   },
-                    "EDIT":     { bg: "bg-amber-100",   text: "text-amber-800",   dot: "bg-amber-500"   },
-                    "APPROVE":  { bg: "bg-teal-100",    text: "text-teal-800",    dot: "bg-teal-600"    },
-                    "REJECT":   { bg: "bg-rose-100",    text: "text-rose-800",    dot: "bg-rose-600"    },
-                    "PENDING":  { bg: "bg-orange-100",  text: "text-orange-800",  dot: "bg-orange-500"  },
-                    "DELETE":   { bg: "bg-red-100",     text: "text-red-800",     dot: "bg-red-600"     },
+                    "ADD":      { bg: "bg-emerald-500", dot: "bg-white/70" },
+                    "ADD-DATA": { bg: "bg-slate-400",   dot: "bg-white/70" },
+                    "SUCCESS":  { bg: "bg-green-500",   dot: "bg-white/70" },
+                    "EDIT":     { bg: "bg-amber-400",   dot: "bg-white/70" },
+                    "APPROVE":  { bg: "bg-teal-500",    dot: "bg-white/70" },
+                    "REJECT":   { bg: "bg-rose-500",    dot: "bg-white/70" },
+                    "PENDING":  { bg: "bg-orange-400",  dot: "bg-white/70" },
+                    "DELETE":   { bg: "bg-red-500",     dot: "bg-white/70" },
                 };
                 const labelMap = {
                     "ADD-DATA": "ເອກະສານສະບັບຮ່າງ",
                     "SUCCESS":  "ເອກະສານສຳເລັດແລ້ວ",
                 };
-                const s = styleMap[doc.statustype] ?? { bg: "bg-gray-100", text: "text-gray-600", dot: "bg-gray-400" };
+                const s = styleMap[doc.statustype] ?? { bg: "bg-gray-400", dot: "bg-white/70" };
                 return (
-                    <span className={`inline-flex items-center gap-1.5 whitespace-nowrap px-2.5 py-1 rounded-full text-xs font-semibold ${s.bg} ${s.text}`}>
+                    <span className={`inline-flex items-center gap-1.5 whitespace-nowrap px-2.5 py-1 rounded-full text-xs font-semibold text-white ${s.bg}`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
                         {labelMap[doc.statustype] ?? doc.statustype}
                     </span>

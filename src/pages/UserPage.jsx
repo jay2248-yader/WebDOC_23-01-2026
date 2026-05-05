@@ -173,7 +173,7 @@ export default function UserPage() {
         </div>
       ),
     },
-  ], [handleEditUser, openPwdModal, tableRef]);
+  ], [handleEditUser]);
 
   return (
     <div className="space-y-6">

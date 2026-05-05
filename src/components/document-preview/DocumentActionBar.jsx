@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 
-export default function DocumentActionBar({ compactLevel = 0, onCompactLevelChange, reqFile, onUploadFile, isViewMode = false, isEditing = false, onToggleMode }) {
+export default function DocumentActionBar({ compactLevel = 0, onCompactLevelChange, reqFile, onUploadFile, isViewMode = false, onToggleMode }) {
     const fileInputRef = useRef(null);
     const [uploadStatus, setUploadStatus] = useState("idle"); // idle | uploading | done | error
 

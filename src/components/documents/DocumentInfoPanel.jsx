@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import {
   createDocumentDetails,
   getDocumentDetailsByDocumentId,
@@ -124,7 +124,7 @@ export default function DocumentInfoPanel({
   const [existingFiles, setExistingFiles] = useState([]);
   const [replaceStatus, setReplaceStatus] = useState({});
 
-  const fetchExistingFiles = () => {
+  const fetchExistingFiles = useCallback(() => {
     if (!rqdid) return;
     getDocumentDetailsByDocumentId(String(rqdid))
       .then((res) => {
@@ -137,9 +137,9 @@ export default function DocumentInfoPanel({
         );
       })
       .catch(() => {});
-  };
+  }, [rqdid]);
 
-  useEffect(() => { fetchExistingFiles(); }, [rqdid]);
+  useEffect(() => { fetchExistingFiles(); }, [rqdid, fetchExistingFiles]);
 
   const uploadSingleFile = async (file) => {
     const id = `${Date.now()}-${Math.random()}`;

@@ -32,11 +32,11 @@ function ToastContainer() {
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed top-5 right-5 z-[9999] flex flex-col gap-3 pointer-events-none">
+    <div className="fixed top-5 right-5 z-9999 flex flex-col gap-3 pointer-events-none">
       {toasts.map((t) => (
         <div
           key={t.id}
-          className={`flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg min-w-[260px] max-w-[380px] pointer-events-auto animate-slideUp ${STYLES[t.type]}`}
+          className={`flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg min-w-65 max-w-95 pointer-events-auto animate-slideUp ${STYLES[t.type]}`}
         >
           {ICONS[t.type]}
           <span className="text-sm font-medium flex-1 leading-snug">{t.message}</span>

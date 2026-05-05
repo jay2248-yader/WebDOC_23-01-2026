@@ -13,17 +13,20 @@ export default function DocumentGroupFormModal({
   onSubmit,
   documentGroup = null,
   lockedDctid = null,
+  existingLevels = [],
 }) {
   const docgroupnameRef = useRef(null);
   const levelapproveRef = useRef(null);
   const comparingRef = useRef(null);
+
+  const nextLevel = existingLevels.length > 0 ? Math.max(...existingLevels) + 1 : 1;
 
   const categories = useSelectPagination(getAllDocumentCategories);
   const hideCategory = lockedDctid != null && !documentGroup;
 
   useEffect(() => {
     if (isOpen && !hideCategory) categories.reset();
-  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isOpen, hideCategory, categories]);
 
   const {
     formData,
@@ -43,14 +46,14 @@ export default function DocumentGroupFormModal({
     onSubmit,
     initialData: {
       docgroupname: documentGroup?.docgroupname || "",
-      levelapprove: documentGroup?.levelapprove || "",
+      levelapprove: documentGroup?.levelapprove ? String(documentGroup.levelapprove) : String(nextLevel),
       comparing: documentGroup?.comparing || "N",
       dctid: documentGroup?.dctid ? String(documentGroup.dctid) : (lockedDctid != null ? String(lockedDctid) : ""),
     },
     validate: (data) => {
       const e = {};
       if (!data.docgroupname) e.docgroupname = "ກະລຸນາປ້ອນຊື່ກຸ່ມເອກະສານ";
-      if (!data.levelapprove) e.levelapprove = "ກະລຸນາປ້ອນລະດັບອະນຸມັດ";
+      if (!data.levelapprove) e.levelapprove = "ກະລຸນາເລືອກລະດັບອະນຸມັດ";
       if (!data.dctid) e.dctid = "ກະລຸນາປ້ອນລະຫັດປະເພດເອກະສານ";
       return e;
     },
@@ -91,7 +94,7 @@ export default function DocumentGroupFormModal({
           <FormInput label="ລະຫັດ (dcdid)" theme="light" value={documentGroup.dcdid} disabled />
         )}
 
-        {!hideCategory && (
+        {!hideCategory && !documentGroup && (
         <Select
           label="ປະເພດເອກະສານ"
           theme="light"
@@ -115,19 +118,22 @@ export default function DocumentGroupFormModal({
           placeholder="ກະລຸນາປ້ອນຊື່ກຸ່ມເອກະສານ"
           value={formData.docgroupname}
           onChange={handleChange("docgroupname")}
-          onKeyDown={handleKeyDown(() => levelapproveRef)}
+          onKeyDown={handleKeyDown(() => documentGroup ? levelapproveRef : comparingRef)}
           inputRef={docgroupnameRef}
           error={errors.docgroupname}
           hasError={!!errors.docgroupname}
         />
 
-        <FormInput
+        <Select
           label="ລະດັບອະນຸມັດ (levelapprove)"
           theme="light"
-          placeholder="ກະລຸນາປ້ອນລະດັບອະນຸມັດ (ຕົວເລກ)"
+          placeholder="ກະລຸນາເລືອກລະດັບ"
           value={formData.levelapprove}
-          onChange={handleChange("levelapprove", (v) => v.replace(/[^0-9]/g, ""))}
-          onKeyDown={handleKeyDown(() => comparingRef)}
+          onChange={handleChange("levelapprove")}
+          options={Array.from(
+            { length: documentGroup ? Math.max(...existingLevels, 1) : nextLevel },
+            (_, i) => ({ value: String(i + 1), label: `Lv.${i + 1}` })
+          )}
           inputRef={levelapproveRef}
           error={errors.levelapprove}
           hasError={!!errors.levelapprove}

@@ -77,7 +77,7 @@ export default function DocumentCategoryPage() {
         </div>
       ),
     },
-  ], [handleEdit, tableRef, navigate]);
+  ], [tableRef, navigate]);
 
   return (
     <div className="space-y-6">

@@ -1,149 +1,105 @@
 import { memo, useState, useCallback } from "react";
 import { useAuthStore } from "../../store/authstore";
 import { updatePwds } from "../../services/userservice";
-import FormInput from "./FormInput";
-import Button from "./Button";
-import ConfirmProgressDialog from "./ConfirmProgressDialog";
 
 function ChangePasswordModal({ isOpen, onClose }) {
   const user = useAuthStore((state) => state.user);
-
-  const [form, setForm] = useState({ newPwd: "", confirmPwd: "" });
-  const [errors, setErrors] = useState({});
-  const [showNew, setShowNew] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [dialog, setDialog] = useState({ open: false, status: "confirm" });
-
-  const validate = useCallback(() => {
-    const e = {};
-    if (!form.newPwd) e.newPwd = "ກະລຸນາປ້ອນລະຫັດຜ່ານໃໝ່";
-    else if (form.newPwd.length < 6) e.newPwd = "ລະຫັດຜ່ານຕ້ອງມີຢ່າງໜ້ອຍ 6 ຕົວອັກສອນ";
-    if (!form.confirmPwd) e.confirmPwd = "ກະລຸນາຢືນຢັນລະຫັດຜ່ານ";
-    else if (form.newPwd !== form.confirmPwd) e.confirmPwd = "ລະຫັດຜ່ານບໍ່ຕົງກັນ";
-    return e;
-  }, [form]);
-
-  const handleSubmit = useCallback(() => {
-    const e = validate();
-    if (Object.keys(e).length) { setErrors(e); return; }
-    setErrors({});
-    setDialog({ open: true, status: "confirm" });
-  }, [validate]);
-
-  const handleConfirm = useCallback(async () => {
-    setDialog({ open: true, status: "loading" });
-    try {
-      await updatePwds({ usercode: user?.usercode, pwds: form.newPwd });
-      setDialog({ open: true, status: "success" });
-    } catch {
-      setDialog({ open: false, status: "confirm" });
-    }
-  }, [user, form.newPwd]);
+  const [newPwd, setNewPwd] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleClose = useCallback(() => {
-    setForm({ newPwd: "", confirmPwd: "" });
-    setErrors({});
-    setShowNew(false);
-    setShowConfirm(false);
-    setDialog({ open: false, status: "confirm" });
+    setNewPwd("");
+    setIsSubmitting(false);
     onClose();
   }, [onClose]);
+
+  const handleSubmit = useCallback(async () => {
+    if (!newPwd || isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      await updatePwds({ usercode: user?.usercode, pwds: newPwd });
+      handleClose();
+    } catch {
+      setIsSubmitting(false);
+    }
+  }, [newPwd, isSubmitting, user, handleClose]);
 
   if (!isOpen) return null;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fadeIn"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fadeIn"
       onClick={handleClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full mx-4 animate-slideUp"
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden animate-slideUp"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-2">
-            <div className="w-1 h-5 rounded-full bg-[#0F75BC]" />
-            <h2 className="text-lg font-bold text-gray-800">ປ່ຽນລະຫັດຜ່ານ</h2>
-          </div>
-          <button
-            onClick={handleClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+        <div className="bg-linear-to-r from-[#0c5fa0] to-[#1a8fd1] px-6 py-5 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
             </svg>
-          </button>
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-white">ປ່ຽນລະຫັດຜ່ານ</h3>
+            <p className="text-xs text-blue-100 mt-0.5">{user?.username} · {user?.usercode}</p>
+          </div>
         </div>
 
-        {/* User info */}
-        <div className="mb-4 px-3 py-2 bg-blue-50 rounded-xl text-sm text-gray-600">
-          ຜູ້ໃຊ້: <span className="font-semibold text-[#0F75BC]">{user?.username}</span>{" "}({user?.usercode})
-        </div>
+        {/* Body */}
+        <div className="px-6 py-5 space-y-4">
+          <div className="space-y-1.5">
+            <label className="block text-sm font-medium text-gray-700">ລະຫັດຜ່ານໃໝ່</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <input
+                type="text"
+                autoFocus
+                value={newPwd}
+                onChange={(e) => setNewPwd(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+                placeholder="ກະລຸນາປ້ອນລະຫັດຜ່ານໃໝ່"
+                className="w-full pl-9 pr-4 py-2.5 text-sm rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 focus:bg-white transition-colors"
+              />
+            </div>
+          </div>
 
-        {/* Fields */}
-        <div className="space-y-4">
-          <FormInput
-            label="ລະຫັດຜ່ານໃໝ່"
-            type="password"
-            placeholder="ປ້ອນລະຫັດຜ່ານໃໝ່"
-            value={form.newPwd}
-            onChange={(e) => setForm((f) => ({ ...f, newPwd: e.target.value }))}
-            showPassword={showNew}
-            onTogglePassword={() => setShowNew((v) => !v)}
-            hasError={!!errors.newPwd}
-            error={errors.newPwd}
-            theme="light"
-            rounded="xl"
-            size="md"
-            maxLength={50}
-          />
-          <FormInput
-            label="ຢືນຢັນລະຫັດຜ່ານໃໝ່"
-            type="password"
-            placeholder="ປ້ອນລະຫັດຜ່ານໃໝ່ອີກຄັ້ງ"
-            value={form.confirmPwd}
-            onChange={(e) => setForm((f) => ({ ...f, confirmPwd: e.target.value }))}
-            showPassword={showConfirm}
-            onTogglePassword={() => setShowConfirm((v) => !v)}
-            hasError={!!errors.confirmPwd}
-            error={errors.confirmPwd}
-            theme="light"
-            rounded="xl"
-            size="md"
-            maxLength={50}
-          />
-        </div>
-
-        {/* Actions */}
-        <div className="flex gap-3 mt-6">
-          <Button variant="secondary" size="md" onClick={handleClose}>
-            ຍົກເລີກ
-          </Button>
-          <Button
-            size="md"
-            variant="outline"
-            onClick={handleSubmit}
-            className="bg-[#0F75BC] text-white hover:bg-blue-700"
-          >
-            ປ່ຽນລະຫັດຜ່ານ
-          </Button>
+          {/* Buttons */}
+          <div className="flex gap-3 pt-1">
+            <button
+              type="button"
+              onClick={handleClose}
+              className="flex-1 px-4 py-2.5 text-sm font-medium rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              ຍົກເລີກ
+            </button>
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={!newPwd || isSubmitting}
+              className="flex-1 px-4 py-2.5 text-sm font-medium rounded-xl bg-[#0F75BC] text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isSubmitting ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  </svg>
+                  ກຳລັງບັນທຶກ...
+                </>
+              ) : "ຢືນຢັນ"}
+            </button>
+          </div>
         </div>
       </div>
-
-      <ConfirmProgressDialog
-        isOpen={dialog.open}
-        status={dialog.status}
-        title="ຢືນຢັນການປ່ຽນລະຫັດຜ່ານ"
-        message="ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການປ່ຽນລະຫັດຜ່ານ?"
-        confirmText="ປ່ຽນ"
-        cancelText="ຍົກເລີກ"
-        loadingMessage="ກຳລັງປ່ຽນລະຫັດຜ່ານ..."
-        successMessage="ປ່ຽນລະຫັດຜ່ານສຳເລັດແລ້ວ"
-        onConfirm={handleConfirm}
-        onCancel={() => setDialog({ open: false, status: "confirm" })}
-        onClose={handleClose}
-      />
     </div>
   );
 }

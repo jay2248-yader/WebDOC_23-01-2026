@@ -1,5 +1,38 @@
-import { useState, useRef, useEffect, useCallback, useTransition } from "react";
+import { useState, useRef, useEffect, useCallback, useTransition, useReducer } from "react";
 import { toast } from "../store/toastStore";
+
+function formReducer(state, action) {
+  switch (action.type) {
+    case "reset":
+      return { formData: action.payload, errors: {}, dialogOpen: false, succeeded: false };
+    case "set_form_data":
+      return {
+        ...state,
+        formData: typeof action.updater === "function" ? action.updater(state.formData) : action.updater,
+      };
+    case "set_errors":
+      return {
+        ...state,
+        errors: typeof action.updater === "function" ? action.updater(state.errors) : action.updater,
+      };
+    case "set_field":
+      return {
+        ...state,
+        formData: { ...state.formData, [action.field]: action.value },
+        errors: state.errors[action.field] ? { ...state.errors, [action.field]: "" } : state.errors,
+      };
+    case "open_dialog":
+      return { ...state, dialogOpen: true, succeeded: false };
+    case "close_dialog":
+      return { ...state, dialogOpen: false, succeeded: false };
+    case "submit_success":
+      return { ...state, succeeded: true };
+    case "submit_error":
+      return { ...state, dialogOpen: false, succeeded: false };
+    default:
+      return state;
+  }
+}
 
 /**
  * useFormModal — shared logic for every FormModal in the app.
@@ -20,11 +53,13 @@ export default function useFormModal({
   validate,
   transformData,
 }) {
-  const [formData, setFormData] = useState(initialData);
-  const [errors, setErrors] = useState({});
+  const [{ formData, errors, dialogOpen, succeeded }, dispatch] = useReducer(formReducer, {
+    formData: typeof initialData === "function" ? initialData() : initialData,
+    errors: {},
+    dialogOpen: false,
+    succeeded: false,
+  });
   const [isClosing, setIsClosing] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [succeeded, setSucceeded] = useState(false);
 
   // useTransition: tracks async submission — replaces manual status:"loading" state
   const [isPending, startTransition] = useTransition();
@@ -43,22 +78,22 @@ export default function useFormModal({
   const prevOpenRef = useRef(false);
   useEffect(() => {
     if (isOpen && !prevOpenRef.current) {
-      setFormData(
-        typeof initialData === "function" ? initialData() : initialData
-      );
-      setErrors({});
-      setDialogOpen(false);
-      setSucceeded(false);
+      dispatch({
+        type: "reset",
+        payload: typeof initialData === "function" ? initialData() : initialData,
+      });
     }
     prevOpenRef.current = isOpen;
   }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const setFormData = useCallback((updater) => dispatch({ type: "set_form_data", updater }), []);
+  const setErrors = useCallback((updater) => dispatch({ type: "set_errors", updater }), []);
 
   const handleChange = useCallback(
     (field, filter) => (e) => {
       let value = e?.target ? e.target.value : e;
       if (filter) value = filter(value);
-      setFormData((prev) => ({ ...prev, [field]: value }));
-      setErrors((prev) => (prev[field] ? { ...prev, [field]: "" } : prev));
+      dispatch({ type: "set_field", field, value });
     },
     []
   );
@@ -68,11 +103,10 @@ export default function useFormModal({
       e.preventDefault();
       const newErrors = validate ? validate(formData) : {};
       if (Object.keys(newErrors).length > 0) {
-        setErrors(newErrors);
+        dispatch({ type: "set_errors", updater: newErrors });
         return;
       }
-      setDialogOpen(true);
-      setSucceeded(false);
+      dispatch({ type: "open_dialog" });
     },
     [formData, validate]
   );
@@ -83,33 +117,30 @@ export default function useFormModal({
       try {
         const payload = transformData ? transformData(formData) : formData;
         await onSubmit(payload);
-        setSucceeded(true);
+        dispatch({ type: "submit_success" });
       } catch (error) {
         console.error("Error submitting form:", error);
-        setDialogOpen(false);
-        setSucceeded(false);
+        dispatch({ type: "submit_error" });
         toast.error(error.message || "ເກີດຂໍ້ຜິດພາດໃນການບັນທຶກຂໍ້ມູນ");
       }
     });
   }, [formData, onSubmit, transformData]);
 
   const handleCancelSubmit = useCallback(() => {
-    setDialogOpen(false);
-    setSucceeded(false);
+    dispatch({ type: "close_dialog" });
   }, []);
 
   const handleClose = useCallback(() => {
     setIsClosing(true);
     closeTimerRef.current = setTimeout(() => {
       onClose();
-      setErrors({});
+      dispatch({ type: "set_errors", updater: {} });
       setIsClosing(false);
     }, 300);
   }, [onClose]);
 
   const handleCloseSubmit = useCallback(() => {
-    setDialogOpen(false);
-    setSucceeded(false);
+    dispatch({ type: "close_dialog" });
     handleClose();
   }, [handleClose]);
 

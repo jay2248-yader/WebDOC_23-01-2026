@@ -13,7 +13,7 @@ function SessionTimeoutDialog({ isOpen, countdown, onContinue, onLogout }) {
   const isDanger = countdown <= 10;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fadeIn">
+    <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fadeIn">
       <div
         className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 animate-slideUp"
         onClick={(e) => e.stopPropagation()}

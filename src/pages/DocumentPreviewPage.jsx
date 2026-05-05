@@ -120,9 +120,14 @@ export default function DocumentPreviewPage() {
       const details = res.data_id?.data || [];
       const rddid = details[details.length - 1]?.rddid ?? rqdid;
       await uploadDocumentFile(file, rddid, rqdid);
-      window.location.reload();
+      if (docData.statustype !== "SUCCESS") {
+        await successFinishedDocument(rqdid);
+      }
+      const freshDocs = await getAllDocuments({ page: 1, limit: 1000 });
+      const freshDoc = freshDocs.data.find((d) => String(d.rqdid) === String(rqdid));
+      if (freshDoc) setDocData(freshDoc);
     },
-    [rqdid]
+    [rqdid, docData.statustype]
   );
 
   // Save: generate PDF → upload → successFinished
@@ -136,7 +141,9 @@ export default function DocumentPreviewPage() {
       const details = res.data_id?.data || [];
       const rddid = details[details.length - 1]?.rddid ?? rqdid;
       await uploadDocumentFile(file, rddid, rqdid);
-      await successFinishedDocument(rqdid);
+      if (docData.statustype !== "SUCCESS") {
+        await successFinishedDocument(rqdid);
+      }
       const freshDocs = await getAllDocuments({ page: 1, limit: 1000 });
       const freshDoc = freshDocs.data.find((d) => String(d.rqdid) === String(rqdid));
       if (freshDoc) setDocData(freshDoc);
@@ -146,7 +153,7 @@ export default function DocumentPreviewPage() {
     } finally {
       setPdfBusy(false);
     }
-  }, [rqdid, docData.req_no]);
+  }, [rqdid, docData]);
 
   // Fetch fresh document data on mount (ป้องกัน location.state stale หลัง save/reload)
   useEffect(() => {
@@ -199,7 +206,7 @@ export default function DocumentPreviewPage() {
     : {};
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-gray-100 print:bg-white print:min-h-0">
+    <div ref={containerRef} className="min-h-screen bg-gray-100 print:bg-white print:min-h-0 -m-5">
       <LoadingDialog isOpen={pdfBusy} message="ກຳລັງບັນທຶກເອກະສານ..." />
 
       <MeasurementClones
@@ -210,32 +217,19 @@ export default function DocumentPreviewPage() {
         closingProps={closingProps}
       />
 
-      <div className="print:hidden px-6 pt-4 pb-4 flex items-center justify-between">
-        <button
-          onClick={() => navigate(-1)}
-          style={{
-            boxShadow: "0 0 0 2px #bfdbfe, 0 4px 10px rgba(0, 10, 31, 0.15)",
-          }}
-          className="group inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white text-[#0F75BC] text-sm font-semibold transition-all duration-200 hover:bg-[#0F75BC] hover:text-white hover:gap-3"
-        >
-          <svg
-            className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+      <div className="flex items-start gap-6 px-6 pt-4 print:block print:px-0">
+        {/* LEFT: Back button + ApprovalFlowPanel */}
+        <div className="print:hidden w-72  shrink-0 sticky  self-start max-h-[calc(100vh-4rem)] overflow-y-auto flex flex-col gap-3">
+          <button
+            onClick={() => navigate(-1)}
+            style={{ boxShadow: "0 0 0 2px #bfdbfe, 0 4px 10px rgba(0, 10, 31, 0.15)" }}
+            className="group inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white text-[#0F75BC] text-sm font-semibold transition-all duration-200 hover:bg-[#0F75BC] hover:text-white hover:gap-3 w-fit"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
-          </svg>
-          ກັບຄືນ
-        </button>
-      </div>
-
-
-
-
-      <div className="flex items-start gap-6 px-6 print:block print:px-0">
-        {/* LEFT: ApprovalFlowPanel */}
-        <div className="print:hidden w-72 shrink-0 sticky top-6 self-start max-h-[calc(100vh-5rem)] overflow-y-auto">
+            <svg className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
+            </svg>
+            ກັບຄືນ
+          </button>
           <ApprovalFlowPanel
             docData={docData}
             approvalItems={approvalDetails}
@@ -258,21 +252,22 @@ export default function DocumentPreviewPage() {
             />
           )}
           {(!docData.req_file || isEditing) && (
-            <div ref={pagesContainerRef} className="relative">
-              <button
-                onClick={() => window.print()}
-                title="ພິມເອກະສານ"
-                className="print:hidden absolute top-4 right-4 z-20 inline-flex items-center justify-center h-14 w-14 rounded-full bg-white text-[#466FEA] hover:bg-[#466FEA] hover:text-white transition-all"
-                style={{
-                  boxShadow:
-                    "0 0 0 3px #466FEA, 0 6px 12px rgba(0, 10, 31, 0.45)",
-                }}
-              >
-                <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                </svg>
-              </button>
+            <div ref={pagesContainerRef}>
+              <div className="print:hidden max-w-[210mm] mx-auto w-full relative h-0">
+                <button
+                  onClick={() => window.print()}
+                  title="ພິມເອກະສານ"
+                  className="absolute top-4 right-4 z-20 inline-flex items-center justify-center h-14 w-14 rounded-full bg-white text-[#466FEA] hover:bg-[#466FEA] hover:text-white transition-all"
+                  style={{
+                    boxShadow: "0 0 0 3px #466FEA, 0 6px 12px rgba(0, 10, 31, 0.45)",
+                  }}
+                >
+                  <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                  </svg>
+                </button>
+              </div>
               <Page1
                 docData={docData}
                 headerH={headerH}
@@ -340,7 +335,7 @@ export default function DocumentPreviewPage() {
         </div>
 
         {/* RIGHT: Details panel */}
-        <div className="print:hidden w-75 shrink-0 sticky top-6 self-start flex flex-col gap-3">
+        <div className="print:hidden w-75 shrink-0 sticky  self-start flex flex-col gap-3">
           <DocumentInfoPanel
             document={docData}
             rqdid={rqdid}

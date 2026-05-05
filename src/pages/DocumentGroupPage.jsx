@@ -89,7 +89,7 @@ export default function DocumentGroupPage() {
     <div className="space-y-6">
       <GenericToolbar searchText={searchText} onSearchChange={handleSearchChange} onCreate={handleCreate} searchPlaceholder="ຄົ້ນຫາກຸ່ມເອກະສານ..." createButtonText="ເພີ່ມກຸ່ມເອກະສານ" createButtonIcon={plusIcon} />
       <GenericDataTable data={pageItems} columns={columns} page={safePage} pageSize={pageSize} totalPages={totalPages} totalItems={totalItems} loading={loadingData} onEdit={handleEdit} onDelete={handleDelete} onPageChange={handlePageChange} onPageSizeChange={handlePageSizeChange} rowKey="dcdid" entityName="ກຸ່ມເອກະສານ" getEntityDisplayName={(dg) => dg.docgroupname} ref={tableRef} />
-      <DocumentGroupFormModal key={editingItem?.dcdid || "new"} isOpen={showFormModal} documentGroup={editingItem} onClose={handleCloseModal} onSubmit={handleSubmit} />
+      <DocumentGroupFormModal key={editingItem?.dcdid || "new"} isOpen={showFormModal} documentGroup={editingItem} existingLevels={pageItems.map((g) => g.levelapprove).filter((v) => v != null)} onClose={handleCloseModal} onSubmit={handleSubmit} />
       <LoadingDialog isOpen={isLoading || checkingDelete} message={checkingDelete ? "ກຳລັງກວດສອບ..." : "ກຳລັງໂຫຼດ..."} />
       <ConfirmProgressDialog
         isOpen={blockAlert.open}

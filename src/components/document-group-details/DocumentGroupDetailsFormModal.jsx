@@ -20,7 +20,7 @@ export default function DocumentGroupDetailsFormModal({
 
   const groups = useSelectPagination(getAllDocumentGroup);
   const users = useSelectPagination(getAllUsers);
-  const hideGroup = lockedDcdid != null && !detail;
+  const hideGroup = lockedDcdid != null;
 
   useEffect(() => {
     if (isOpen) {

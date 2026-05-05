@@ -22,8 +22,8 @@ import {
 function Pill({ children, tone = "gray" }) {
   const tones = {
     gray: "bg-gray-100 text-gray-600 border-gray-200",
-    indigo: "bg-indigo-50 text-indigo-700 border-indigo-200",
-    blue: "bg-blue-50 text-blue-700 border-blue-200",
+    indigo: "bg-[#0F75BC]/10 text-[#0F75BC] border-[#0F75BC]/25",
+    blue: "bg-[#0F75BC]/10 text-[#0F75BC] border-[#0F75BC]/25",
     slate: "bg-slate-100 text-slate-700 border-slate-200",
   };
   return (
@@ -35,9 +35,9 @@ function Pill({ children, tone = "gray" }) {
 
 function IconBtn({ tone = "blue", title, onClick, children }) {
   const tones = {
-    blue: "bg-blue-100 text-blue-700 hover:bg-blue-200",
+    blue: "bg-[#0F75BC]/15 text-[#0F75BC] hover:bg-[#0F75BC]/25",
     red: "bg-red-100 text-red-600 hover:bg-red-200",
-    indigo: "bg-indigo-500 text-white hover:bg-indigo-600",
+    indigo: "bg-[#0F75BC] text-white hover:bg-[#0a5fa0]",
   };
   return (
     <button
@@ -214,20 +214,7 @@ export default function DocumentCategoryDetailPage() {
     }
   };
 
-  if (!category) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 gap-4">
-        <p className="text-sm text-gray-500">ບໍ່ພົບຂໍ້ມູນປະເພດເອກະສານ</p>
-        <Button fullWidth={false} variant="outline" size="md" onClick={() => navigate("/document-category")}>
-          ກັບຄືນ
-        </Button>
-      </div>
-    );
-  }
-
   const selectedDet = selectedId ? detailsMap[selectedId] : null;
-  const selectedGroup = groups.find((g) => g.dcdid === selectedId);
-  const isBlockedView = blockedGroup && selectedId === blockedGroup.dcdid;
 
   useEffect(() => {
     if (
@@ -241,6 +228,20 @@ export default function DocumentCategoryDetailPage() {
       setBlockedGroup(null);
     }
   }, [blockedGroup, selectedId, selectedDet]);
+
+  if (!category) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 gap-4">
+        <p className="text-sm text-gray-500">ບໍ່ພົບຂໍ້ມູນປະເພດເອກະສານ</p>
+        <Button fullWidth={false} variant="outline" size="md" onClick={() => navigate("/document-category")}>
+          ກັບຄືນ
+        </Button>
+      </div>
+    );
+  }
+
+  const selectedGroup = groups.find((g) => g.dcdid === selectedId);
+  const isBlockedView = blockedGroup && selectedId === blockedGroup.dcdid;
 
   return (
     <div className="max-w-7xl mx-auto flex flex-col gap-3 h-[calc(100vh-7rem)]">
@@ -259,7 +260,7 @@ export default function DocumentCategoryDetailPage() {
       </div>
 
       {/* Category banner (full width, compact) */}
-      <div className="relative rounded-xl bg-linear-to-r from-indigo-600 to-indigo-500 text-white px-4 py-3 shadow-md flex items-center gap-3">
+      <div className="relative rounded-xl bg-[#0F75BC] text-white px-4 py-3 shadow-md flex items-center gap-3">
         <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
@@ -268,14 +269,14 @@ export default function DocumentCategoryDetailPage() {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="bg-white/20 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded">ປະເພດເອກະສານ</span>
-            <span className="text-[10px] text-indigo-100 font-mono">#{category.dctid}</span>
+            <span className="text-[10px] text-white/70 font-mono">#{category.dctid}</span>
           </div>
           <div className="text-base font-bold truncate mt-0.5">{category.doccategoryname || "-"}</div>
           {category.moreinfo && (
-            <p className="text-[11px] text-indigo-100 mt-0.5 leading-snug line-clamp-1">{category.moreinfo}</p>
+            <p className="text-[11px] text-white/80 mt-0.5 leading-snug line-clamp-1">{category.moreinfo}</p>
           )}
         </div>
-        <div className="hidden md:flex flex-col items-end text-[11px] text-indigo-100 shrink-0 pl-3 border-l border-white/20">
+        <div className="hidden md:flex flex-col items-end text-[11px] text-white/80 shrink-0 pl-3 border-l border-white/20">
           <span className="text-lg font-bold text-white tabular-nums">{loading ? "…" : groups.length}</span>
           <span>ກຸ່ມ</span>
         </div>
@@ -297,14 +298,14 @@ export default function DocumentCategoryDetailPage() {
         <div className="flex flex-col min-h-0 rounded-xl border border-gray-200 bg-white overflow-hidden">
           <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 bg-gray-50">
             <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-indigo-500" />
+              <span className="w-2 h-2 rounded-full bg-[#0F75BC]" />
               <h3 className="text-xs font-bold text-gray-700">ກຸ່ມເອກະສານ</h3>
               <span className="text-[10px] text-gray-500">({groups.length})</span>
             </div>
             <button
               type="button"
               onClick={openCreateGroup}
-              className="inline-flex items-center gap-1 text-[11px] font-semibold text-white bg-indigo-500 hover:bg-indigo-600 px-2 py-1 rounded-md transition-colors"
+              className="inline-flex items-center gap-1 text-[11px] font-semibold text-white bg-[#0F75BC] hover:bg-[#0a5fa0] px-2 py-1 rounded-md transition-colors"
               title="ເພີ່ມກຸ່ມເອກະສານ"
             >
               {PlusIcon}
@@ -348,9 +349,9 @@ export default function DocumentCategoryDetailPage() {
                   tabIndex={0}
                   onClick={() => selectGroup(g.dcdid)}
                   onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectGroup(g.dcdid); } }}
-                  className={`w-full flex items-center gap-2 rounded-lg border px-2.5 py-2 text-left transition-all cursor-pointer ${isSelected ? "border-indigo-500 bg-indigo-50/60 ring-1 ring-indigo-300" : "border-gray-200 bg-white hover:border-indigo-300 hover:bg-indigo-50/30"}`}
+                  className={`w-full flex items-center gap-2 rounded-lg border px-2.5 py-2 text-left transition-all cursor-pointer ${isSelected ? "border-[#0F75BC] bg-[#0F75BC]/8 ring-1 ring-[#0F75BC]/30" : "border-gray-200 bg-white hover:border-[#0F75BC]/40 hover:bg-[#0F75BC]/5"}`}
                 >
-                  <div className={`w-7 h-7 rounded-md flex items-center justify-center font-bold text-xs shrink-0 ${isSelected ? "bg-indigo-500 text-white" : "bg-indigo-100 text-indigo-700"}`}>
+                  <div className={`w-7 h-7 rounded-md flex items-center justify-center font-bold text-xs shrink-0 ${isSelected ? "bg-[#0F75BC] text-white" : "bg-[#0F75BC]/15 text-[#0F75BC]"}`}>
                     {i + 1}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -386,8 +387,8 @@ export default function DocumentCategoryDetailPage() {
           {selectedId && (
             <>
               <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-200 bg-slate-50">
-                <span className="w-2 h-2 rounded-full bg-slate-500" />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-700">ລາຍລະອຽດຂອງ</span>
+                <span className="w-2 h-2 rounded-full bg-[#0F75BC]" />
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#0F75BC]">ລາຍລະອຽດຂອງ</span>
                 <span className="text-sm font-bold text-gray-800 truncate">{selectedGroup?.docgroupname || "-"}</span>
                 {selectedDet && !selectedDet.loading && !selectedDet.error && (
                   <span className="text-[11px] text-gray-500">({selectedDet.data.length})</span>
@@ -395,7 +396,7 @@ export default function DocumentCategoryDetailPage() {
                 <button
                   type="button"
                   onClick={openCreateDetail}
-                  className="ml-auto inline-flex items-center gap-1 text-[11px] font-semibold text-white bg-slate-600 hover:bg-slate-700 px-2 py-1 rounded-md transition-colors"
+                  className="ml-auto inline-flex items-center gap-1 text-[11px] font-semibold text-white bg-[#0F75BC] hover:bg-[#0a5fa0] px-2 py-1 rounded-md transition-colors"
                   title="ເພີ່ມລາຍລະອຽດ"
                 >
                   {PlusIcon}
@@ -435,12 +436,12 @@ export default function DocumentCategoryDetailPage() {
                     className={`rounded-lg border px-2.5 py-2 transition-all duration-300 ${
                       isBlockedView
                         ? "border-red-400 bg-red-50/60 ring-1 ring-red-300 hover:bg-red-50 animate-shake animate-ring-red"
-                        : "border-slate-200 bg-slate-50/40 hover:bg-slate-50/80"
+                        : "border-[#0F75BC]/15 bg-[#0F75BC]/3 hover:bg-[#0F75BC]/8"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-start gap-2 min-w-0 flex-1">
-                        <div className="w-7 h-7 rounded-md bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+                        <div className="w-7 h-7 rounded-md bg-[#0F75BC]/10 text-[#0F75BC] flex items-center justify-center shrink-0">
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                           </svg>
@@ -461,7 +462,7 @@ export default function DocumentCategoryDetailPage() {
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         {d.maxsignmoney != null && (
-                          <span className="text-xs font-bold text-indigo-700 tabular-nums whitespace-nowrap">
+                          <span className="text-xs font-bold text-[#0F75BC] tabular-nums whitespace-nowrap">
                             {Number(d.maxsignmoney).toLocaleString()} ₭
                           </span>
                         )}
@@ -492,6 +493,7 @@ export default function DocumentCategoryDetailPage() {
         isOpen={groupModal.open}
         documentGroup={groupModal.editing}
         lockedDctid={category?.dctid}
+        existingLevels={groups.map((g) => g.levelapprove).filter((v) => v != null)}
         onClose={closeGroupModal}
         onSubmit={submitGroup}
       />

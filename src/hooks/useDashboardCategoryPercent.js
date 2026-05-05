@@ -1,16 +1,28 @@
-import { useEffect, useState } from "react";
+import { useEffect, useReducer } from "react";
 import { getDocumentRequestDashboardPercentByYear } from "../services/dashboardservice";
 
+const initialState = { data: [], loading: false, error: null };
+
+function reducer(state, action) {
+  switch (action.type) {
+    case "fetch":
+      return { data: [], loading: true, error: null };
+    case "success":
+      return { data: action.payload, loading: false, error: null };
+    case "error":
+      return { ...state, loading: false, error: action.payload };
+    default:
+      return state;
+  }
+}
+
 export function useDashboardCategoryPercent(year) {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [state, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
     if (!year) return;
     const controller = new AbortController();
-    setLoading(true);
-    setError(null);
+    dispatch({ type: "fetch" });
     getDocumentRequestDashboardPercentByYear(year, controller.signal)
       .then((rows) => {
         const normalized = rows.map((r) => ({
@@ -18,14 +30,14 @@ export function useDashboardCategoryPercent(year) {
           count: Number(r.category_count ?? 0),
           percent: Number(String(r.percent_of_year ?? "0").replace("%", "")),
         }));
-        setData(normalized);
+        dispatch({ type: "success", payload: normalized });
       })
       .catch((err) => {
-        if (err.name !== "CanceledError" && err.name !== "AbortError") setError(err);
-      })
-      .finally(() => setLoading(false));
+        if (err.name !== "CanceledError" && err.name !== "AbortError")
+          dispatch({ type: "error", payload: err });
+      });
     return () => controller.abort();
   }, [year]);
 
-  return { data, loading, error };
+  return state;
 }
