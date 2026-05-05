@@ -58,6 +58,12 @@ export default defineConfig({
           if (id.includes('node_modules')) {
             if (id.includes('@tiptap')) return 'tiptap';
             if (id.includes('react-router')) return 'router';
+            if (id.includes('pdfjs-dist')) return 'pdfjs';
+            if (id.includes('@react-pdf')) return 'react-pdf';
+            if (id.includes('html2canvas')) return 'html2canvas';
+            if (id.includes('jspdf')) return 'jspdf';
+            if (id.includes('html-to-image')) return 'html-to-image';
+            if (id.includes('d3-')) return 'd3';
             return 'vendor';
           }
         },

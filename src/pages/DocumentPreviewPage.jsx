@@ -206,7 +206,7 @@ export default function DocumentPreviewPage() {
     : {};
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-gray-100 print:bg-white print:min-h-0 -m-5">
+    <div ref={containerRef} className="min-h-screen bg-gray-100 print:bg-white print:min-h-0 -m-5 print:m-0">
       <LoadingDialog isOpen={pdfBusy} message="ກຳລັງບັນທຶກເອກະສານ..." />
 
       <MeasurementClones
@@ -217,7 +217,7 @@ export default function DocumentPreviewPage() {
         closingProps={closingProps}
       />
 
-      <div className="flex items-start gap-6 px-6 pt-4 print:block print:px-0">
+      <div className="flex items-start gap-6 px-6 pt-4 print:block print:px-0 print:pt-0 print:gap-0">
         {/* LEFT: Back button + ApprovalFlowPanel */}
         <div className="print:hidden w-72  shrink-0 sticky  self-start max-h-[calc(100vh-4rem)] overflow-y-auto flex flex-col gap-3">
           <button
