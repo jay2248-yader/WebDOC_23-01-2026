@@ -177,7 +177,8 @@ export default function DocumentCategoryDetailPage() {
           const res = await getDocumentGroupDetailsByDocgroupId(item.dcdid);
           setDetailsMap((p) => ({ ...p, [item.dcdid]: { loading: false, error: null, data: res.data } }));
           det = { data: res.data };
-        } catch {
+        } catch (err) {
+          console.error("Failed to load group details:", err);
           det = { data: [] };
         }
       }

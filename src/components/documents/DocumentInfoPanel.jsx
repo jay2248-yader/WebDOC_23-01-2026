@@ -4,8 +4,9 @@ import {
   getDocumentDetailsByDocumentId,
   uploadRequestImageDetails,
 } from "../../services/documentdetailsservice";
+import { toast } from "../../store/toastStore";
 
-const FILE_BASE_URL = "http://30.30.1.222:65533";
+const FILE_BASE_URL = import.meta.env.VITE_FILE_BASE_URL;
 const IMAGE_EXTS = ["png", "jpg", "jpeg", "gif", "webp"];
 
 // ── Icons ──────────────────────────────────────────────────────────────────────
@@ -168,7 +169,8 @@ export default function DocumentInfoPanel({
       await uploadRequestImageDetails(existingRddid, file);
       setReplaceStatus((prev) => ({ ...prev, [existingRddid]: "done" }));
       fetchExistingFiles();
-    } catch {
+    } catch (err) {
+      toast.error(err?.message || "ອັບໂຫຼດໄຟລ໌ບໍ່ສຳເລັດ");
       setReplaceStatus((prev) => ({ ...prev, [existingRddid]: "error" }));
     }
   };

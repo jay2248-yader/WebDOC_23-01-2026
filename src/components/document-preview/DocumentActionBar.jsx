@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { toast } from "../../store/toastStore";
 
 export default function DocumentActionBar({ compactLevel = 0, onCompactLevelChange, reqFile, onUploadFile, isViewMode = false, onToggleMode }) {
     const fileInputRef = useRef(null);
@@ -13,7 +14,8 @@ export default function DocumentActionBar({ compactLevel = 0, onCompactLevelChan
             await onUploadFile(file);
             setUploadStatus("done");
             setTimeout(() => setUploadStatus("idle"), 2000);
-        } catch {
+        } catch (err) {
+            toast.error(err?.message || "ອັບໂຫຼດໄຟລ໌ບໍ່ສຳເລັດ");
             setUploadStatus("error");
             setTimeout(() => setUploadStatus("idle"), 3000);
         }

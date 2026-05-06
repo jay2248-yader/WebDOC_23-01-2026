@@ -20,14 +20,15 @@ export function useSignatureGroups(doccategoryid, approvalDetails) {
                 username: d.usersmodel?.username ?? "",
               }));
               return { label: g.docgroupname, levelapprove: g.levelapprove, userCodes };
-            } catch {
+            } catch (err) {
+              console.error("Failed to load group details:", g.dcdid, err);
               return { label: g.docgroupname, levelapprove: g.levelapprove, userCodes: [] };
             }
           })
         );
         if (mounted) setGroupsData(withDetails.filter((g) => g.label));
       })
-      .catch(() => {});
+      .catch((err) => console.error("Failed to load document groups:", err));
     return () => { mounted = false; };
   }, [doccategoryid]);
 

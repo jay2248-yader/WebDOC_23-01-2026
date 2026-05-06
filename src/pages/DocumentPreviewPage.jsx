@@ -245,7 +245,7 @@ export default function DocumentPreviewPage() {
         <div className="flex-1 flex flex-col gap-4 print:gap-0">
           {docData.req_file && !isEditing && (
             <iframe
-              src={`http://30.30.1.222:65533/${docData.req_file}`}
+              src={`${import.meta.env.VITE_FILE_BASE_URL}/${docData.req_file}`}
               className="w-full rounded-lg shadow-lg bg-white"
               style={{ height: "calc(100vh - 80px)", minHeight: 500 }}
               title={docData.req_file}

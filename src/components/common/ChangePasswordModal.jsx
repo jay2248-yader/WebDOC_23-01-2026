@@ -1,6 +1,7 @@
 import { memo, useState, useCallback } from "react";
 import { useAuthStore } from "../../store/authstore";
 import { updatePwds } from "../../services/userservice";
+import { toast } from "../../store/toastStore";
 
 function ChangePasswordModal({ isOpen, onClose }) {
   const user = useAuthStore((state) => state.user);
@@ -18,8 +19,10 @@ function ChangePasswordModal({ isOpen, onClose }) {
     setIsSubmitting(true);
     try {
       await updatePwds({ usercode: user?.usercode, pwds: newPwd });
+      toast.success("ປ່ຽນລະຫັດຜ່ານສຳເລັດ");
       handleClose();
-    } catch {
+    } catch (err) {
+      toast.error(err?.message || "ປ່ຽນລະຫັດຜ່ານບໍ່ສຳເລັດ");
       setIsSubmitting(false);
     }
   }, [newPwd, isSubmitting, user, handleClose]);

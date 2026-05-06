@@ -94,7 +94,8 @@ export default function useLogin() {
 
       // Return success
       return true;
-    } catch {
+    } catch (err) {
+      console.error("Login failed:", err);
       setError("ລະຫັດພະນັກງານ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ");
       return false;
     } finally {
