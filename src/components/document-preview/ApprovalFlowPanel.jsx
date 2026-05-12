@@ -181,27 +181,10 @@ export default function ApprovalFlowPanel({ docData = {}, approvalItems = [], lo
             </div>
             <span className="text-sm font-bold text-white tracking-wide">ກະແສການອະນຸມັດ</span>
           </div>
-          <div className="h-4 w-px bg-white/30 shrink-0" />
-          <div className="flex items-center gap-4 text-xs text-white/70 flex-wrap">
-            <div className="flex items-center gap-1.5">
-              <svg className="w-3.5 h-3.5 text-white/50 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              {loading ? (
-                <div className="h-3 w-14 bg-white/30 rounded animate-pulse" />
-              ) : (
-                <span className="font-semibold text-white">{doccategoryid ?? "-"}</span>
-              )}
-            </div>
-            {docData.req_no && (
-              <span>ເລກທີ <span className="font-semibold text-white">{docData.req_no}</span></span>
-            )}
-          </div>
         </div>
 
-        {/* ── Stepper ── */}
-        <div className="px-4 py-4">
+        {/* ── Stepper ── (scrollable เมื่อมี approval levels เยอะ; header ด้านบนตรึงไว้) */}
+        <div className="px-4 py-4 max-h-[calc(100vh-14rem)] overflow-y-auto">
           {docData.statustype === "ADD-DATA" ? (
             <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
               <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mb-3">
@@ -348,9 +331,6 @@ export default function ApprovalFlowPanel({ docData = {}, approvalItems = [], lo
                               </div>
                               <span className="font-bold text-[#0F75BC] truncate text-[11px] flex-1">
                                 {myEntry.usersmodel?.username ?? myEntry.userid}
-                              </span>
-                              <span className="shrink-0 text-[9px] font-bold text-[#0F75BC] bg-white border border-blue-200 px-1.5 py-0.5 rounded-full">
-                                ທ່ານ
                               </span>
                             </div>
                             <div className="flex gap-1.5">

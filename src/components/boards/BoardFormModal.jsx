@@ -35,7 +35,7 @@ export default function BoardFormModal({
     },
     validate: (data) => {
       const e = {};
-      if (!data.boardname) e.boardname = "ກະລຸນາປ້ອນຊື່ຄະນະກໍາມະການ";
+      if (!data.boardname) e.boardname = "ກະລຸນາປ້ອນຊື່ຝ່າຍ";
       return e;
     },
   });
@@ -52,7 +52,7 @@ export default function BoardFormModal({
       shouldRender={shouldRender}
       isClosing={isClosing}
       isEditing={!!board}
-      entityName="ຄະນະກໍາມະການ"
+      entityName="ຝ່າຍ"
       displayName={formData.boardname}
       submitDialog={submitDialog}
       onClose={handleClose}
@@ -61,7 +61,7 @@ export default function BoardFormModal({
       onCloseSubmit={handleCloseSubmit}
     >
       <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center border-b border-blue-400 pb-2">
-        {board ? "ແກ້ໄຂຄະນະກໍາມະການ" : "ເພີ່ມຄະນະກໍາມະການ"}
+        {board ? "ແກ້ໄຂຝ່າຍ" : "ເພີ່ມຝ່າຍ"}
       </h3>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -70,9 +70,9 @@ export default function BoardFormModal({
         )}
 
         <FormInput
-          label="ຊື່ຄະນະກໍາມະການ"
+          label="ຊື່ຝ່າຍ"
           theme="light"
-          placeholder="ກະລຸນາປ້ອນຊື່ຄະນະກໍາມະການ"
+          placeholder="ກະລຸນາປ້ອນຊື່ຝ່າຍ"
           value={formData.boardname}
           onChange={handleChange("boardname")}
           onKeyDown={handleKeyDown(() => moreinfoRef)}

@@ -63,7 +63,13 @@ export const ENDPOINTS = {
     GET_ALL: "/api/requestdocument/getrequestdocumentAll",
     NEW: "/api/requestdocument/newrequestdocument",
     SUCCESS_FINISHED: "/api/requestdocument/successfinishedrequestdocument",
-    UPLOAD: "/api/requestdocument/upload"
+    UPLOAD: "/api/requestdocument/upload",
+    ADD_DATATABLE_HEADER: "/api/requestdocument/addrequestdocdatatableheader",
+    GET_DATATABLE_HEADER: "/api/requestdocument/getrequestdocdatatableheader",
+    UPDATE_DATATABLE_HEADER: "/api/requestdocument/updaterequestdocdatatableheader",
+    ADD_DATATABLE: "/api/requestdocument/addrequestdocdatatable",
+    GET_DATATABLE: "/api/requestdocument/getrequestdocumentdatatable",
+    UPDATE_DATATABLE: "/api/requestdocument/updaterequestdocdatatable",
   },
 
   DOCUMENT_GROUP: {

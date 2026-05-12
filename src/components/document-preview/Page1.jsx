@@ -33,6 +33,12 @@ export default function Page1({
   references,
   setReferences,
   storeSetReferences,
+  datatableHeaders = [],
+  forsItems = [],
+  onChangeForsItem,
+  onAddForsItem,
+  onDeleteForsItem,
+  onChangeDatatableHeader,
   bodyChunks,
   handleBodyChange,
   handleBodyKeyDown,
@@ -100,69 +106,130 @@ export default function Page1({
               />
             </div>
 
-            {/* ອີງຕາມ */}
-            <div className={references.every((r) => !r.trim()) ? "print:hidden" : ""}>
-              <ul className="list-none space-y-1">
-                {references.map((item, index) => (
-                  <li
-                    key={index}
-                    className="relative before:content-['-'] before:absolute before:-left-4 flex items-start"
+            {/* ອີງຕາມ — from datatableHeaders (forsItems split by L2) */}
+            {datatableHeaders.length > 0 || onAddForsItem ? (
+              <div>
+                <ul className="list-none space-y-1">
+                  {forsItems.map((fors, index) => (
+                    <li key={index} className="flex items-start">
+                      <span className="whitespace-nowrap">ອີງຕາມ :&nbsp;</span>
+                      {onChangeForsItem ? (
+                        <textarea
+                          value={fors}
+                          onChange={(e) => onChangeForsItem(index, e.target.value)}
+                          rows={1}
+                          onInput={autosize}
+                          className="flex-1 border-none outline-none bg-transparent text-gray-800 resize-none overflow-hidden break-all print:p-0"
+                        />
+                      ) : (
+                        <span className="text-gray-800 break-all">{fors}</span>
+                      )}
+                      {onDeleteForsItem && forsItems.length > 1 && (
+                        <button
+                          onClick={() => onDeleteForsItem(index)}
+                          className="text-red-400 hover:text-red-600 ml-1 print:hidden"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+                {onAddForsItem && (
+                  <button
+                    onClick={onAddForsItem}
+                    className="text-blue-500 hover:text-blue-700 text-xs mt-1 print:hidden"
                   >
-                    <span className="whitespace-nowrap">ອີງຕາມ :&nbsp;</span>
-                    <textarea
-                      value={item}
-                      onChange={(e) => {
-                        const updated = [...references];
-                        updated[index] = e.target.value;
-                        setReferences(updated);
-                        if (rqdid) storeSetReferences(rqdid, updated);
-                      }}
-                      placeholder="ພິມອີງຕາມ..."
-                      rows={1}
-                      onInput={autosize}
-                      className="flex-1 border-none outline-none bg-transparent text-gray-800 resize-none overflow-hidden break-all print:p-0"
-                    />
-                    {references.length > 1 && (
-                      <button
-                        onClick={() => {
-                          const updated = references.filter((_, i) => i !== index);
+                    + ເພີ່ມອີງຕາມ
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className={references.every((r) => !r.trim()) ? "print:hidden" : ""}>
+                <ul className="list-none space-y-1">
+                  {references.map((item, index) => (
+                    <li
+                      key={index}
+                      className="relative before:content-['-'] before:absolute before:-left-4 flex items-start"
+                    >
+                      <span className="whitespace-nowrap">ອີງຕາມ :&nbsp;</span>
+                      <textarea
+                        value={item}
+                        onChange={(e) => {
+                          const updated = [...references];
+                          updated[index] = e.target.value;
                           setReferences(updated);
                           if (rqdid) storeSetReferences(rqdid, updated);
                         }}
-                        className="text-red-400 hover:text-red-600 ml-1 print:hidden"
-                      >
-                        ✕
-                      </button>
-                    )}
-                  </li>
-                ))}
-              </ul>
-              <button
-                onClick={() => {
-                  const updated = [...references, ""];
-                  setReferences(updated);
-                  if (rqdid) storeSetReferences(rqdid, updated);
-                }}
-                className="text-blue-500 hover:text-blue-700 text-xs mt-1 print:hidden"
-              >
-                + ເພີ່ມອີງຕາມ
-              </button>
-            </div>
+                        placeholder="ພິມອີງຕາມ..."
+                        rows={1}
+                        onInput={autosize}
+                        className="flex-1 border-none outline-none bg-transparent text-gray-800 resize-none overflow-hidden break-all print:p-0"
+                      />
+                      {references.length > 1 && (
+                        <button
+                          onClick={() => {
+                            const updated = references.filter((_, i) => i !== index);
+                            setReferences(updated);
+                            if (rqdid) storeSetReferences(rqdid, updated);
+                          }}
+                          className="text-red-400 hover:text-red-600 ml-1 print:hidden"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  onClick={() => {
+                    const updated = [...references, ""];
+                    setReferences(updated);
+                    if (rqdid) storeSetReferences(rqdid, updated);
+                  }}
+                  className="text-blue-500 hover:text-blue-700 text-xs mt-1 print:hidden"
+                >
+                  + ເພີ່ມອີງຕາມ
+                </button>
+              </div>
+            )}
 
-            {/* Body chunk 0 */}
-            <div className={!(bodyChunks[0] ?? "").trim() ? "print:hidden" : ""}>
-              <textarea
-                ref={body1Ref}
-                value={bodyChunks[0] ?? ""}
-                onChange={(e) => handleBodyChange(0, e.target.value, e.target.selectionStart, e.target.selectionEnd)}
-                onKeyDown={(e) => handleBodyKeyDown(e, 0)}
-                placeholder="ພິມເນື້ອໃນ..."
-                rows={3}
-                onInput={autosize}
-                style={{ textIndent: "1.6rem" }}
-                className="w-full border-none outline-none bg-transparent text-gray-800 resize-none overflow-hidden break-all print:p-0"
-              />
-            </div>
+            {/* Body chunk 0 / ເນຶ້ອໃນ from datatableHeaders */}
+            {datatableHeaders.length > 0 ? (
+              <div ref={body1Ref}>
+                {datatableHeaders.map((item) => (
+                  onChangeDatatableHeader ? (
+                    <textarea
+                      key={item.ids}
+                      value={item.details ?? ""}
+                      onChange={(e) => onChangeDatatableHeader(item.ids, { details: e.target.value })}
+                      rows={1}
+                      onInput={autosize}
+                      style={{ textIndent: "1.6rem" }}
+                      className="w-full border-none outline-none bg-transparent text-gray-800 resize-none overflow-hidden break-all print:p-0"
+                    />
+                  ) : (
+                    <p key={item.ids} className="text-gray-800 break-all" style={{ textIndent: "1.6rem" }}>
+                      {item.details}
+                    </p>
+                  )
+                ))}
+              </div>
+            ) : (
+              <div className={!(bodyChunks[0] ?? "").trim() ? "print:hidden" : ""}>
+                <textarea
+                  ref={body1Ref}
+                  value={bodyChunks[0] ?? ""}
+                  onChange={(e) => handleBodyChange(0, e.target.value, e.target.selectionStart, e.target.selectionEnd)}
+                  onKeyDown={(e) => handleBodyKeyDown(e, 0)}
+                  placeholder="ພິມເນື້ອໃນ..."
+                  rows={1}
+                  onInput={autosize}
+                  style={{ textIndent: "1.6rem" }}
+                  className="w-full border-none outline-none bg-transparent text-gray-800 resize-none overflow-hidden break-all print:p-0"
+                />
+              </div>
+            )}
 
             {bodyChunks.length === 1 &&
               (tablePageChunks.length === 0 ? (

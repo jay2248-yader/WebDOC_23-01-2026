@@ -50,8 +50,8 @@ export default function DocumentActionBar({ compactLevel = 0, onCompactLevelChan
                 </div>
             )}
 
-{/* Compact slider */}
-            {!isViewMode && <div className="flex flex-col gap-1 px-3 py-2">
+{/* Compact slider — แสดงเฉพาะตอนมีสิทธิ์แก้ (onCompactLevelChange ไม่ใช่ null) */}
+            {!isViewMode && onCompactLevelChange && <div className="flex flex-col gap-1 px-3 py-2">
                 <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-500">Header/Footer</span>
                     <div className="flex items-center gap-1">

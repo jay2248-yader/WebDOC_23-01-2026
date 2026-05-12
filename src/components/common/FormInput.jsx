@@ -52,7 +52,7 @@ function FormInput({
 
   const labelClass = isLight ? "text-gray-700" : "text-white";
   const inputBase = isLight
-    ? "bg-white text-gray-700 placeholder-gray-400 border border-blue-200 shadow-sm focus:border-blue-400 focus:ring-blue-200 hover:border-blue-300"
+    ? "bg-white text-gray-700 placeholder-gray-400 border border-blue-200 shadow-md focus:border-blue-400 focus:ring-blue-200 hover:border-blue-300 hover:shadow-lg"
     : "bg-white/20 text-white placeholder-white/60 border border-white/40 focus:ring-white/60 hover:bg-white/30 hover:border-white/70";
 
   return (

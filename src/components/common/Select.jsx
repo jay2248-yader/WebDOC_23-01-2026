@@ -51,7 +51,7 @@ function Select({
 
   const labelClass = isLight ? "text-gray-700" : "text-white";
   const selectBase = isLight
-    ? "bg-white text-gray-700 border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-300 hover:border-blue-400"
+    ? "bg-white text-gray-700 border border-gray-300 shadow-md focus:border-blue-500 focus:ring-blue-300 hover:border-blue-400 hover:shadow-lg"
     : "bg-white/20 text-white border border-white/40 focus:ring-white/60 hover:bg-white/30 hover:border-white/70";
 
   // Close dropdown when clicking outside + clean up debounce on unmount

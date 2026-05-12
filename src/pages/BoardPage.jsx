@@ -28,8 +28,7 @@ export default function BoardPage() {
 
   const columns = useMemo(() => [
     { key: "index", label: "ລຳດັບ", align: "left", render: (_item, index, page, pageSize) => (page - 1) * pageSize + index + 1 },
-    { key: "bdid", label: "ລະຫັດ", align: "left" },
-    { key: "boardtname", label: "ຊື່ຄະນະກໍາມະການ", align: "left" },
+    { key: "boardtname", label: "ຊື່ຝ່າຍ", align: "left" },
     { key: "createdate", label: "ວັນທີສ້າງ", align: "left" },
     { key: "moreinfo", label: "ລາຍລະອຽດເພີ່ມເຕີມ", align: "left" },
     { key: "createby", label: "ສ້າງໂດຍ", align: "left" },
@@ -38,7 +37,7 @@ export default function BoardPage() {
       render: (b) => (
         <div className="flex items-center gap-2">
           <Button fullWidth={false} variant="ghost" size="sm" onClick={() => handleEdit(b)} className="w-24 inline-flex items-center justify-center gap-1.5 rounded-md bg-blue-200 px-2 py-1 text-xs text-blue-700 hover:bg-blue-50 hover:scale-100 hover:shadow-none"><svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>ແກ້ໄຂ</Button>
-          <Button fullWidth={false} variant="ghost" size="sm" onClick={() => tableRef.current?.handleDeleteClick?.(b)} className="w-24 inline-flex items-center justify-center gap-1.5 rounded-md bg-red-400 px-2 py-1 text-xs text-white hover:bg-red-500 hover:scale-100 hover:shadow-none"><svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3" /></svg>ລົບ</Button>
+          <Button fullWidth={false} variant="ghost" size="sm" onClick={() => tableRef.current?.handleDeleteClick?.(b)} className="w-24 inline-flex items-center justify-center gap-1.5 rounded-md bg-red-400 px-2 py-1 text-xs text-white hover:bg-red-500 hover:scale-100 hover:shadow-none"><svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3" /></svg>ລຶບ</Button>
         </div>
       ),
     },
@@ -46,8 +45,8 @@ export default function BoardPage() {
 
   return (
     <div className="space-y-6">
-      <GenericToolbar searchText={searchText} onSearchChange={handleSearchChange} onCreate={handleCreate} searchPlaceholder="ຄົ້ນຫາຄະນະກໍາມະການ..." createButtonText="ເພີ່ມຄະນະກໍາມະການ" createButtonIcon={plusIcon} />
-      <GenericDataTable data={pageItems} columns={columns} page={safePage} pageSize={pageSize} totalPages={totalPages} totalItems={totalItems} loading={loadingData} onEdit={handleEdit} onDelete={handleDelete} onPageChange={handlePageChange} onPageSizeChange={handlePageSizeChange} rowKey="bdid" entityName="ຄະນະກໍາມະການ" getEntityDisplayName={(b) => b.boardtname} ref={tableRef} />
+      <GenericToolbar searchText={searchText} onSearchChange={handleSearchChange} onCreate={handleCreate} searchPlaceholder="ຄົ້ນຫາຝ່າຍ..." createButtonText="ເພີ່ມຝ່າຍ" createButtonIcon={plusIcon} />
+      <GenericDataTable data={pageItems} columns={columns} page={safePage} pageSize={pageSize} totalPages={totalPages} totalItems={totalItems} loading={loadingData} onEdit={handleEdit} onDelete={handleDelete} onPageChange={handlePageChange} onPageSizeChange={handlePageSizeChange} rowKey="bdid" entityName="ຝ່າຍ" getEntityDisplayName={(b) => b.boardtname} ref={tableRef} />
       <BoardFormModal key={editingItem?.bdid || "new"} isOpen={showFormModal} board={editingItem} onClose={handleCloseModal} onSubmit={handleSubmit} />
       <LoadingDialog isOpen={isLoading} message="ກຳລັງໂຫຼດ..." />
     </div>

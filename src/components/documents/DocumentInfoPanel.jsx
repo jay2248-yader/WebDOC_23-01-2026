@@ -5,6 +5,7 @@ import {
   uploadRequestImageDetails,
 } from "../../services/documentdetailsservice";
 import { toast } from "../../store/toastStore";
+import { useAuthStore } from "../../store/authstore";
 
 const FILE_BASE_URL = import.meta.env.VITE_FILE_BASE_URL;
 const IMAGE_EXTS = ["png", "jpg", "jpeg", "gif", "webp"];
@@ -75,11 +76,13 @@ function ExistingFileRow({ filename, status, onReplace }) {
           : <p className="text-xs text-green-600">ອັບໂຫລດແລ້ວ</p>
         }
       </div>
-      <button onClick={onReplace}
-        disabled={status === "uploading"}
-        className="text-xs text-gray-400 hover:text-[#0F75BC] shrink-0 disabled:opacity-40">
-        ແກ້ໄຂ
-      </button>
+      {onReplace && (
+        <button onClick={onReplace}
+          disabled={status === "uploading"}
+          className="text-xs text-gray-400 hover:text-[#0F75BC] shrink-0 disabled:opacity-40">
+          ແກ້ໄຂ
+        </button>
+      )}
     </div>
   );
 }
@@ -115,7 +118,6 @@ function formatCreateDate(dateStr) {
 export default function DocumentInfoPanel({
   document = {},
   rqdid,
-  onCancel,
 }) {
   const fileInputRef = useRef(null);
   const replaceInputRef = useRef(null);
@@ -123,6 +125,11 @@ export default function DocumentInfoPanel({
   const [items, setItems] = useState([]);
   const [dragging, setDragging] = useState(false);
   const [existingFiles, setExistingFiles] = useState([]);
+
+  // เช็คสิทธิ์: เฉพาะคนที่สร้างเอกะสารถึงจะแนบไฟล์ได้
+  const currentUserId = useAuthStore((s) => s.user?.usid);
+  const canEdit = currentUserId != null && document.createby != null
+    && String(document.createby) === String(currentUserId);
   const [replaceStatus, setReplaceStatus] = useState({});
 
   const fetchExistingFiles = useCallback(() => {
@@ -201,11 +208,7 @@ export default function DocumentInfoPanel({
         {/* Header */}
         <div className="px-4 pt-4 pb-0">
           <div className="flex items-center gap-2 mb-3">
-            <button onClick={onCancel}
-              className="text-gray-400 hover:text-gray-600 text-base font-semibold leading-none">
-              &gt;
-            </button>
-            <h2 className="flex-1 text-center text-base font-bold text-gray-800 pr-5">
+            <h2 className="flex-1 text-center text-base font-bold text-gray-800">
               ຂໍ້ມູນຜູ້ຮ້ອງຂໍ
             </h2>
           </div>
@@ -226,7 +229,6 @@ export default function DocumentInfoPanel({
                 : null
             }
           />
-
         </div>
 
 
@@ -237,27 +239,31 @@ export default function DocumentInfoPanel({
         <div className="px-4 pt-3 pb-4">
           <p className="text-sm font-semibold text-gray-700 mb-2">ເອກະສານແນບ</p>
 
-          {/* Drop zone — always visible */}
-          <div
-            onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-            onDragLeave={() => setDragging(false)}
-            onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
-            className={`flex flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed cursor-pointer py-4 transition-colors
-              ${dragging ? "border-[#0F75BC] bg-blue-50" : "border-gray-300 hover:border-[#0F75BC] hover:bg-blue-50"}`}
-          >
-            <UploadIcon />
-            <p className="text-xs text-gray-500 text-center">
-              ລາກໄຟລ໌ ຫຼື <span className="text-[#0F75BC] font-medium">ຄລິກເລືອກ</span>
-            </p>
-            <p className="text-xs text-gray-400">PDF, PNG, JPG</p>
-          </div>
-          <input ref={fileInputRef} type="file" multiple accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-            className="hidden" onChange={handleInputChange} />
-          <input ref={replaceInputRef} type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-            className="hidden" onChange={handleReplaceInputChange} />
+          {/* Drop zone — แสดงเฉพาะเจ้าของเอกะสาร */}
+          {canEdit && (
+            <>
+              <div
+                onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+                onDragLeave={() => setDragging(false)}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+                className={`flex flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed cursor-pointer py-4 transition-colors
+                  ${dragging ? "border-[#0F75BC] bg-blue-50" : "border-gray-300 hover:border-[#0F75BC] hover:bg-blue-50"}`}
+              >
+                <UploadIcon />
+                <p className="text-xs text-gray-500 text-center">
+                  ລາກໄຟລ໌ ຫຼື <span className="text-[#0F75BC] font-medium">ຄລິກເລືອກ</span>
+                </p>
+                <p className="text-xs text-gray-400">PDF, PNG, JPG</p>
+              </div>
+              <input ref={fileInputRef} type="file" multiple accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                className="hidden" onChange={handleInputChange} />
+              <input ref={replaceInputRef} type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                className="hidden" onChange={handleReplaceInputChange} />
+            </>
+          )}
 
-          {/* Existing files */}
+          {/* Existing files — แสดงทุกคน แต่ปุ่ม "ແກ້ໄຂ" ขึ้นเฉพาะเจ้าของ */}
           {existingFiles.length > 0 && (
             <div className="mt-2 divide-y divide-gray-100">
               {existingFiles.map((f) => (
@@ -265,7 +271,7 @@ export default function DocumentInfoPanel({
                   key={f.filename}
                   filename={f.filename}
                   status={replaceStatus[f.rddid]}
-                  onReplace={() => handleReplaceClick(f.rddid)}
+                  onReplace={canEdit ? () => handleReplaceClick(f.rddid) : null}
                 />
               ))}
             </div>

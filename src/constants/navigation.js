@@ -28,7 +28,7 @@ export const MENU_ITEMS = [
       },
       {
         id: "board",
-        label: "ຄະນະກໍາມະການ",
+        label: "ຝ່າຍ",
         icon: "👥",
         path: "/board",
       },
@@ -68,16 +68,6 @@ export const MENU_ITEMS = [
         id: "doc-category",
         label: "ປະເພດເອກະສານ",
         path: "/document-category",
-      },
-      {
-        id: "doc-group",
-        label: "ກຸ່ມເອກະສານ",
-        path: "/document-group",
-      },
-      {
-        id: "doc-group-details",
-        label: "ລາຍລະອຽດກຸ່ມເອກະສານ",
-        path: "/document-group-details",
       },
     ],
   },

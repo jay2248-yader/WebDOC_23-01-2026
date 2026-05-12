@@ -138,7 +138,7 @@ export default function UserPage() {
     },
     {
       key: "board",
-      label: "ຄະນະ",
+      label: "ຝ່າຍ",
       align: "left",
       render: (user) => user.departmentmodel?.boardmodel?.boardtname || "-",
     },

@@ -44,6 +44,7 @@ const normalizeSection = (s) => {
   }
 
   return {
+    _id: s._id,
     title: s.title,
     colCount,
     cells,
@@ -140,6 +141,7 @@ export default function TitleTableModal({ isOpen, onClose, onSave, initialSectio
 
   const handleSave = () => {
     const output = sections.map((s) => ({
+      _id: s._id,
       title: s.title,
       colCount: s.colCount,
       columns: s.cells[0] ? s.cells[0].map((c) => c?.value || "") : [],
@@ -705,7 +707,7 @@ export default function TitleTableModal({ isOpen, onClose, onSave, initialSectio
                         onClick={() => removeSection(si)}
                         className="text-red-500 hover:text-red-700 text-xs cursor-pointer"
                       >
-                        ລົບ
+                        ລຶບ
                       </button>
                     )}
                   </div>
@@ -732,7 +734,7 @@ export default function TitleTableModal({ isOpen, onClose, onSave, initialSectio
                   >+</TBtn>
                   <TBtn
                     onClick={() => hasSelection && removeRowAt(si, selRi)}
-                    title="ລົບແຖວ"
+                    title="ລຶບແຖວ"
                     disabled={!hasSelection || section.cells.length <= 1}
                     danger
                   >−</TBtn>
@@ -745,7 +747,7 @@ export default function TitleTableModal({ isOpen, onClose, onSave, initialSectio
                   >+</TBtn>
                   <TBtn
                     onClick={() => hasSelection && removeColumnAt(si, selCi)}
-                    title="ລົບຄໍລຳ"
+                    title="ລຶບຄໍລຳ"
                     disabled={!hasSelection || section.colCount <= 1}
                     danger
                   >−</TBtn>
@@ -762,7 +764,7 @@ export default function TitleTableModal({ isOpen, onClose, onSave, initialSectio
                   </TBtn>
                   <span className="w-px h-5 bg-gray-300 mx-1" />
                   <TBtn onClick={() => toggleSummaryRow(si)}>
-                    {section.summaryRow ? "⊖ ລົບສະຫຼຸບ" : "⊕ ສະຫຼຸບ"}
+                    {section.summaryRow ? "⊖ ລຶບສະຫຼຸບ" : "⊕ ສະຫຼຸບ"}
                   </TBtn>
                   {section.summaryRow && (
                     <>
@@ -996,7 +998,7 @@ export default function TitleTableModal({ isOpen, onClose, onSave, initialSectio
             danger
             disabled={sections[ctxMenu.si].cells.length <= 1}
           >
-            ລົບແຖວ
+            ລຶບແຖວ
           </CtxItem>
           <CtxItem
             onClick={() => {
@@ -1006,7 +1008,7 @@ export default function TitleTableModal({ isOpen, onClose, onSave, initialSectio
             danger
             disabled={sections[ctxMenu.si].colCount <= 1}
           >
-            ລົບຄໍລຳ
+            ລຶບຄໍລຳ
           </CtxItem>
         </div>
       )}

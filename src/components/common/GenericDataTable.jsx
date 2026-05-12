@@ -176,20 +176,20 @@ const GenericDataTable = memo(forwardRef(function GenericDataTable(
       <ConfirmProgressDialog
         isOpen={deleteDialog.open}
         status={deleteStatus}
-        title="ຢືນຢັນການລົບ"
+        title="ຢືນຢັນການລຶບ"
         message={
           <>
-            ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການລົບ{entityName}{" "}
+            ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການລຶບ{entityName}{" "}
             <span className="font-semibold">
               {deleteDialog.item ? getEntityDisplayName(deleteDialog.item) : ""}
             </span>
             ?
           </>
         }
-        confirmText="ລົບ"
+        confirmText="ລຶບ"
         cancelText="ຍົກເລີກ"
-        loadingMessage="ກຳລັງລົບຂໍ້ມູນ..."
-        successMessage="ລົບຂໍ້ມູນສຳເລັດແລ້ວ"
+        loadingMessage="ກຳລັງລຶບຂໍ້ມູນ..."
+        successMessage="ລຶບຂໍ້ມູນສຳເລັດແລ້ວ"
         onConfirm={handleConfirmDelete}
         onCancel={handleCancelDelete}
         onClose={handleCloseDelete}

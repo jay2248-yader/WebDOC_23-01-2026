@@ -1,4 +1,5 @@
 import cscLogo from "../../assets/Logo/CSC_LOGO_HD.webp";
+import geminiSvg from "../../assets/icon/PageHeader.svg";
 
 export default function PageHeader({ scale = 1 }) {
     return (
@@ -26,12 +27,8 @@ export default function PageHeader({ scale = 1 }) {
                 </div>
 
                 {/* Decorative lines */}
-                <div className="absolute left-0 w-full" style={{ bottom: -8, height: 40 }}>
-                    <svg width="100%" height="100%" viewBox="0 0 800 40"
-                        preserveAspectRatio="none" className="overflow-visible">
-                        <path d="M800 5 L170 5 L140 28 L0 28" stroke="#0F75BC" strokeWidth="3" fill="none" />
-                        <path d="M800 9 L172 9 L142 32 L0 32" stroke="#0F75BC" strokeWidth="2" fill="none" />
-                    </svg>
+                <div className="doc-header-deco absolute left-0 w-full" style={{ bottom: -8, height: 40 }}>
+                    <img src={geminiSvg} alt="" style={{ width: "100%", height: "100%", overflow: "visible" }} />
                 </div>
             </div>
         </div>

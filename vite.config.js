@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
+import { visualizer } from 'rollup-plugin-visualizer'
 import zlib from 'zlib'
 import { readFile, writeFile, readdir, stat } from 'fs/promises'
 import { join } from 'path'
@@ -46,6 +47,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
     compressPlugin(),
+    visualizer({ filename: 'dist/stats.html', open: false, gzipSize: true, brotliSize: true }),
   ],
 
   esbuild: {
@@ -80,5 +82,12 @@ export default defineConfig({
   preview: {
     host: true,
     port: 9005,
+  },
+
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './tests/setup.js',
+    include: ['tests/**/*.{test,spec}.{js,jsx}'],
   },
 })

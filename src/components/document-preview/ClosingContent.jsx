@@ -20,13 +20,15 @@ export default function ClosingContent({
 }) {
     const displayRemark = remarkOverride !== undefined ? remarkOverride : remark;
     const taRef = useRef(null);
+    const readonlyTaRef = useRef(null);
 
     // Auto-resize เมื่อ displayRemark เปลี่ยน (mount / remount / value เปลี่ยนแบบ programmatic)
     useLayoutEffect(() => {
-        const ta = taRef.current;
-        if (!ta) return;
-        ta.style.height = "auto";
-        ta.style.height = ta.scrollHeight + "px";
+        for (const ta of [taRef.current, readonlyTaRef.current]) {
+            if (!ta) continue;
+            ta.style.height = "auto";
+            ta.style.height = ta.scrollHeight + "px";
+        }
     }, [displayRemark]);
 
     return (
@@ -44,13 +46,25 @@ export default function ClosingContent({
                             className="flex-1 border-none outline-none bg-transparent text-gray-800 resize-none overflow-hidden break-all ml-1 print:p-0"
                         />
                     ) : (
-                        <span className="flex-1 ml-1 text-gray-800 whitespace-pre-wrap break-all">{displayRemark}</span>
+                        <textarea
+                            readOnly
+                            ref={readonlyTaRef}
+                            value={displayRemark}
+                            rows={1}
+                            className="flex-1 border-none outline-none bg-transparent text-gray-800 resize-none overflow-hidden break-all ml-1 print:p-0"
+                        />
                     )}
                 </div>
             )}
             {!showLabel && displayRemark && (
                 <div className="flex items-start">
-                    <span className="flex-1 ml-11 text-gray-800 whitespace-pre-wrap break-all">{displayRemark}</span>
+                    <textarea
+                        readOnly
+                        ref={readonlyTaRef}
+                        value={displayRemark}
+                        rows={1}
+                        className="flex-1 ml-11 border-none outline-none bg-transparent text-gray-800 resize-none overflow-hidden break-all print:p-0"
+                    />
                 </div>
             )}
             {showSignature && (

@@ -10,6 +10,7 @@ import { getAllUsers } from "../../services/userservice";
 import { getAllBranches } from "../../services/branchservice";
 import { getAllDepartments } from "../../services/departmentservice";
 import { getAllBoards } from "../../services/boardservice";
+import { useAuthStore } from "../../store/authstore";
 
 export default function DocumentFormModal({
   isOpen,
@@ -20,6 +21,8 @@ export default function DocumentFormModal({
   const reqToRef = useRef(null);
   const reqReasonRef = useRef(null);
   const totalmoneyRef = useRef(null);
+
+  const currentUserId = useAuthStore((s) => s.user?.usid);
 
   const categories = useSelectPagination(getAllDocumentCategories);
   const users = useSelectPagination(getAllUsers);
@@ -83,6 +86,7 @@ export default function DocumentFormModal({
       departmentid: parseInt(data.departmentid),
       boardId: parseInt(data.boardId),
       totalmoney: data.totalmoney ? parseInt(data.totalmoney) : 0,
+      ...(document ? {} : { createby: currentUserId ? parseInt(currentUserId) : undefined }),
     }),
   });
 

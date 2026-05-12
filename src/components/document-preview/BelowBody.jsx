@@ -15,6 +15,8 @@ export default function BelowBody({
     showLabel = true,
     creatorName,
     signatureGroups = [],
+    datatableNote,
+    setDatatableNote,
 }) {
     const sectionsToRender = partialSections !== null ? partialSections : titleTableSections;
     const showPlaceholder = titleTableSections.length === 0;
@@ -29,11 +31,11 @@ export default function BelowBody({
             </div>
             {showClosing && (
                 <ClosingContent
-                    remark={remark}
-                    setRemark={setRemark}
-                    storeKey={storeKey}
-                    storeSetRemark={storeSetRemark}
-                    interactive={interactive}
+                    remark={datatableNote !== undefined ? datatableNote : remark}
+                    setRemark={setDatatableNote || setRemark}
+                    storeKey={setDatatableNote ? null : storeKey}
+                    storeSetRemark={setDatatableNote ? null : storeSetRemark}
+                    interactive={setDatatableNote ? interactive : (datatableNote === undefined ? interactive : false)}
                     remarkOverride={remarkOverride}
                     showSignature={showSignature}
                     showLabel={showLabel}

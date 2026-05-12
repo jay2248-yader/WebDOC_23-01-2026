@@ -2,19 +2,14 @@ import mapRoundIcon from "../../assets/icon/map-round-svgrepo-com.svg";
 import facebookIcon from "../../assets/icon/facebook-brands-solid-full.svg";
 import footerCallIcon from "../../assets/icon/Footercall.svg";
 import museumIcon from "../../assets/icon/MuseumExhibition.svg";
+import pageFooterSvg from "../../assets/icon/PageFooter.svg";
 
 export default function PageFooter({ scale = 1 }) {
     return (
         <div className="doc-footer w-full" style={{ transformOrigin: "bottom center", transform: `scaleY(${scale})` }}>
             <div className="h-30 w-full relative">
-                <div className="absolute bottom-0 left-0 w-full h-full z-0 pointer-events-none">
-                    <svg width="100%" height="100%" viewBox="0 0 800 120"
-                        preserveAspectRatio="none" className="overflow-visible">
-                        <path d="M0 45 L500 45 C580 45 620 45 640 25 C660 5 660 0 680 0 L800 0"
-                            stroke="#0F75BC" strokeWidth="8" fill="none" />
-                        <path d="M0 60 L500 60 C580 60 620 60 645 40 C665 23 665 15 680 15 L800 15 L800 120 L0 120 Z"
-                            fill="#0F75BC" />
-                    </svg>
+                <div className="doc-footer-bg absolute bottom-6 left-0 w-full h-full z-0 pointer-events-none">
+                    <img src={pageFooterSvg} alt="" style={{ width: "100%", height: "130%", overflow: "visible" }} />
                 </div>
                 <div className="relative z-10 flex justify-between px-16 pt-2 pb-6 text-[#0F75BC]">
                     <div className="flex -ml-2 items-center gap-2">
@@ -26,7 +21,7 @@ export default function PageFooter({ scale = 1 }) {
                         <span className="text-sm font-semibold">csc complex center Co.,Ltd</span>
                     </div>
                 </div>
-                <div className="absolute bottom-0 left-0 right-0 z-10 flex justify-between px-16 text-white pb-2 items-end">
+                <div className="absolute -bottom-1 left-0 right-0 z-10 flex justify-between px-16 text-white pb-2 items-end">
                     <div className="flex items-end gap-3">
                         <div className="rounded-full">
                             <img src={mapRoundIcon} alt="Location" width="35" height="35"

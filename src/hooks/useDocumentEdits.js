@@ -17,7 +17,6 @@ export function useDocumentEdits(rqdid, docData) {
   const syncedRef = useRef(false);
   useEffect(() => {
     if (!rqdid || syncedRef.current || !storeEdit) return;
-    /* eslint-disable react-hooks/set-state-in-effect */
     if (storeEdit.reqTo !== undefined) setReqTo(storeEdit.reqTo);
     if (storeEdit.reqReason !== undefined) setReqReason(storeEdit.reqReason);
     if (storeEdit.references !== undefined) setReferences(storeEdit.references);
@@ -26,7 +25,6 @@ export function useDocumentEdits(rqdid, docData) {
     if (storeEdit.titleTableSections !== undefined) setTitleTableSections(storeEdit.titleTableSections);
     if (storeEdit.extraPages !== undefined) setExtraPages(storeEdit.extraPages);
     syncedRef.current = true;
-    /* eslint-enable react-hooks/set-state-in-effect */
   }, [rqdid, storeEdit]);
 
   return {

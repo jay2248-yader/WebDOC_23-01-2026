@@ -9,6 +9,9 @@ export function useDocumentPagination({
     headerHeight = HEADER_HEIGHT_PX,
     footerHeight = FOOTER_HEIGHT_PX,
     visible = true,
+    // Extra deps ที่กระทบความสูง body/header แต่ไม่ใช่ค่า bodyParagraph โดยตรง
+    // (เช่น forsItems / datatableHeaders.details ในโหมด datatable)
+    extraLayoutDeps = [],
 }) {
     const [bodyChunks, setBodyChunks] = useState(() => [bodyParagraph || ""]);
     const [tablePageChunks, setTablePageChunks] = useState([]);
@@ -40,6 +43,7 @@ export function useDocumentPagination({
         const page1El = page1Ref.current;
         const body1Ta = body1Ref.current;
         const measureDiv = measureRef.current;
+        console.log("[pagination] recalcChunks called. page1El:", !!page1El, "body1Ta:", !!body1Ta, "measureDiv:", !!measureDiv);
         if (!page1El || !body1Ta || !measureDiv) return;
 
         const currentBodyParagraph = bodyParagraphRef.current;
@@ -64,6 +68,7 @@ export function useDocumentPagination({
         const availP1WithBelow = contentAreaHeight - bodyTopInContent - belowBodyHeight;
         const availP1BodyOnly = contentAreaHeight - bodyTopInContent;
         const availOverflow = contentAreaHeight - 40;
+        console.log("[pagination] dimensions: contentAreaHeight:", Math.round(contentAreaHeight), "bodyTopInContent:", Math.round(bodyTopInContent), "availP1BodyOnly:", Math.round(availP1BodyOnly), "header:", headerHeightRef.current, "footer:", footerHeightRef.current);
 
         // ── ล็อก measurement width เป็น 174mm (content area) ──
         const contentWidthMm = 174;
@@ -195,10 +200,22 @@ export function useDocumentPagination({
         };
 
         // ── Main body splitting logic ──
-        if (!text) { setBodyChunks([""]); setTablePageChunks([]); setRemarkChunks(null); return; }
+        // วัด body จริง (รองรับโหมด datatable ที่ body เป็น div ของ details ไม่ใช่ bodyParagraph)
+        const bodyActualHForCheck = body1Ta.offsetHeight || body1Ta.getBoundingClientRect().height || 0;
 
-        const fullHeight = measureHeight(text);
-        if (fullHeight <= availP1WithBelow) { setBodyChunks([text]); setTablePageChunks([]); setRemarkChunks(null); return; }
+        const fullHeight = text ? measureHeight(text) : 0;
+        if (!text && currentTitleTableSections.length === 0) {
+            // ไม่มี text/table แต่ remark อาจยาว → ต้องเช็ค closing height ก่อน early return
+            const closingElEarly = closingMeasureRef.current;
+            const closingHEarly = closingElEarly ? closingElEarly.scrollHeight : 0;
+            const availForClosing = availP1BodyOnly - bodyActualHForCheck;
+            if (closingHEarly <= availForClosing) {
+                setBodyChunks([""]); setTablePageChunks([]); setRemarkChunks(null); return;
+            }
+            // ไหลผ่านไป body-only path ด้านล่างเพื่อ split remark
+        } else if (text && fullHeight <= availP1WithBelow) {
+            setBodyChunks([text]); setTablePageChunks([]); setRemarkChunks(null); return;
+        }
 
         const chunks = [];
         let cursor = 0;
@@ -233,12 +250,17 @@ export function useDocumentPagination({
 
         if (currentTitleTableSections.length === 0) {
             const lastText = chunks[chunks.length - 1] || "";
-            const lastTextH = lastText ? measureHeight(lastText) : 0;
+            // ใช้ bodyActualH เป็น minimum height ของ body (สำหรับโหมด datatable ที่ body เป็น div ของ details)
+            const lastTextH = Math.max(lastText ? measureHeight(lastText) : 0, chunks.length === 1 ? bodyActualHForCheck : 0);
             const lastPageAvail = chunks.length === 1 ? availP1BodyOnly : availOverflow;
             const spaceLeft = lastPageAvail - lastTextH;
             const freshPageAvail = availOverflow;
+            // belowBodyHeight = TitleTablePlaceholder + ClosingContent (จาก clone) — ใช้แทน closingHeight
+            // เพราะ BelowBody render ทั้งสองส่วนใน real DOM (page 1 และ overflow pages)
+            const effectiveClosingH = Math.max(closingHeight, belowBodyHeight);
+            console.log("[pagination] body-only path: closingH:", closingHeight, "belowH:", belowBodyHeight, "effective:", effectiveClosingH, "spaceLeft:", Math.round(spaceLeft), "freshAvail:", Math.round(freshPageAvail), "currentRemark.len:", currentRemark.length, "bodyActualH:", bodyActualHForCheck);
 
-            if (closingHeight <= spaceLeft) {
+            if (effectiveClosingH <= spaceLeft) {
                 // Closing พอดี → ไม่ต้อง split
                 setBodyChunks(chunks);
                 setTablePageChunks([]);
@@ -246,7 +268,7 @@ export function useDocumentPagination({
                 return;
             }
 
-            if (closingHeight <= freshPageAvail) {
+            if (effectiveClosingH <= freshPageAvail) {
                 // Closing พอดีหน้าใหม่ → ดันไปหน้าใหม่
                 if (chunks[chunks.length - 1] !== "") chunks.push("");
                 setBodyChunks(chunks);
@@ -264,6 +286,7 @@ export function useDocumentPagination({
         }
 
         // ── Table section chunking ──
+        console.log("[pagination] entering table chunking. sections:", currentTitleTableSections.length, "bodyChunks:", chunks.length);
         const ITEM_BUFFER = 4;
         const getElemH = (el) => el ? (el.offsetHeight || el.getBoundingClientRect().height || el.scrollHeight) + ITEM_BUFFER : 24;
         const belowEl = belowBodyMeasureRef.current;
@@ -278,10 +301,25 @@ export function useDocumentPagination({
                 const el = belowEl?.querySelector(`[data-measure-item="title-${si}"]`);
                 items.push({ type: 'title', si, text: section.title, height: getElemH(el) });
             }
+
+            // วัด row heights — ถ้า sum ของ rows น้อยกว่า table height จริง ใช้ ratio ปรับ
+            const sectionRowItems = [];
             for (let ri = 0; ri < (section.cells || []).length; ri++) {
                 const el = belowEl?.querySelector(`tr[data-measure-item="row-${si}-${ri}"]`);
-                items.push({ type: 'row', si, ri, data: section.cells[ri], height: getElemH(el) });
+                const rowH = getElemH(el);
+                sectionRowItems.push({ type: 'row', si, ri, data: section.cells[ri], height: rowH });
             }
+            // หา parent table ของ section นี้แล้ววัด offsetHeight ของ table จริง
+            const firstRowEl = belowEl?.querySelector(`tr[data-measure-item="row-${si}-0"]`);
+            const tableEl = firstRowEl?.closest('table');
+            const tableActualH = tableEl ? (tableEl.offsetHeight || tableEl.getBoundingClientRect().height) : 0;
+            const rowsSumH = sectionRowItems.reduce((s, r) => s + r.height, 0);
+            if (tableActualH > rowsSumH && rowsSumH > 0) {
+                const ratio = tableActualH / rowsSumH;
+                sectionRowItems.forEach(r => { r.height = r.height * ratio; });
+            }
+            items.push(...sectionRowItems);
+
             if (section.summaryRow) {
                 const el = belowEl?.querySelector(`tr[data-measure-item="summary-${si}"]`);
                 items.push({ type: 'summary', si, data: section.summaryRow, height: getElemH(el) });
@@ -290,13 +328,26 @@ export function useDocumentPagination({
 
         const PAGE_BUFFER = 4;
         const lastBodyText = chunks[chunks.length - 1] || "";
-        const lastBodyH = lastBodyText ? measureHeight(lastBodyText) : 0;
+        // วัด height จริงของ body element (รองรับ datatableHeaders block ที่ไม่ใช่ textarea)
+        const bodyActualH = body1Ta.offsetHeight || body1Ta.getBoundingClientRect().height || 0;
+        const lastBodyH = lastBodyText ? Math.max(measureHeight(lastBodyText), bodyActualH) : bodyActualH;
         const lastBodyPageAvail = chunks.length === 1 ? availP1BodyOnly : availOverflow;
         const spaceOnFirstTablePage = lastBodyPageAvail - lastBodyH - PAGE_BUFFER;
+        console.log("[pagination] body sizing: lastBodyText:", lastBodyText.length, "measuredH:", lastBodyText ? measureHeight(lastBodyText) : 0, "bodyActualH:", bodyActualH, "→ lastBodyH:", lastBodyH);
 
         const totalBelowH = belowBodyHeight;
 
-        if (totalBelowH <= spaceOnFirstTablePage) {
+        const itemsTotalH = items.reduce((s, i) => s + i.height, 0);
+        // belowBodyHeight วัดจาก clone ที่ render BelowBody (TitleTable + Closing) — ลบ closing ออกเพื่อให้เหลือเฉพาะ titleTable
+        const titleTableActualH = Math.max(itemsTotalH, totalBelowH - closingHeight);
+        // ใช้ scale factor เพื่อปรับ items heights ให้ match กับ actual rendered height (clone อาจวัดได้น้อยกว่าจริง)
+        const scaleFactor = itemsTotalH > 0 ? titleTableActualH / itemsTotalH : 1;
+        if (scaleFactor > 1) {
+            items.forEach(item => { item.height = item.height * scaleFactor; });
+        }
+        console.log("[pagination] totalBelowH:", totalBelowH, "itemsTotalH:", itemsTotalH, "titleTableActualH:", titleTableActualH, "scaleFactor:", scaleFactor.toFixed(2), "spaceOnFirstTablePage:", Math.round(spaceOnFirstTablePage), "availOverflow:", Math.round(availOverflow), "items:", items.length, "closingH:", closingHeight);
+
+        if (titleTableActualH + closingHeight <= spaceOnFirstTablePage) {
             setBodyChunks(chunks);
             setTablePageChunks([]);
             setRemarkChunks(null);
@@ -325,6 +376,8 @@ export function useDocumentPagination({
             }
         }
         if (curItems.length > 0) tableChunksItems.push([...curItems]);
+
+        console.log("[pagination] split into", tableChunksItems.length, "table chunks, sizes:", tableChunksItems.map(c => c.length).join(","), "heights:", tableChunksItems.map(c => Math.round(c.reduce((s, i) => s + i.height, 0))).join(","));
 
         const lastTableChunkH = tableChunksItems[tableChunksItems.length - 1]?.reduce((s, i) => s + i.height, 0) || 0;
         const lastTablePageAvail = tableChunksItems.length === 1 ? spaceOnFirstTablePage : (availOverflow - PAGE_BUFFER);
@@ -401,7 +454,8 @@ export function useDocumentPagination({
             if (!cancelled) id = setTimeout(recalcChunks, 0);
         });
         return () => { cancelled = true; clearTimeout(id); };
-    }, [recalcChunks, bodyParagraph, titleTableSections, reqTo, reqReason, references, remark, headerHeight, footerHeight]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [recalcChunks, bodyParagraph, titleTableSections, reqTo, reqReason, references, remark, headerHeight, footerHeight, ...extraLayoutDeps]);
 
     return {
         bodyChunks,

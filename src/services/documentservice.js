@@ -65,6 +65,73 @@ export async function uploadDocumentFile(file, rddid, rqdid) {
   return json;
 }
 
+//Get datatable header list
+export async function getDatatableHeaders(rqdid) {
+  const res = await http.get(ENDPOINTS.DOCUMENTS.GET_DATATABLE_HEADER, { params: { rqdid } });
+
+  if (!res.data?.success) {
+    throw new Error(res.data?.message || "Failed to get datatable headers");
+  }
+
+  return res.data?.data_id ?? [];
+}
+
+//Add datatable header
+export async function addDatatableHeader(payload) {
+  const res = await http.post(ENDPOINTS.DOCUMENTS.ADD_DATATABLE_HEADER, payload);
+
+  if (!res.data?.success) {
+    throw new Error(res.data?.message || "Failed to add datatable header");
+  }
+
+  return res.data;
+}
+
+//Update datatable header
+export async function updateDatatableHeader(payload) {
+  const res = await http.put(ENDPOINTS.DOCUMENTS.UPDATE_DATATABLE_HEADER, payload);
+
+  if (!res.data?.success) {
+    throw new Error(res.data?.message || "Failed to update datatable header");
+  }
+
+  return res.data;
+}
+
+//Get datatable list by rqdid
+export async function getDatatables(rqdid) {
+  const res = await http.get(ENDPOINTS.DOCUMENTS.GET_DATATABLE, { params: { rqdid } });
+
+  if (!res.data?.success) {
+    throw new Error(res.data?.message || "Failed to get datatables");
+  }
+
+  console.log("[getDatatables] raw data_id:", res.data?.data_id);
+  return res.data?.data_id ?? [];
+}
+
+//Add datatable (table with headers and rows)
+export async function addDatatable(payload) {
+  const res = await http.post(ENDPOINTS.DOCUMENTS.ADD_DATATABLE, payload);
+
+  if (!res.data?.success) {
+    throw new Error(res.data?.message || "Failed to add datatable");
+  }
+
+  return res.data;
+}
+
+//Update datatable (table with headers and rows) by id
+export async function updateDatatable(payload) {
+  const res = await http.put(ENDPOINTS.DOCUMENTS.UPDATE_DATATABLE, payload);
+
+  if (!res.data?.success) {
+    throw new Error(res.data?.message || "Failed to update datatable");
+  }
+
+  return res.data;
+}
+
 //Success Finished
 export async function successFinishedDocument(rqdid) {
   const res = await http.put(ENDPOINTS.DOCUMENTS.SUCCESS_FINISHED, { rqdid });

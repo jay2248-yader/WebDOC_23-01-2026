@@ -121,7 +121,7 @@ export default function DocumentCategoryDetailPage() {
       setLoading(false);
       setHasLoadedGroups(true);
     }
-  }, [category?.dctid]);
+  }, [category.dctid]);
 
   useEffect(() => {
     if (!category?.dctid) return;
@@ -140,7 +140,7 @@ export default function DocumentCategoryDetailPage() {
         setHasLoadedGroups(true);
       });
     return () => controller.abort();
-  }, [category?.dctid]);
+  }, [category.dctid]);
 
   // Group CRUD
   const openCreateGroup = () => setGroupModal({ open: true, editing: null });
@@ -364,7 +364,7 @@ export default function DocumentCategoryDetailPage() {
                   </div>
                   <div className="flex gap-1 shrink-0">
                     <IconBtn tone="blue" title="ແກ້ໄຂ" onClick={() => openEditGroup(g)}>{EditIcon}</IconBtn>
-                    <IconBtn tone="red" title="ລົບ" onClick={() => requestDelete("group", g)}>{TrashIcon}</IconBtn>
+                    <IconBtn tone="red" title="ລຶບ" onClick={() => requestDelete("group", g)}>{TrashIcon}</IconBtn>
                   </div>
                 </div>
               );
@@ -415,8 +415,8 @@ export default function DocumentCategoryDetailPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                     </svg>
                     <div className="leading-relaxed">
-                      <div className="font-bold">ບໍ່ສາມາດລົບກຸ່ມ &quot;{blockedGroup.name}&quot; ໄດ້</div>
-                      <div>ກະລຸນາລົບລາຍລະອຽດທັງໝົດ ({blockedGroup.count} ລາຍການ) ດ້ານລຸ່ມກ່ອນ ຈຶ່ງຈະສາມາດລົບກຸ່ມນີ້ໄດ້</div>
+                      <div className="font-bold">ບໍ່ສາມາດລຶບກຸ່ມ &quot;{blockedGroup.name}&quot; ໄດ້</div>
+                      <div>ກະລຸນາລຶບລາຍລະອຽດທັງໝົດ ({blockedGroup.count} ລາຍການ) ດ້ານລຸ່ມກ່ອນ ຈຶ່ງຈະສາມາດລຶບກຸ່ມນີ້ໄດ້</div>
                     </div>
                   </div>
                 )}
@@ -469,7 +469,7 @@ export default function DocumentCategoryDetailPage() {
                         )}
                         <div className="flex gap-1">
                           <IconBtn tone="blue" title="ແກ້ໄຂ" onClick={() => openEditDetail(d)}>{EditIcon}</IconBtn>
-                          <IconBtn tone="red" title="ລົບ" onClick={() => requestDelete("detail", d)}>{TrashIcon}</IconBtn>
+                          <IconBtn tone="red" title="ລຶບ" onClick={() => requestDelete("detail", d)}>{TrashIcon}</IconBtn>
                         </div>
                       </div>
                     </div>
@@ -511,15 +511,15 @@ export default function DocumentCategoryDetailPage() {
         isOpen={confirmDel.open}
         status={confirmDel.status}
         danger
-        title="ຢືນຢັນການລົບ"
+        title="ຢືນຢັນການລຶບ"
         message={
           confirmDel.kind === "group"
-            ? `ທ່ານຕ້ອງການລົບກຸ່ມ "${confirmDel.item?.docgroupname || ""}" ແທ້ບໍ?`
-            : `ທ່ານຕ້ອງການລົບລາຍລະອຽດ "${confirmDel.item?.detailsinfo || ""}" ແທ້ບໍ?`
+            ? `ທ່ານຕ້ອງການລຶບກຸ່ມ "${confirmDel.item?.docgroupname || ""}" ແທ້ບໍ?`
+            : `ທ່ານຕ້ອງການລຶບລາຍລະອຽດ "${confirmDel.item?.detailsinfo || ""}" ແທ້ບໍ?`
         }
-        confirmText="ລົບ"
-        loadingMessage="ກຳລັງລົບ..."
-        successMessage="ລົບສຳເລັດ"
+        confirmText="ລຶບ"
+        loadingMessage="ກຳລັງລຶບ..."
+        successMessage="ລຶບສຳເລັດ"
         onConfirm={confirmDelete}
         onCancel={cancelDelete}
         onClose={cancelDelete}

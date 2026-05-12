@@ -45,7 +45,7 @@ export default function ExtraPages({
                   onClick={() => persist(extraPages.filter((_, i) => i !== idx))}
                   className="text-red-400 hover:text-red-600 text-sm print:hidden"
                 >
-                  ລົບໜ້ານີ້
+                  ລຶບໜ້ານີ້
                 </button>
               </div>
               <div className="text-sm text-gray-800 leading-relaxed">

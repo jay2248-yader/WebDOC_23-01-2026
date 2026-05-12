@@ -46,7 +46,7 @@ export default function useLogin() {
   []);
 
   const handlePasswordChange = useMemo(() =>
-    createInputHandler(setPassword, { maxLength: 20, alphanumericOnly: true }),
+    createInputHandler(setPassword, { maxLength: 20, alphanumericOnly: false }),
   []);
 
   // ฟังก์ชันจัดการเมื่อกด Enter ที่ช่อง Employee ID
